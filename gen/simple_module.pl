@@ -10,7 +10,7 @@ sub gen{
     my $header .= << "EOF";
     MODULE UTIL_$module_name
     USE $module_name
-    INTEGER :: CHECK_REF = 1234567890
+    INTEGER :: CHECK_REF = 123456789
     CONTAINS
 EOF
 
@@ -21,6 +21,7 @@ EOF
 
     my $sub_save = "
     SUBROUTINE SAVE_$module_name(FH)
+    IMPLICIT NONE
     INTEGER, INTENT(IN) :: FH
     WRITE(FH) CHECK_REF
 $write_stmts
@@ -34,13 +35,14 @@ $write_stmts
 
     my $sub_load = "
     SUBROUTINE LOAD_$module_name(FH)
+    IMPLICIT NONE
     INTEGER, INTENT(IN) :: FH
     INTEGER :: CHECK
     READ(FH) CHECK
-    IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,\"WRONG CONTROL NUMBER\",CHECK
+    IF(CHECK /= CHECK_REF)WRITE(*,*)__LINE__,__FILE__,\"WRONG CONTROL NUMBER\",CHECK
 $read_stmts
     READ(FH) CHECK
-    IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,\"WRONG CONTROL NUMBER\",CHECK
+    IF(CHECK /= CHECK_REF)WRITE(*,*)__LINE__,__FILE__,\"WRONG CONTROL NUMBER\",CHECK
     END SUBROUTINE LOAD_$module_name\n";
 
     my $footer = "END MODULE UTIL_$module_name";

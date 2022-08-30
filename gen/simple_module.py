@@ -16,6 +16,7 @@ def gen(module_name, module_vars):
 
     sub_save = f'''
     SUBROUTINE SAVE_{module_name}(FH)
+    IMPLICIT NONE
     INTEGER, INTENT(IN) :: FH
     WRITE(FH) CHECK_REF
 {write_stmts}
@@ -28,13 +29,14 @@ def gen(module_name, module_vars):
     
     sub_load = f'''
     SUBROUTINE LOAD_{module_name}(FH)
+    IMPLICIT NONE
     INTEGER, INTENT(IN) :: FH
     INTEGER :: CHECK
     READ(FH) CHECK
-    IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,\"WRONG CONTROL NUMBER\",CHECK
+    IF(CHECK /= CHECK_REF)WRITE(*,*)__LINE__,__FILE__,\"WRONG CONTROL NUMBER\",CHECK
 {read_stmts}
     READ(FH) CHECK
-    IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,\"WRONG CONTROL NUMBER\",CHECK
+    IF(CHECK /= CHECK_REF)WRITE(*,*)__LINE__,__FILE__,\"WRONG CONTROL NUMBER\",CHECK
     END SUBROUTINE LOAD_{module_name}'''
 
     footer=f'''END MODULE UTIL_{module_name}'''
