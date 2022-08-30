@@ -2,62 +2,13 @@
 !-----------------------------------------------------------------
 SUBROUTINE WRAP_ACVPPKF(NSTEPMAX, NPROMA, LAST_BLK_NPROMA, NFLEV, NBLKS)
 
-!-----------------------------------------------------------------
-
-!  Authors  : E. Bazile and P. Bechtold  (CNRM/GMAP et L.A.)
-
-!-----------------------------------------------------------------
-
-!  Modified : 
-!  05/2002    phased with CONVECTION call for IFS/ECMWF 
-!            (routine cucalln.F90 calling both Tiedtke convection scheme
-!             and present scheme)
-!             ouput of present scheme (updraft QL and QV) provides also
-!             necessary parameters for Tiedtke prognostic cloud scheme
-!  03/2002  P. Marquet.  new  ZFHMLTS, ZFHEVPP in CPFHPRS (for Lopez)
-!  03/2002  P. Marquet.  new  LKFDEEP, LKFSHAL
-!  03/2002  P. Marquet.  "call deep_convection" 
-!                      > "call convection" (deep + shallow)
-!  09/2006  E. Bazile : Appel de la routine de shallow convection d'AROME
-!                       uniquement
-!  04/2008  E. Bazile : calcul du terme de production thermique PPROTH
-!  10/2008  Y. Bouteloup & F. Bouyssel : Correction of bugs in initialization
-!  07/2009  E. Bazile : TKE en entree de KFB et W fct de W_conv
-!  K. Yessad (Jul 2009): remove CDLOCK + some cleanings
-!  10/2009  F. Bouyssel : Limitation on maximal TKE value
-!  02/2010  E. Bazile : Correction for W without TKE scheme.
-!  04/2010  F. Bouyssel : Bug correction on KNLAB computation
-!  09/2010  O. Spaniel : Bug correction in expression SQRT(MIN)
-!  04/2011  F. Bouyssel : Correction of a jlon loop (kidia,kfdia)
-!  12/2012  E. Bazile   : Modif of W_turb and qc and cc fct of mass flux.
-!     R. El Khatib 22-Jun-2022 A contribution to simplify phasing after the refactoring of YOMCLI/YOMCST/YOETHF.
-
-!  Peter.Bechtold@ecmwf.int
-
-! Sequence de  routines :
-! aplpar > acvppkf > convection_shal
-
-! iv)  Momentum transport:
-!      Option LLUVTRANS: c'est possible d'utiliser maintenant
-!           mais pas encore bien teste. Donc par defaut mettre
-!           LLUVTRANS=.FALSE.
-
-! vi)   Traceurs passifs - chimie: 
-!      Cette partie est utilisee uniquement dans MOCAGE et dans MESONH
-!      Si on ne veut pas de transport de traceurs (ex. Ozone,CO) dans 
-!      ARPEGE/ECMWF IFS, mettre tout siplement OCHTRANS=FALSE et KCH1=0 
-!      (nombre de traceurs). PCH1 (traceur) et PCH1TEN (tendance 
-!      convective du traceur) ont alors les dimensions
-!      (KLON,KLEV,KCH1=0) qui ne prennent pas de place.
-
-!-----------------------------------------------------------------
-
 USE MODEL_PHYSICS_MF_MOD , ONLY : MODEL_PHYSICS_MF_TYPE
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 USE YOMCST  , ONLY :  TCST
 USE YOMCT3               , ONLY : NSTEP
 USE UTIL_TCST_MOD
 USE UTIL_MODEL_PHYSICS_MF_TYPE_MOD
+USE YOMLSFORC, ONLY :LMUSCLFA, NMUSCLFA
 !-----------------------------------------------------------------
 
 IMPLICIT NONE
@@ -124,10 +75,21 @@ REAL(KIND=JPRB), ALLOCATABLE    :: PNEBPP (:,:)
 INTEGER(KIND=JPIM), ALLOCATABLE :: KNLAB  (:,:)
 INTEGER(KIND=JPIM), ALLOCATABLE :: KNND   (:)
 
-INTEGER :: FH, CHECK
+REAL(KIND=JPRB), ALLOCATABLE    :: ORI_PDIFCQ (:,:) 
+REAL(KIND=JPRB), ALLOCATABLE    :: ORI_PDIFCS (:,:) 
+REAL(KIND=JPRB), ALLOCATABLE    :: ORI_PFCCQL (:,:) 
+REAL(KIND=JPRB), ALLOCATABLE    :: ORI_PFCCQN (:,:) 
+REAL(KIND=JPRB), ALLOCATABLE    :: ORI_PPRODTH(:,:)
+REAL(KIND=JPRB), ALLOCATABLE    :: ORI_PQCPP  (:,:)
+REAL(KIND=JPRB), ALLOCATABLE    :: ORI_PNEBPP (:,:)
+INTEGER(KIND=JPIM), ALLOCATABLE :: ORI_KNLAB  (:,:) 
+INTEGER(KIND=JPIM), ALLOCATABLE :: ORI_KNND   (:) 
+
+INTEGER :: FH, CHECK, I, J
 INTEGER, PARAMETER :: CHECK_VAL = 123456789
 
 #include "acvppkf.intfb.h"
+
 KLON=NPROMA
 KLEV=NFLEV
 
@@ -154,10 +116,21 @@ ALLOCATE(PNEBPP (KLON,KLEV))
 ALLOCATE(KNLAB  (KLON,KLEV))
 ALLOCATE(KNND   (KLON))
 
+ALLOCATE(ORI_PDIFCQ (KLON,0:KLEV))
+ALLOCATE(ORI_PDIFCS (KLON,0:KLEV))
+ALLOCATE(ORI_PFCCQL (KLON,0:KLEV))
+ALLOCATE(ORI_PFCCQN (KLON,0:KLEV))
+ALLOCATE(ORI_PPRODTH(KLON,0:KLEV))
+ALLOCATE(ORI_PQCPP  (KLON,KLEV))
+ALLOCATE(ORI_PNEBPP (KLON,KLEV))
+ALLOCATE(ORI_KNLAB  (KLON,KLEV))
+ALLOCATE(ORI_KNND   (KLON))
 
 OPEN (NEWUNIT=FH, FILE="DATA/ACVPPKF.IN.DAT", ACTION="READ", ACCESS="STREAM")
 READ(FH)CHECK
 IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,"WRONG CONTROL NUMBER",CHECK
+READ(FH)LMUSCLFA
+READ(FH)NMUSCLFA
 CALL LOAD (FH, YDCST)
 CALL LOAD (FH, YDML_PHY_MF)
 READ(FH) KIDIA
@@ -196,5 +169,36 @@ CALL ACVPPKF(YDCST,YDML_PHY_MF, KIDIA, KFDIA, KLON, KTDIA, KLEV,  &
 & PDIFCQ, PDIFCS, PFCCQL, PFCCQN, PPRODTH, KNLAB, PQCPP, PNEBPP,                       &
 & KNND)
 
+OPEN (NEWUNIT=FH, FILE="DATA/ACVPPKF.OUT.DAT", ACTION="READ", ACCESS="STREAM")
+READ(FH)CHECK
+IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,"WRONG CONTROL NUMBER",CHECK
+READ(FH)ORI_PDIFCQ 
+READ(FH)ORI_PDIFCS 
+READ(FH)ORI_PFCCQL 
+READ(FH)ORI_PFCCQN 
+READ(FH)ORI_PPRODTH
+READ(FH)ORI_PQCPP  
+READ(FH)ORI_PNEBPP 
+READ(FH)ORI_KNLAB  
+READ(FH)ORI_KNND   
+READ(FH)CHECK
+IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,"WRONG CONTROL NUMBER",CHECK
+CLOSE(FH)
+
+DO I=0,KLEV
+  DO J=1,KLON
+    IF(ORI_PDIFCQ(J,I) /= PDIFCQ(J,I))WRITE(*,*)"ERROR IN ORI_PDIFCQ",ORI_PDIFCQ(J,I),PDIFCQ(J,I)
+    IF(ORI_PDIFCS(J,I) /= PDIFCS(J,I))WRITE(*,*)"ERROR IN ORI_PDIFCS"
+    IF(ORI_PFCCQL(J,I) /= PFCCQL(J,I))WRITE(*,*)"ERROR IN ORI_PFCCQL"
+    IF(ORI_PFCCQN(J,I) /= PFCCQN(J,I))WRITE(*,*)"ERROR IN ORI_PFCCQN"
+    IF(ORI_PPRODTH(J,I) /= PPRODTH(J,I))WRITE(*,*)"ERROR IN ORI_PPRODTH"
+    IF(I>0)THEN
+      IF(ORI_PQCPP(J,I) /= PQCPP(J,I))WRITE(*,*)"ERROR IN ORI_PQCPP"
+      IF(ORI_PNEBPP(J,I) /= PNEBPP(J,I))WRITE(*,*)"ERROR IN ORI_PNEBPP"
+      IF(ORI_KNLAB(J,I) /= KNLAB(J,I))WRITE(*,*)"ERROR IN ORI_KNLAB"
+      IF(ORI_KNND(J) /= KNND(J))WRITE(*,*)"ERROR IN ORI_KNND"
+    ENDIF
+  ENDDO
+ENDDO
 
 END SUBROUTINE WRAP_ACVPPKF
