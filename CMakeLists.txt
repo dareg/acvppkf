@@ -11,7 +11,7 @@ if(NOT OpenMP_Fortran_FOUND)
   MESSAGE(FATAL_ERROR "Could not find OpenMP support.")
 endif()
 
-add_compile_options(-convert big_endian -assume byterecl -align array64byte,all -traceback -fpic -qopenmp -qopenmp-threadprivate compat -fp-model source -qopt-report=5 -qopt-report-phase=vec -ftz -diag-disable=remark,cpu-dispatch -free  -DLINUX -DLITTLE_ENDIAN -DLITTLE -DADDRESS64 -DGRIB_API_1 -g -O2 -march=core-avx2 -finline-functions -finline-limit=500 -Winline -qopt-prefetch=4 -fast-transcendentals -fimf-use-svml -no-fma -list -show nomap -qopenmp -check bounds)
+add_compile_options(-convert big_endian -assume byterecl -align array64byte,all -traceback -fpic -qopenmp -qopenmp-threadprivate compat -fp-model source -qopt-report=5 -qopt-report-phase=vec -ftz -diag-disable=remark,cpu-dispatch -free  -DLINUX -DLITTLE_ENDIAN -DLITTLE -DADDRESS64 -DGRIB_API_1 -g -O2 -march=core-avx2 -finline-functions -finline-limit=500 -Winline -qopt-prefetch=4 -fast-transcendentals -fimf-use-svml -no-fma -list -show nomap -r8 -check all)
 
 set(SRC
 src/acvppkf.F90
@@ -39,6 +39,7 @@ src/parkind1.F90
 src/posnam.F90
 src/posname.F90
 src/shallow_convection.F90
+src/util_modd_convpar_shal.F90
 src/util_model_physics_mf_type_mod.F90
 src/util_sl_struct_mod.F90
 src/util_tarphy_mod.F90
