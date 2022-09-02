@@ -187,86 +187,86 @@ DO NSTEP=1,NSTEPMAX
   READ(FH_OUT)CHECK
   IF(CHECK /= CHECK_VAL)WRITE(*,*)__LINE__,"WRONG CONTROL NUMBER",CHECK
   
-  ENDDO
-  CLOSE(FH_IN)
-  CLOSE(FH_OUT)
+ENDDO
+CLOSE(FH_IN)
+CLOSE(FH_OUT)
 
 
-  DO NSTEP=1,NSTEPMAX
-    WRITE(*,*)"NSTEP:",NSTEP
+DO NSTEP=1,NSTEPMAX
+  WRITE(*,*)"NSTEP:",NSTEP
 
-    DO K=1,NBLKS
-      IF(K==NBLKS)THEN
-              BLK_SIZE = LAST_BLK_NPROMA
-      ELSE
-              BLK_SIZE = NPROMA
-      ENDIF
-      DO J=0,KLEV
-        DO I=1,BLK_SIZE
-          IF (J>0)THEN
-            PAPRSF (I,J,K)=PAPRSF_BUF (I+(K-1)*NPROMA,J,NSTEP)
-            PAPHIF (I,J,K)=PAPHIF_BUF (I+(K-1)*NPROMA,J,NSTEP)
-            PDELP  (I,J,K)=PDELP_BUF  (I+(K-1)*NPROMA,J,NSTEP)
-            PR     (I,J,K)=PR_BUF     (I+(K-1)*NPROMA,J,NSTEP)
-            PT     (I,J,K)=PT_BUF     (I+(K-1)*NPROMA,J,NSTEP)
-            PQ     (I,J,K)=PQ_BUF     (I+(K-1)*NPROMA,J,NSTEP)
-            PQL    (I,J,K)=PQL_BUF    (I+(K-1)*NPROMA,J,NSTEP)
-            PQI    (I,J,K)=PQI_BUF    (I+(K-1)*NPROMA,J,NSTEP)
-            PU     (I,J,K)=PU_BUF     (I+(K-1)*NPROMA,J,NSTEP)
-            PV     (I,J,K)=PV_BUF     (I+(K-1)*NPROMA,J,NSTEP)
-            PVERVEL(I,J,K)=PVERVEL_BUF(I+(K-1)*NPROMA,J,NSTEP)
-            PCP    (I,J,K)=PCP_BUF    (I+(K-1)*NPROMA,J,NSTEP)
-            PTKE   (I,J,K)=PTKE_BUF   (I+(K-1)*NPROMA,J,NSTEP)
-            PQCPP  (I,J,K)=PQCPP_BUF  (I+(K-1)*NPROMA,J,NSTEP)
-            PNEBPP (I,J,K)=PNEBPP_BUF (I+(K-1)*NPROMA,J,NSTEP)
-            KNLAB  (I,J,K)=KNLAB_BUF  (I+(K-1)*NPROMA,J,NSTEP)
-          ENDIF
-          PDIFCQ (I,J,K)=PDIFCQ_BUF (I+(K-1)*NPROMA,J,NSTEP)
-          PDIFCS (I,J,K)=PDIFCS_BUF (I+(K-1)*NPROMA,J,NSTEP)
-          PFCCQL (I,J,K)=PFCCQL_BUF (I+(K-1)*NPROMA,J,NSTEP)
-          PFCCQN (I,J,K)=PFCCQN_BUF (I+(K-1)*NPROMA,J,NSTEP)
-          PPRODTH(I,J,K)=PPRODTH_BUF(I+(K-1)*NPROMA,J,NSTEP)
-          KNND   (I,K)=KNND_BUF   (I+(K-1)*NPROMA,NSTEP)
-        ENDDO
-      ENDDO
-    ENDDO
-  
-    DO K=1,NBLKS
-      IF(K==NBLKS)THEN
-              BLK_SIZE = LAST_BLK_NPROMA
-      ELSE
-              BLK_SIZE = NPROMA
-      ENDIF
-      CALL ACVPPKF(YDCST,YDML_PHY_MF, KIDIA, BLK_SIZE, MAX_BLK_SIZE, KTDIA, KLEV,  &
-      & PAPRSF(:,:,K), PAPHIF(:,:,K), PDELP(:,:,K),  &
-      & PR(:,:,K), PT(:,:,K), PQ(:,:,K), PQL(:,:,K), PQI(:,:,K), PU(:,:,K),&
-      & PV(:,:,K), PVERVEL(:,:,K), PCP(:,:,K), PTKE(:,:,K), &
-      & PDIFCQ(:,:,K), PDIFCS(:,:,K), PFCCQL(:,:,K), PFCCQN(:,:,K), PPRODTH(:,:,K), &
-      & KNLAB(:,:,K), PQCPP(:,:,K), PNEBPP(:,:,K),&
-      & KNND(:,K))
-    ENDDO
-  
-    DO K=1,NBLKS
-      IF(K==NBLKS)THEN
-              BLK_SIZE = LAST_BLK_NPROMA
-      ELSE
-              BLK_SIZE = NPROMA
-      ENDIF
-      DO J=0,KLEV
-        DO I=1,BLK_SIZE
-          IF(ORI_PDIFCQ(I+(K-1)*NPROMA,J,NSTEP) /= PDIFCQ(I,J,K))WRITE(*,*)"ERROR ORI_PDIFCQ",ORI_PDIFCQ(I+(K-1)*BLK_SIZE,J,NSTEP),PDIFCQ(I,J,K)
-          IF(ORI_PDIFCS(I+(K-1)*NPROMA,J,NSTEP) /= PDIFCS(I,J,K))WRITE(*,*)"ERROR ORI_PDIFCS"
-          IF(ORI_PFCCQL(I+(K-1)*NPROMA,J,NSTEP) /= PFCCQL(I,J,K))WRITE(*,*)"ERROR ORI_PFCCQL"
-          IF(ORI_PFCCQN(I+(K-1)*NPROMA,J,NSTEP) /= PFCCQN(I,J,K))WRITE(*,*)"ERROR ORI_PFCCQN"
-          IF(ORI_PPRODTH(I+(K-1)*NPROMA,J,NSTEP) /= PPRODTH(I,J,K))WRITE(*,*)"ERROR ORI_PPRODTH"
-          IF(J>0)THEN
-            IF(ORI_PQCPP(I+(K-1)*NPROMA,J,NSTEP) /= PQCPP(I,J,K))WRITE(*,*)"ERROR ORI_PQCPP"
-            IF(ORI_PNEBPP(I+(K-1)*NPROMA,J,NSTEP) /= PNEBPP(I,J,K))WRITE(*,*)"ERROR ORI_PNEBPP"
-            IF(ORI_KNLAB(I+(K-1)*NPROMA,J,NSTEP) /= KNLAB(I,J,K))WRITE(*,*)"ERROR ORI_KNLAB"
-            IF(ORI_KNND(I+(K-1)*NPROMA,NSTEP) /= KNND(I,K))WRITE(*,*)"ERROR ORI_KNND"
-          ENDIF
-        ENDDO
+  DO K=1,NBLKS
+    IF(K==NBLKS)THEN
+            BLK_SIZE = LAST_BLK_NPROMA
+    ELSE
+            BLK_SIZE = NPROMA
+    ENDIF
+    DO J=0,KLEV
+      DO I=1,BLK_SIZE
+        IF (J>0)THEN
+          PAPRSF (I,J,K)=PAPRSF_BUF (I+(K-1)*NPROMA,J,NSTEP)
+          PAPHIF (I,J,K)=PAPHIF_BUF (I+(K-1)*NPROMA,J,NSTEP)
+          PDELP  (I,J,K)=PDELP_BUF  (I+(K-1)*NPROMA,J,NSTEP)
+          PR     (I,J,K)=PR_BUF     (I+(K-1)*NPROMA,J,NSTEP)
+          PT     (I,J,K)=PT_BUF     (I+(K-1)*NPROMA,J,NSTEP)
+          PQ     (I,J,K)=PQ_BUF     (I+(K-1)*NPROMA,J,NSTEP)
+          PQL    (I,J,K)=PQL_BUF    (I+(K-1)*NPROMA,J,NSTEP)
+          PQI    (I,J,K)=PQI_BUF    (I+(K-1)*NPROMA,J,NSTEP)
+          PU     (I,J,K)=PU_BUF     (I+(K-1)*NPROMA,J,NSTEP)
+          PV     (I,J,K)=PV_BUF     (I+(K-1)*NPROMA,J,NSTEP)
+          PVERVEL(I,J,K)=PVERVEL_BUF(I+(K-1)*NPROMA,J,NSTEP)
+          PCP    (I,J,K)=PCP_BUF    (I+(K-1)*NPROMA,J,NSTEP)
+          PTKE   (I,J,K)=PTKE_BUF   (I+(K-1)*NPROMA,J,NSTEP)
+          PQCPP  (I,J,K)=PQCPP_BUF  (I+(K-1)*NPROMA,J,NSTEP)
+          PNEBPP (I,J,K)=PNEBPP_BUF (I+(K-1)*NPROMA,J,NSTEP)
+          KNLAB  (I,J,K)=KNLAB_BUF  (I+(K-1)*NPROMA,J,NSTEP)
+        ENDIF
+        PDIFCQ (I,J,K)=PDIFCQ_BUF (I+(K-1)*NPROMA,J,NSTEP)
+        PDIFCS (I,J,K)=PDIFCS_BUF (I+(K-1)*NPROMA,J,NSTEP)
+        PFCCQL (I,J,K)=PFCCQL_BUF (I+(K-1)*NPROMA,J,NSTEP)
+        PFCCQN (I,J,K)=PFCCQN_BUF (I+(K-1)*NPROMA,J,NSTEP)
+        PPRODTH(I,J,K)=PPRODTH_BUF(I+(K-1)*NPROMA,J,NSTEP)
+        KNND   (I,K)=KNND_BUF   (I+(K-1)*NPROMA,NSTEP)
       ENDDO
     ENDDO
   ENDDO
+
+  DO K=1,NBLKS
+    IF(K==NBLKS)THEN
+            BLK_SIZE = LAST_BLK_NPROMA
+    ELSE
+            BLK_SIZE = NPROMA
+    ENDIF
+    CALL ACVPPKF(YDCST,YDML_PHY_MF, KIDIA, BLK_SIZE, MAX_BLK_SIZE, KTDIA, KLEV,  &
+    & PAPRSF(:,:,K), PAPHIF(:,:,K), PDELP(:,:,K),  &
+    & PR(:,:,K), PT(:,:,K), PQ(:,:,K), PQL(:,:,K), PQI(:,:,K), PU(:,:,K),&
+    & PV(:,:,K), PVERVEL(:,:,K), PCP(:,:,K), PTKE(:,:,K), &
+    & PDIFCQ(:,:,K), PDIFCS(:,:,K), PFCCQL(:,:,K), PFCCQN(:,:,K), PPRODTH(:,:,K), &
+    & KNLAB(:,:,K), PQCPP(:,:,K), PNEBPP(:,:,K),&
+    & KNND(:,K))
+  ENDDO
+
+  DO K=1,NBLKS
+    IF(K==NBLKS)THEN
+            BLK_SIZE = LAST_BLK_NPROMA
+    ELSE
+            BLK_SIZE = NPROMA
+    ENDIF
+    DO J=0,KLEV
+      DO I=1,BLK_SIZE
+        IF(ORI_PDIFCQ(I+(K-1)*NPROMA,J,NSTEP) /= PDIFCQ(I,J,K))WRITE(*,*)"ERROR ORI_PDIFCQ",ORI_PDIFCQ(I+(K-1)*BLK_SIZE,J,NSTEP),PDIFCQ(I,J,K)
+        IF(ORI_PDIFCS(I+(K-1)*NPROMA,J,NSTEP) /= PDIFCS(I,J,K))WRITE(*,*)"ERROR ORI_PDIFCS"
+        IF(ORI_PFCCQL(I+(K-1)*NPROMA,J,NSTEP) /= PFCCQL(I,J,K))WRITE(*,*)"ERROR ORI_PFCCQL"
+        IF(ORI_PFCCQN(I+(K-1)*NPROMA,J,NSTEP) /= PFCCQN(I,J,K))WRITE(*,*)"ERROR ORI_PFCCQN"
+        IF(ORI_PPRODTH(I+(K-1)*NPROMA,J,NSTEP) /= PPRODTH(I,J,K))WRITE(*,*)"ERROR ORI_PPRODTH"
+        IF(J>0)THEN
+          IF(ORI_PQCPP(I+(K-1)*NPROMA,J,NSTEP) /= PQCPP(I,J,K))WRITE(*,*)"ERROR ORI_PQCPP"
+          IF(ORI_PNEBPP(I+(K-1)*NPROMA,J,NSTEP) /= PNEBPP(I,J,K))WRITE(*,*)"ERROR ORI_PNEBPP"
+          IF(ORI_KNLAB(I+(K-1)*NPROMA,J,NSTEP) /= KNLAB(I,J,K))WRITE(*,*)"ERROR ORI_KNLAB"
+          IF(ORI_KNND(I+(K-1)*NPROMA,NSTEP) /= KNND(I,K))WRITE(*,*)"ERROR ORI_KNND"
+        ENDIF
+      ENDDO
+    ENDDO
+  ENDDO
+ENDDO
 END SUBROUTINE WRAP_ACVPPKF
