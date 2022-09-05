@@ -95,4 +95,4 @@ set(SRC
 
 add_executable(main.x main.F90 ${SRC})
 target_link_libraries(main.x PUBLIC OpenMP::OpenMP_Fortran)
-target_compile_options(main.x PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-convert big_endian -assume byterecl -align array64byte,all -traceback -fpic -qopenmp -qopenmp-threadprivate compat -fp-model source -qopt-report=5 -qopt-report-phase=vec -ftz -diag-disable=remark,cpu-dispatch -free  -DLINUX -DLITTLE_ENDIAN -DLITTLE -DADDRESS64 -DGRIB_API_1 -g -O2 -march=core-avx2 -finline-functions -finline-limit=500 -Winline -qopt-prefetch=4 -fast-transcendentals -fimf-use-svml -no-fma -list -show nomap -r8 -check all -heap-arrays>)
+target_compile_options(main.x PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-convert big_endian -assume byterecl -align array64byte,all -traceback -fpic -qopenmp -qopenmp-threadprivate compat -fp-model source -qopt-report=5 -qopt-report-phase=vec -ftz -diag-disable=remark,cpu-dispatch -free  -DLINUX -DLITTLE_ENDIAN -DLITTLE -DADDRESS64 -DGRIB_API_1 -g -O2 -march=core-avx2 -finline-functions -finline-limit=500 -Winline -qopt-prefetch=4 -fast-transcendentals -fimf-use-svml -no-fma -list -show nomap -r8 -heap-arrays>)
