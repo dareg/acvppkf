@@ -13,5 +13,5 @@ cp -r DATA acvppkf/
 cp CMakeLists.txt acvppkf/
 cp -r src acvppkf/
 cp main.F90 acvppkf/
-tar -cJvf acpluiz.tar.xz acvppkf
+tar -cJvf acvppkf.tar.xz acvppkf
 rm -r acvppkf
