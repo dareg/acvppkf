@@ -29,7 +29,6 @@ set(SRC
 	src/crc.c
 	src/eint_mod.F90
 	src/ini_convpar.F90
-	src/lfa_R8I4.F90
 	src/modd_convpar.F90
 	src/modd_convpar_shal.F90
 	src/modd_convparext.F90

@@ -17,14 +17,14 @@ REAL(KIND=JPRB)   ,INTENT(IN)    :: PIN(KLON,KLEN)
 CHARACTER(LEN=*)  ,INTENT(IN)    :: CDNOM
 !---------------------------------------------------------------------------
 
-REAL(KIND=JPRB) :: ZOUT(KLEN)
-INTEGER(KIND=JPIM) :: JLEN
+!REAL(KIND=JPRB) :: ZOUT(KLEN)
+!INTEGER(KIND=JPIM) :: JLEN
 !---------------------------------------------------------------------------
 
-DO JLEN=1,KLEN
-   ZOUT(JLEN)=PIN(1,JLEN)
-ENDDO
-
-CALL LFAECRR(KUNIT,CDNOM,ZOUT,KLEN)
+!DO JLEN=1,KLEN
+!   ZOUT(JLEN)=PIN(1,JLEN)
+!ENDDO
+!
+!CALL LFAECRR(KUNIT,CDNOM,ZOUT,KLEN)
 !---------------------------------------------------------------------------
 END SUBROUTINE WRSCMR
