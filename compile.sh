@@ -9,5 +9,5 @@ fi
 
 cd build
 make -j
-ln -s $PWD/main.x $PWD/../main.x
+ln -fs $PWD/main.x $PWD/../main.x
 cd ..
