@@ -2,5 +2,5 @@
 set -x
 cd build
 make
-mv main.x ..
+ln -s main.x ../main.x
 cd ..
