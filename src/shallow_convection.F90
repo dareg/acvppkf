@@ -354,12 +354,12 @@ END DO
 !               at the moment.
 !               --------------------------------------------------------------
 !
-ALLOCATE( ZPRES(ITEST,IKS) )
-ALLOCATE( ZZ(ITEST,IKS) )
-ALLOCATE( ZW(ITEST,IKS) )
-ALLOCATE( ZTH(ITEST,IKS) )
-ALLOCATE( ZTHV(ITEST,IKS) )
-ALLOCATE( ZTHEST(ITEST,IKS) )
+!ALLOCATE( ZPRES(ITEST,IKS) )
+!ALLOCATE( ZZ(ITEST,IKS) )
+!ALLOCATE( ZW(ITEST,IKS) )
+!ALLOCATE( ZTH(ITEST,IKS) )
+!ALLOCATE( ZTHV(ITEST,IKS) )
+!ALLOCATE( ZTHEST(ITEST,IKS) )
 ALLOCATE( ZRV(ITEST,IKS) )
 ALLOCATE( ZSTHLCL(ITEST) )
 ALLOCATE( ZSTLCL(ITEST) )
@@ -378,22 +378,23 @@ DO JI = 1, KLON
   IINDEX(JI) = JI
 END DO
 IJSINDEX(:) = PACK( IINDEX(:), MASK=GTRIG(:) )
-!
+
+!write(*,*)"ITEST",itest,"size(ijsindex)",size(ijsindex),"klon",klon
 DO JK = IKB, IKE
 DO JI = 1, ITEST
   JL = IJSINDEX(JI)
-  ZPRES(JI,JK)  = PPABST(JL,JK)
-  ZZ(JI,JK)     = PZZ(JL,JK)
-  ZTH(JI,JK)    = ZTHT(JL,JK)
-  ZTHV(JI,JK)   = ZSTHV(JL,JK)
-  ZTHEST(JI,JK) = ZSTHES(JL,JK)
+  !ZPRES(JI,JK)  = PPABST(JL,JK)
+  !ZZ(JI,JK)     = PZZ(JL,JK)
+  !ZTH(JI,JK)    = ZTHT(JL,JK)
+  !ZTHV(JI,JK)   = ZSTHV(JL,JK)
+  !ZTHEST(JI,JK) = ZSTHES(JL,JK)
   ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
-  ZW(JI,JK)     = PWT(JL,JK)
+  !ZW(JI,JK)     = PWT(JL,JK)
 END DO
 END DO
 DO JI = 1, ITEST
   JL = IJSINDEX(JI)
-  ZSDXDY(JI)    = XA25
+  !ZSDXDY(JI)    = XA25
 END DO
 !
 !*       2.2    Compute environm. enthalpy and total water = r_v + r_i + r_c
@@ -409,19 +410,19 @@ ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
 CALL CONVECT_TRIGGER_SHAL(  ITEST, KLEV,                              &
-                            ZPRES, ZTH, ZTHV, ZTHEST,                 &
-                            ZRV, ZW, ZZ, ZSDXDY, PTKECLS,             &
+                            PPABST, ZTHT, ZSTHV, ZSTHES,                 &
+                            ZRV, PWT, PZZ, ZSDXDY, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
                             ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1    )
 !
 
-DEALLOCATE( ZPRES )
-DEALLOCATE( ZZ )
-DEALLOCATE( ZTH )
-DEALLOCATE( ZTHV )
-DEALLOCATE( ZTHEST )
+!DEALLOCATE( ZPRES )
+!DEALLOCATE( ZZ )
+!DEALLOCATE( ZTH )
+!DEALLOCATE( ZTHV )
+!DEALLOCATE( ZTHEST )
 DEALLOCATE( ZRV )
-DEALLOCATE( ZW )
+!DEALLOCATE( ZW )
 !
 !-------------------------------------------------------------------------------
 !
