@@ -1,6 +1,7 @@
 set(TEST_FILES
 	test1.sh
 	test2.sh
+	test3.sh
 	)
 
 foreach(TEST_FILE ${TEST_FILES})
