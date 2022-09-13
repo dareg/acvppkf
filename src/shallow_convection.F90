@@ -360,7 +360,7 @@ END DO
 !ALLOCATE( ZTH(ITEST,IKS) )
 !ALLOCATE( ZTHV(ITEST,IKS) )
 !ALLOCATE( ZTHEST(ITEST,IKS) )
-ALLOCATE( ZRV(ITEST,IKS) )
+!ALLOCATE( ZRV(ITEST,IKS) )
 ALLOCATE( ZSTHLCL(ITEST) )
 ALLOCATE( ZSTLCL(ITEST) )
 ALLOCATE( ZSRVLCL(ITEST) )
@@ -379,23 +379,22 @@ DO JI = 1, KLON
 END DO
 IJSINDEX(:) = PACK( IINDEX(:), MASK=GTRIG(:) )
 
-!write(*,*)"ITEST",itest,"size(ijsindex)",size(ijsindex),"klon",klon
-DO JK = IKB, IKE
-DO JI = 1, ITEST
-  JL = IJSINDEX(JI)
-  !ZPRES(JI,JK)  = PPABST(JL,JK)
-  !ZZ(JI,JK)     = PZZ(JL,JK)
-  !ZTH(JI,JK)    = ZTHT(JL,JK)
-  !ZTHV(JI,JK)   = ZSTHV(JL,JK)
-  !ZTHEST(JI,JK) = ZSTHES(JL,JK)
-  ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
-  !ZW(JI,JK)     = PWT(JL,JK)
-END DO
-END DO
-DO JI = 1, ITEST
-  JL = IJSINDEX(JI)
-  !ZSDXDY(JI)    = XA25
-END DO
+!DO JK = IKB, IKE
+!DO JI = 1, ITEST
+!  JL = IJSINDEX(JI)
+!  ZPRES(JI,JK)  = PPABST(JL,JK)
+!  ZZ(JI,JK)     = PZZ(JL,JK)
+!  ZTH(JI,JK)    = ZTHT(JL,JK)
+!  ZTHV(JI,JK)   = ZSTHV(JL,JK)
+!  ZTHEST(JI,JK) = ZSTHES(JL,JK)
+!  ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
+!  ZW(JI,JK)     = PWT(JL,JK)
+!END DO
+!END DO
+!DO JI = 1, ITEST
+!  JL = IJSINDEX(JI)
+!  ZSDXDY(JI)    = XA25
+!END DO
 !
 !*       2.2    Compute environm. enthalpy and total water = r_v + r_i + r_c
 !               and envir. saturation theta_e
@@ -409,11 +408,13 @@ ISLCL(:) = MAX( IKB, 2 )   ! initialize DPL PBL and LCL
 ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
-CALL CONVECT_TRIGGER_SHAL(  ITEST, KLEV,                              &
+CALL CONVECT_TRIGGER_SHAL(  KLON, ITEST, KLEV,                              &
+                            !ZPRES, ZTH, ZTHV, ZTHEST,                 &
                             PPABST, ZTHT, ZSTHV, ZSTHES,                 &
-                            ZRV, PWT, PZZ, ZSDXDY, PTKECLS,             &
+                            !ZRV, ZW, ZZ, ZSDXDY, PTKECLS,             &
+                            PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
-                            ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1    )
+                            ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
 !
 
 !DEALLOCATE( ZPRES )
@@ -421,7 +422,7 @@ CALL CONVECT_TRIGGER_SHAL(  ITEST, KLEV,                              &
 !DEALLOCATE( ZTH )
 !DEALLOCATE( ZTHV )
 !DEALLOCATE( ZTHEST )
-DEALLOCATE( ZRV )
+!DEALLOCATE( ZRV )
 !DEALLOCATE( ZW )
 !
 !-------------------------------------------------------------------------------

@@ -1,9 +1,9 @@
 !     ######spl
-      SUBROUTINE CONVECT_TRIGGER_SHAL(  KLON, KLEV,                           &
-                                        PPRES, PTH, PTHV, PTHES,              &
-                                        PRV, PW, PZ, PDXDY,PTKECLS,           &
-                                        PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL,  &
-                                        PTHVELCL, KLCL, KDPL, KPBL, OTRIG     )
+      SUBROUTINE CONVECT_TRIGGER_SHAL(  ORI_KLON,KLON, KLEV,                 &
+                                        PPRES, PTH, PTHV, PTHES,             &
+                                        PRV, PW, PZ, PTKECLS,                &
+                                        PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, &
+                                        PTHVELCL, KLCL, KDPL, KPBL, OTRIG)
       USE PARKIND1, ONLY : JPRB
       USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 !     ########################################################################
@@ -89,16 +89,17 @@ IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
+INTEGER, INTENT(IN) :: ORI_KLON
 INTEGER, INTENT(IN)                   :: KLON      ! horizontal loop index
 INTEGER, INTENT(IN)                   :: KLEV      ! vertical loop index
-REAL, DIMENSION(KLON),     INTENT(IN) :: PDXDY     ! grid area
-REAL, DIMENSION(KLON),     INTENT(IN) :: PTKECLS   ! TKE CLS
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTH, PTHV ! theta, theta_v
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTHES     ! envir. satur. theta_e
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PRV       ! vapor mixing ratio
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PPRES     ! pressure
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PZ        ! height of grid point (m)
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PW        ! vertical velocity
+!REAL, DIMENSION(KLON),     INTENT(IN) :: PDXDY     ! grid area
+REAL, DIMENSION(ORI_KLON),     INTENT(IN) :: PTKECLS   ! TKE CLS
+REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PTH, PTHV ! theta, theta_v
+REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PTHES     ! envir. satur. theta_e
+REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PRV       ! vapor mixing ratio
+REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PPRES     ! pressure
+REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PZ        ! height of grid point (m)
+REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PW        ! vertical velocity
 !
 REAL, DIMENSION(KLON),     INTENT(OUT):: PTHLCL    ! theta at LCL
 REAL, DIMENSION(KLON),     INTENT(OUT):: PTLCL     ! temp. at LCL
@@ -210,7 +211,7 @@ DO JKK = IKB + 1, IKE - 2
             ZDPTHMIX(JI) = ZDPTHMIX(JI) + ZWORK1(JI)
             ZPRESMIX(JI) = ZPRESMIX(JI) + PPRES(JI,JK) * ZWORK1(JI)
             ZTHLCL(JI)   = ZTHLCL(JI)   + PTH(JI,JK)   * ZWORK1(JI)
-            ZRVLCL(JI)   = ZRVLCL(JI)   + PRV(JI,JK)   * ZWORK1(JI)
+            ZRVLCL(JI)   = ZRVLCL(JI)   + MAX(0., PRV(JI,JK))   * ZWORK1(JI)
          END IF
        END DO
        !IF ( MINVAL ( ZDPTHMIX(:) ) >= XZPBL ) EXIT
