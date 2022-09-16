@@ -1,6 +1,6 @@
 !     ######spl
       SUBROUTINE CONVECT_CONDENS( KLON,                                           &
-                                  KICE, PPRES, PTHL, PRW, PRCO, PRIO, PZ, OWORK1, &
+                                  KICE, PPRES, PTHL, PRW, PRCO, PRIO, PZ, &
                                   PT, PEW, PRC, PRI, PLV, PLS, PCPH   )
       USE PARKIND1, ONLY : JPRB
       USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -80,7 +80,6 @@ REAL, DIMENSION(KLON),   INTENT(IN) :: PRW    ! total water mixing ratio
 REAL, DIMENSION(KLON),   INTENT(IN) :: PRCO   ! cloud water estimate (kg/kg)
 REAL, DIMENSION(KLON),   INTENT(IN) :: PRIO   ! cloud ice   estimate (kg/kg)
 REAL, DIMENSION(KLON),   INTENT(IN) :: PZ     ! level height (m)
-LOGICAL, DIMENSION(KLON),INTENT(IN) :: OWORK1 ! logical mask         
 !
 !
 REAL, DIMENSION(KLON),   INTENT(OUT):: PT     ! temperature   

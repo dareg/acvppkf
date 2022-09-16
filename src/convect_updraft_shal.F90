@@ -252,7 +252,7 @@ DO JK = IKB + 1, IKE - 1
     ZWORK1(:) = PURC(:,JK)
     ZWORK2(:) = PURI(:,JK)
     CALL CONVECT_CONDENS( KLON, KICE, PPRES(:,JKP), PUTHL(:,JK), PURW(:,JK),&
-                          ZWORK1, ZWORK2, PZ(:,JKP), GWORK1, ZUT, ZURV,     &
+                          ZWORK1, ZWORK2, PZ(:,JKP), ZUT, ZURV,             &
                           PURC(:,JKP), PURI(:,JKP), ZLV, ZLS, ZCPH )
 !
 !
@@ -317,7 +317,7 @@ DO JK = IKB + 1, IKE - 1
                      + ( 1. - ZMIXF(:) ) * PURW(:,JKP)  ! mixed r_w
 !
     CALL CONVECT_CONDENS( KLON, KICE, PPRES(:,JKP), ZWORK1, ZWORK2,        &
-                          PURC(:,JKP), PURI(:,JKP), PZ(:,JKP), GWORK1, ZUT,&
+                          PURC(:,JKP), PURI(:,JKP), PZ(:,JKP), ZUT,        &
                           ZWORK3, ZWORK4, ZWORK5, ZLV, ZLS, ZCPH )
 !        put in enthalpy and r_w and get T r_c, r_i (ZUT, ZWORK4-5)
 !
