@@ -151,7 +151,7 @@ REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tendency
 !
 !*       0.2   Declarations of local fixed memory variables :
 !
-INTEGER  :: ITEST, ICONV            ! number of convective columns
+INTEGER  :: ICONV            ! number of convective columns
 INTEGER  :: IIB, IIE                ! horizontal loop bounds
 INTEGER  :: IKB, IKE                ! vertical loop bounds
 INTEGER  :: IKS                     ! vertical dimension
@@ -162,8 +162,6 @@ INTEGER  :: IFTSTEPS                ! only used for chemical tracers
 REAL     :: ZEPS, ZEPSA             ! R_d / R_v, R_v / R_d
 REAL     :: ZRDOCP                  ! R_d/C_p
 !
-LOGICAL, DIMENSION(KLON, KLEV)     :: GTRIG3 ! 3D logical mask for convection
-LOGICAL, DIMENSION(KLON)           :: GTRIG  ! 2D logical mask for trigger test
 REAL, DIMENSION(KLON,KLEV)         :: ZTHT, ZSTHV, ZSTHES  ! grid scale theta, theta_v
 REAL, DIMENSION(KLON)              :: ZWORK2, ZWORK2B ! work array
 REAL                               :: ZW1     ! work variable
@@ -171,23 +169,23 @@ REAL                               :: ZW1     ! work variable
 !
 !*       0.2   Declarations of local allocatable  variables :
 !
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: IDPL    ! index for parcel departure level
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: IPBL    ! index for source layer top
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ILCL    ! index for lifting condensation level
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: IETL    ! index for zero buoyancy level
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ICTL    ! index for cloud top level
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ILFS    ! index for level of free sink
+INTEGER, DIMENSION(KLON)  :: IDPL    ! index for parcel departure level
+INTEGER, DIMENSION(KLON)  :: IPBL    ! index for source layer top
+INTEGER, DIMENSION(KLON)  :: ILCL    ! index for lifting condensation level
+INTEGER, DIMENSION(KLON)  :: IETL    ! index for zero buoyancy level
+INTEGER, DIMENSION(KLON)  :: ICTL    ! index for cloud top level
+INTEGER, DIMENSION(KLON)  :: ILFS    ! index for level of free sink
 !
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ISDPL   ! index for parcel departure level
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ISPBL   ! index for source layer top
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ISLCL   ! index for lifting condensation level
-REAL, DIMENSION(KFDIA-KIDIA+1)     :: ZSTHLCL ! updraft theta at LCL/L
-REAL, DIMENSION(KFDIA-KIDIA+1)     :: ZSTLCL  ! updraft temp. at LCL
-REAL, DIMENSION(KFDIA-KIDIA+1)     :: ZSRVLCL ! updraft rv at LCL
-REAL, DIMENSION(KFDIA-KIDIA+1)     :: ZSWLCL  ! updraft w at LCL
-REAL, DIMENSION(KFDIA-KIDIA+1)     :: ZSZLCL  ! LCL height
-REAL, DIMENSION(KFDIA-KIDIA+1)     :: ZSTHVELCL! envir. theta_v at LCL
-REAL, DIMENSION(KFDIA-KIDIA+1)     :: ZSDXDY  ! grid area (m^2)
+INTEGER, DIMENSION(KLON)  :: ISDPL   ! index for parcel departure level
+INTEGER, DIMENSION(KLON)  :: ISPBL   ! index for source layer top
+INTEGER, DIMENSION(KLON)  :: ISLCL   ! index for lifting condensation level
+REAL, DIMENSION(KLON)     :: ZSTHLCL ! updraft theta at LCL/L
+REAL, DIMENSION(KLON)     :: ZSTLCL  ! updraft temp. at LCL
+REAL, DIMENSION(KLON)     :: ZSRVLCL ! updraft rv at LCL
+REAL, DIMENSION(KLON)     :: ZSWLCL  ! updraft w at LCL
+REAL, DIMENSION(KLON)     :: ZSZLCL  ! LCL height
+REAL, DIMENSION(KLON)     :: ZSTHVELCL! envir. theta_v at LCL
+REAL, DIMENSION(KLON)     :: ZSDXDY  ! grid area (m^2)
 !
 ! grid scale variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZZ      ! height of model layer (m)
@@ -239,10 +237,11 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRIC    ! conv. adj. grid scale r_i
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZWSUB   ! envir. compensating subsidence (Pa/s)
 !
-LOGICAL, DIMENSION(:), ALLOCATABLE :: GTRIG1  ! logical mask for convection
+LOGICAL, DIMENSION(KLON) :: GTRIG1  ! logical mask for convection
+LOGICAL, DIMENSION(:),ALLOCATABLE :: GTRIG2  ! logical mask for convection
 LOGICAL, DIMENSION(:),ALLOCATABLE  :: GWORK   ! logical work array
 INTEGER, DIMENSION(KLON)           :: IINDEX !hor.index
-INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: IJSINDEX!hor.index
+INTEGER, DIMENSION(KLON)  :: IJSINDEX!hor.index
 INTEGER, DIMENSION(:),ALLOCATABLE  :: IJINDEX, IJPINDEX!hor.index
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZCPH    ! specific heat C_ph
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZLV, ZLS! latent heat of vaporis., sublim.
@@ -252,7 +251,6 @@ REAL                               :: ZES     ! saturation vapor mixng ratio
 REAL, DIMENSION(:,:,:), ALLOCATABLE:: ZCH1    ! grid scale chemical specy (kg/kg)
 REAL, DIMENSION(:,:,:), ALLOCATABLE:: ZCH1C   ! conv. adjust. chemical specy 1
 REAL, DIMENSION(:,:),   ALLOCATABLE:: ZWORK3  ! conv. adjust. chemical specy 1
-LOGICAL, DIMENSION(:,:,:),ALLOCATABLE::GTRIG4 ! logical mask
 !
 !-------------------------------------------------------------------------------
 !
@@ -261,6 +259,7 @@ LOGICAL, DIMENSION(:,:,:),ALLOCATABLE::GTRIG4 ! logical mask
 !               -------------------
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
+
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',0,ZHOOK_HANDLE)
 IIB = KIDIA
 IIE = KFDIA
@@ -270,44 +269,22 @@ IKS = KLEV
 JCVEXT = MAX( 0, KTDIA - 1)
 IKE = IKS - JCVEXT
 !
-!
-!*       0.5    Update convective counter ( where KCOUNT > 0
-!               convection is still active ).
-!               ---------------------------------------------
-!
-GTRIG(:) = .FALSE.
-GTRIG(IIB:IIE) = .TRUE.
-ITEST = COUNT( GTRIG(:) )
-IF ( ITEST == 0 )  THEN
-  IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',1,ZHOOK_HANDLE)
-  RETURN
-ENDIF
-
-!
-!
 !*       0.7    Reset convective tendencies to zero if convective
 !               counter becomes negative
 !               -------------------------------------------------
 !
-GTRIG3(:,:) = SPREAD( GTRIG(:), DIM=2, NCOPIES=IKS )
-WHERE ( GTRIG3(:,:) )
-  PTTEN(:,:)  = 0.
-  PRVTEN(:,:) = 0.
-  PRCTEN(:,:) = 0.
-  PRITEN(:,:) = 0.
+PTTEN(:,:)  = 0.
+PRVTEN(:,:) = 0.
+PRCTEN(:,:) = 0.
+PRITEN(:,:) = 0.
 ! PUTEN(:,:)  = 0.
 ! PVTEN(:,:)  = 0.
-  PUMF(:,:)   = 0.
-END WHERE
-WHERE ( GTRIG(:) )
-  KCLTOP(:)  = 0
-  KCLBAS(:)  = 0
-END WHERE
+PUMF(:,:)   = 0.
+KCLTOP(:)  = 0
+KCLBAS(:)  = 0
+
 IF ( OCH1CONV ) THEN
-  ALLOCATE( GTRIG4(KLON,KLEV,KCH1) )
-  GTRIG4(:,:,:) = SPREAD( GTRIG3(:,:), DIM=3, NCOPIES=KCH1 )
-  WHERE( GTRIG4(:,:,:) ) PCH1TEN(:,:,:) = 0.
-  DEALLOCATE( GTRIG4 )
+  PCH1TEN(:,:,:) = 0.
 END IF
 !
 !
@@ -373,7 +350,6 @@ END DO
 !ALLOCATE( ISPBL(ITEST) )
 !ALLOCATE( ISLCL(ITEST) )
 !ALLOCATE( ZSDXDY(ITEST) )
-ALLOCATE( GTRIG1(ITEST) )
 !ALLOCATE( IINDEX(KLON) )
 !ALLOCATE( IJSINDEX(ITEST) )
 DO JI = 1, KLON
@@ -410,13 +386,14 @@ ISLCL(:) = MAX( IKB, 2 )   ! initialize DPL PBL and LCL
 ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
-CALL CONVECT_TRIGGER_SHAL(  KLON, ITEST, KLEV,                              &
+CALL CONVECT_TRIGGER_SHAL(  KLON, KLON, KLEV,                              &
                             !ZPRES, ZTH, ZTHV, ZTHEST,                 &
                             PPABST, ZTHT, ZSTHV, ZSTHES,                 &
                             !ZRV, ZW, ZZ, ZSDXDY, PTKECLS,             &
                             PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
                             ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
+
 !
 
 !DEALLOCATE( ZPRES )
@@ -464,7 +441,8 @@ ICONV = COUNT( GTRIG1(:) )
 !ALLOCATE( IETL(ICONV) )
 !
      ! grid scale variables
-!
+
+
 ALLOCATE( ZZ(ICONV,IKS) ) ;   ZZ  = 0.0
 ALLOCATE( ZPRES(ICONV,IKS) );   ZPRES = 0.0
 ALLOCATE( ZDPRES(ICONV,IKS) ) ;   ZDPRES = 0.0
@@ -511,8 +489,7 @@ ALLOCATE( ZLS(ICONV) )
 !                   arrays using mask GTRIG
 !                   ---------------------------------------------------
 !
-GTRIG(:)      = UNPACK( GTRIG1(:), MASK=GTRIG, FIELD=.FALSE. )
-IJINDEX(:)    = PACK( IINDEX(:), MASK=GTRIG(:) )
+IJINDEX(:)    = PACK( IINDEX(:), MASK=GTRIG1(:) )
 !
 DO JK = IKB, IKE
 DO JI = 1, ICONV
@@ -529,7 +506,7 @@ DO JI = 1, ICONV
 END DO
 END DO
 !
-DO JI = 1, ITEST
+DO JI = 1, KLON
   IJSINDEX(JI) = JI
 END DO
 IJPINDEX(:) = PACK( IJSINDEX(:), MASK=GTRIG1(:) )
@@ -548,9 +525,9 @@ DO JI = 1, ICONV
 END DO
 ALLOCATE( GWORK(ICONV) )
 GWORK(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
-DEALLOCATE( GTRIG1 )
-ALLOCATE( GTRIG1(ICONV) )
-GTRIG1(:)     = GWORK(:)
+
+ALLOCATE( GTRIG2(ICONV) )
+GTRIG2(:)     = GWORK(:)
 !
 DEALLOCATE( GWORK )
 DEALLOCATE( IJPINDEX )
@@ -606,7 +583,7 @@ ZMFLCL(:) = XA25 * 1.E-3
 CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
                            KICE, ZPRES, ZDPRES, ZZ, ZTHL, ZTHV, ZTHES, ZRW, &
                            ZTHLCL, ZTLCL, ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL,   &
-                           ZMFLCL, GTRIG1, ILCL, IDPL, IPBL,                &
+                           ZMFLCL, GTRIG2, ILCL, IDPL, IPBL,                &
                            ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
                            ZURC, ZURI, ZCAPE, ICTL, IETL                    )
 !
@@ -661,7 +638,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !
   CALL CONVECT_CLOSURE_SHAL( ICONV, KLEV,                         &
                              ZPRES, ZDPRES, ZZ, ZDXDY, ZLMASS,    &
-                             ZTHL, ZTH, ZRW, ZRC, ZRI, GTRIG1,    &
+                             ZTHL, ZTH, ZRW, ZRC, ZRI, GTRIG2,    &
                              ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
                              ILCL, IDPL, IPBL, ICTL,              &
                              ZUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
