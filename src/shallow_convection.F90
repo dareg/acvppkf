@@ -171,12 +171,12 @@ REAL                               :: ZW1     ! work variable
 !
 !*       0.2   Declarations of local allocatable  variables :
 !
-INTEGER, DIMENSION(:),ALLOCATABLE  :: IDPL    ! index for parcel departure level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: IPBL    ! index for source layer top
-INTEGER, DIMENSION(:),ALLOCATABLE  :: ILCL    ! index for lifting condensation level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: IETL    ! index for zero buoyancy level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: ICTL    ! index for cloud top level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: ILFS    ! index for level of free sink
+INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: IDPL    ! index for parcel departure level
+INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: IPBL    ! index for source layer top
+INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ILCL    ! index for lifting condensation level
+INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: IETL    ! index for zero buoyancy level
+INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ICTL    ! index for cloud top level
+INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ILFS    ! index for level of free sink
 !
 INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ISDPL   ! index for parcel departure level
 INTEGER, DIMENSION(KFDIA-KIDIA+1)  :: ISPBL   ! index for source layer top
@@ -457,11 +457,11 @@ ICONV = COUNT( GTRIG1(:) )
 !
      ! vertical index variables
 !
-ALLOCATE( IDPL(ICONV) )
-ALLOCATE( IPBL(ICONV) )
-ALLOCATE( ILCL(ICONV) )
-ALLOCATE( ICTL(ICONV) )
-ALLOCATE( IETL(ICONV) )
+!ALLOCATE( IDPL(ICONV) )
+!ALLOCATE( IPBL(ICONV) )
+!ALLOCATE( ILCL(ICONV) )
+!ALLOCATE( ICTL(ICONV) )
+!ALLOCATE( IETL(ICONV) )
 !
      ! grid scale variables
 !
@@ -626,7 +626,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
   ALLOCATE( ZDMF(ICONV,IKS) )
   ALLOCATE( ZDER(ICONV,IKS) )
   ALLOCATE( ZDDR(ICONV,IKS) )
-  ALLOCATE( ILFS(ICONV) )
+  !ALLOCATE( ILFS(ICONV) )
   ALLOCATE( ZLMASS(ICONV,IKS) )
   ZDMF(:,:) = 0.
   ZDER(:,:) = 0.
@@ -885,7 +885,7 @@ ENDIF
   DEALLOCATE( ZDMF )
   DEALLOCATE( ZDER )
   DEALLOCATE( ZDDR )
-  DEALLOCATE( ILFS )
+  !DEALLOCATE( ILFS )
   DEALLOCATE( ZLMASS )
 !
 !   closure variables
@@ -905,11 +905,11 @@ ENDIF
 !
 !    vertical index
 !
-DEALLOCATE( IDPL )
-DEALLOCATE( IPBL )
-DEALLOCATE( ILCL )
-DEALLOCATE( ICTL )
-DEALLOCATE( IETL )
+!DEALLOCATE( IDPL )
+!DEALLOCATE( IPBL )
+!DEALLOCATE( ILCL )
+!DEALLOCATE( ICTL )
+!DEALLOCATE( IETL )
 !
 ! grid scale variables
 !
