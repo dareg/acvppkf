@@ -1,6 +1,6 @@
 !     ######spl
     SUBROUTINE SHALLOW_CONVECTION( KLON, KLEV, KIDIA, KFDIA, KBDIA, KTDIA,        &
-                                   PDTCONV, KICE, OSETTADJ, PTADJS,               &
+                                   KICE, OSETTADJ, PTADJS,               &
                                    PPABST, PZZ, PTKECLS,                          &
                                    PTT, PRVT, PRCT, PRIT, PWT,                    &
                                    PTTEN, PRVTEN, PRCTEN, PRITEN,                 &
@@ -114,8 +114,6 @@ INTEGER,                    INTENT(IN) :: KBDIA    ! vertical  computations star
 INTEGER,                    INTENT(IN) :: KTDIA    ! vertical computations can be
                                                    ! limited to KLEV + 1 - KTDIA
                                                    ! default=1
-REAL,                       INTENT(IN) :: PDTCONV  ! Interval of time between two
-                                                   ! calls of the deep convection
                                                    ! scheme
 INTEGER,                    INTENT(IN) :: KICE     ! flag for ice ( 1 = yes,
                                                    !                0 = no ice )
@@ -192,7 +190,6 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZZ      ! height of model layer (m)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZPRES   ! grid scale pressure
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDPRES  ! pressure difference between
                                               ! bottom and top of layer (Pa)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZW      ! grid scale vertical velocity on theta grid
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTT     ! temperature
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTH     ! grid scale theta
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHV    ! grid scale theta_v

@@ -1,7 +1,7 @@
 !-------------------------------------------------------------------------------
 !   ############################################################################
 SUBROUTINE CONVECTION_SHAL( KLON, KLEV, KIDIA, KFDIA, KBDIA, KTDIA,&
- & PDTCONV, LD_OREFRESH_ALL, LD_ODOWN, KICE,&
+ & KICE,&
  & LD_OSETTADJ, PTADJS, LSMOOTH, &
  & PA25, PCRAD, PCDEPTH, PCDEPTH_D, PDTPERT, PATPERT, PBTPERT, PENTR, &
  & PZLCL, PZPBL, PWTRIG, PNHGAM, PTFRZ1, PTFRZ2, PSTABT, PSTABC, PAW, PBW, &
@@ -10,7 +10,7 @@ SUBROUTINE CONVECTION_SHAL( KLON, KLEV, KIDIA, KFDIA, KBDIA, KTDIA,&
  & KCOUNT, PTTEN, PRVTEN, PRCTEN, PRITEN,&
  & PUMF, PCAPE, KCLTOP, KCLBAS,&
  & PURV, PURCI,&
- & LD_OUVTRANS, PUTEN, PVTEN,&
+ & PUTEN, PVTEN,&
  & LD_OCHTRANS, KCH1, PCH1, PCH1TEN )
 USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -89,9 +89,6 @@ INTEGER, INTENT(IN)    :: KIDIA ! value of the first point in x
 INTEGER, INTENT(IN)    :: KFDIA ! value of the last point in x
 INTEGER, INTENT(IN)    :: KBDIA ! vertical  computations start at
 INTEGER, INTENT(IN)    :: KTDIA ! vertical computations can be
-REAL   ,INTENT(IN)    :: PDTCONV ! Interval of time between two
-LOGICAL           ,INTENT(IN)    :: LD_OREFRESH_ALL ! refresh or not all 
-LOGICAL           ,INTENT(IN)    :: LD_ODOWN ! take or not convective
 INTEGER, INTENT(IN)    :: KICE ! flag for ice ( 1 = yes, 
 LOGICAL           ,INTENT(IN)    :: LD_OSETTADJ ! logical to set convective
 LOGICAL, INTENT(IN)    :: LSMOOTH ! Supposed to be necessary ...
@@ -121,7 +118,6 @@ INTEGER, INTENT(INOUT) :: KCLTOP(KLON) ! cloud top level (number of model level)
 INTEGER, INTENT(INOUT) :: KCLBAS(KLON) ! cloud base level(number of model level)
 REAL    ,INTENT(INOUT) :: PURV(KLON,KLEV) ! water vapor in updraft (kg/kg)
 REAL    ,INTENT(INOUT) :: PURCI(KLON,KLEV) ! total condensate in updraft (kg/kg)
-LOGICAL           ,INTENT(IN)    :: LD_OUVTRANS ! flag to compute convective
 REAL    ,INTENT(INOUT) :: PUTEN(KLON,KLEV) ! convecctive u tendency (m/s^2)
 REAL    ,INTENT(INOUT) :: PVTEN(KLON,KLEV) ! convecctive v tendency (m/s^2)
 LOGICAL           ,INTENT(IN)    :: LD_OCHTRANS ! flag to compute convective
@@ -255,7 +251,7 @@ ENDIF
   LLSMOOTH=LSMOOTH
 
   CALL SHALLOW_CONVECTION( KLON, KLEV, KIDIA, KFDIA, KBDIA, KTDIA,        &
-   & PDTCONV, KICE, LD_OSETTADJ, PTADJS,         &
+   & KICE, LD_OSETTADJ, PTADJS,         &
    & ZPABS, ZZZ,PTKECLS,                         &
    & ZT, ZRV, ZRC, ZRI, ZW,                      &
    & ZTTENS, ZRVTENS, ZRCTENS, ZRITENS,          &
