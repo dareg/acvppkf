@@ -153,7 +153,7 @@ INTEGER  :: ICONV            ! number of convective columns
 INTEGER  :: IIB, IIE                ! horizontal loop bounds
 INTEGER  :: IKB, IKE                ! vertical loop bounds
 INTEGER  :: IKS                     ! vertical dimension
-INTEGER  :: JI, JL                  ! horizontal loop index
+INTEGER  :: JI                      ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM, JKP            ! vertical loop index
 INTEGER  :: IFTSTEPS                ! only used for chemical tracers
@@ -167,8 +167,6 @@ REAL                               :: ZW1     ! work variable
 !
 !*       0.2   Declarations of local allocatable  variables :
 !
-!INTEGER, DIMENSION(KLON)  :: IDPL    ! index for parcel departure level
-!INTEGER, DIMENSION(KLON)  :: IPBL    ! index for source layer top
 INTEGER, DIMENSION(KLON)  :: ILCL    ! index for lifting condensation level
 INTEGER, DIMENSION(KLON)  :: IETL    ! index for zero buoyancy level
 INTEGER, DIMENSION(KLON)  :: ICTL    ! index for cloud top level
@@ -183,7 +181,6 @@ REAL, DIMENSION(KLON)     :: ZSRVLCL ! updraft rv at LCL
 REAL, DIMENSION(KLON)     :: ZSWLCL  ! updraft w at LCL
 REAL, DIMENSION(KLON)     :: ZSZLCL  ! LCL height
 REAL, DIMENSION(KLON)     :: ZSTHVELCL! envir. theta_v at LCL
-!REAL, DIMENSION(KLON)     :: ZSDXDY  ! grid area (m^2)
 !
 ! grid scale variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZZ      ! height of model layer (m)
@@ -199,7 +196,6 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRW     ! grid scale total water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRV     ! grid scale water vapor (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRC     ! grid scale cloud water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRI     ! grid scale cloud ice (kg/kg)
-!REAL, DIMENSION(:),   ALLOCATABLE  :: ZDXDY   ! grid area (m^2)
 !
 ! updraft variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUMF    ! updraft mass flux (kg/s)
@@ -212,12 +208,6 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURC    ! updraft cloud water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURI    ! updraft cloud ice   (kg/kg)
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZMFLCL  ! cloud base unit mass flux(kg/s)
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZCAPE   ! available potent. energy
-!REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHLCL  ! updraft theta at LCL
-!REAL, DIMENSION(:),   ALLOCATABLE  :: ZTLCL   ! updraft temp. at LCL
-!REAL, DIMENSION(:),   ALLOCATABLE  :: ZRVLCL  ! updraft rv at LCL
-!REAL, DIMENSION(:),   ALLOCATABLE  :: ZWLCL   ! updraft w at LCL
-!REAL, DIMENSION(:),   ALLOCATABLE  :: ZZLCL   ! LCL height
-!REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHVELCL! envir. theta_v at LCL
 !
 ! downdraft variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDMF    ! downdraft mass flux (kg/s)
@@ -236,10 +226,6 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZWSUB   ! envir. compensating subsidence (
 !
 LOGICAL, DIMENSION(KLON) :: GTRIG1  ! logical mask for convection
 LOGICAL, DIMENSION(:),ALLOCATABLE :: GTRIG2  ! logical mask for convection
-LOGICAL, DIMENSION(:),ALLOCATABLE  :: GWORK   ! logical work array
-INTEGER, DIMENSION(KLON)           :: IINDEX !hor.index
-INTEGER, DIMENSION(KLON)  :: IJSINDEX!hor.index
-INTEGER, DIMENSION(:),ALLOCATABLE  :: IJINDEX, IJPINDEX!hor.index
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZCPH    ! specific heat C_ph
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZLV, ZLS! latent heat of vaporis., sublim.
 REAL                               :: ZES     ! saturation vapor mixng ratio
@@ -325,57 +311,6 @@ END DO
 !*       2.     Test for convective columns and determine properties at the LCL
 !               --------------------------------------------------------------
 !
-!*       2.1    Allocate arrays depending on number of model columns that need
-!               to be tested for convection (i.e. where no convection is present
-!               at the moment.
-!               --------------------------------------------------------------
-!
-!ALLOCATE( ZPRES(ITEST,IKS) )
-!ALLOCATE( ZZ(ITEST,IKS) )
-!ALLOCATE( ZW(ITEST,IKS) )
-!ALLOCATE( ZTH(ITEST,IKS) )
-!ALLOCATE( ZTHV(ITEST,IKS) )
-!ALLOCATE( ZTHEST(ITEST,IKS) )
-!ALLOCATE( ZRV(ITEST,IKS) )
-!ALLOCATE( ZSTHLCL(ITEST) )
-!ALLOCATE( ZSTLCL(ITEST) )
-!ALLOCATE( ZSRVLCL(ITEST) )
-!ALLOCATE( ZSWLCL(ITEST) )
-!ALLOCATE( ZSZLCL(ITEST) )
-!ALLOCATE( ZSTHVELCL(ITEST) )
-!ALLOCATE( ISDPL(ITEST) )
-!ALLOCATE( ISPBL(ITEST) )
-!ALLOCATE( ISLCL(ITEST) )
-!ALLOCATE( ZSDXDY(ITEST) )
-!ALLOCATE( IINDEX(KLON) )
-!ALLOCATE( IJSINDEX(ITEST) )
-DO JI = 1, KLON
-  IINDEX(JI) = JI
-END DO
-!IJSINDEX(:) = PACK( IINDEX(:), MASK=GTRIG(:) )
-
-!DO JK = IKB, IKE
-!DO JI = 1, ITEST
-!  JL = IJSINDEX(JI)
-!  ZPRES(JI,JK)  = PPABST(JL,JK)
-!  ZZ(JI,JK)     = PZZ(JL,JK)
-!  ZTH(JI,JK)    = ZTHT(JL,JK)
-!  ZTHV(JI,JK)   = ZSTHV(JL,JK)
-!  ZTHEST(JI,JK) = ZSTHES(JL,JK)
-!  ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
-!  ZW(JI,JK)     = PWT(JL,JK)
-!END DO
-!END DO
-!DO JI = 1, ITEST
-!  JL = IJSINDEX(JI)
-!  ZSDXDY(JI)    = XA25
-!END DO
-!
-!*       2.2    Compute environm. enthalpy and total water = r_v + r_i + r_c
-!               and envir. saturation theta_e
-!               ------------------------------------------------------------
-!
-!
 !*       2.3    Test for convective columns and determine properties at the LCL
 !               --------------------------------------------------------------
 !
@@ -384,22 +319,10 @@ ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
 CALL CONVECT_TRIGGER_SHAL(  KLON, KLON, KLEV,                              &
-                            !ZPRES, ZTH, ZTHV, ZTHEST,                 &
                             PPABST, ZTHT, ZSTHV, ZSTHES,                 &
-                            !ZRV, ZW, ZZ, ZSDXDY, PTKECLS,             &
                             PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
                             ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
-
-!
-
-!DEALLOCATE( ZPRES )
-!DEALLOCATE( ZZ )
-!DEALLOCATE( ZTH )
-!DEALLOCATE( ZTHV )
-!DEALLOCATE( ZTHEST )
-!DEALLOCATE( ZRV )
-!DEALLOCATE( ZW )
 !
 !-------------------------------------------------------------------------------
 !
@@ -410,50 +333,11 @@ CALL CONVECT_TRIGGER_SHAL(  KLON, KLON, KLEV,                              &
 !               --------------------------------------------------------------
 
 !
-ICONV = COUNT( GTRIG1(:) )
-Iconv=klon
-!IF ( ICONV == 0 )  THEN
-!  !DEALLOCATE( ZSTHLCL )
-!  !DEALLOCATE( ZSTLCL )
-!  !DEALLOCATE( ZSRVLCL )
-!  !DEALLOCATE( ZSWLCL )
-!  !DEALLOCATE( ZSZLCL )
-!  !DEALLOCATE( ZSTHVELCL )
-!  !DEALLOCATE( ZSDXDY )
-!  !DEALLOCATE( ISLCL )
-!  !DEALLOCATE( ISDPL )
-!  !DEALLOCATE( ISPBL )
-!  !DEALLOCATE( GTRIG1 )
-!  !DEALLOCATE( IINDEX )
-!  !DEALLOCATE( IJSINDEX )
-!  IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',1,ZHOOK_HANDLE)
-!  RETURN   ! no convective column has been found, exit DEEP_CONVECTION
-!ENDIF
+ICONV=KLON
 !
-     ! vertical index variables
-!
-!ALLOCATE( IDPL(ICONV) )
-!ALLOCATE( IPBL(ICONV) )
-!ALLOCATE( ILCL(ICONV) )
-!ALLOCATE( ICTL(ICONV) )
-!ALLOCATE( IETL(ICONV) )
-!
-     ! grid scale variables
-
-
-!ALLOCATE( ZZ(ICONV,IKS) ) ;   ZZ  = 0.0
-!ALLOCATE( ZPRES(ICONV,IKS) );   ZPRES = 0.0
 ALLOCATE( ZDPRES(ICONV,IKS) ) ;   ZDPRES = 0.0
-!ALLOCATE( ZTT(ICONV, IKS) ) ;   ZTT    = 0.0
-!ALLOCATE( ZTH(ICONV,IKS) ) ;   ZTH    = 0.0
-!ALLOCATE( ZTHV(ICONV,IKS) )   ;   ZTHV   = 0.0
 ALLOCATE( ZTHL(ICONV,IKS) )  ; ZTHL  = 0.0
-!ALLOCATE( ZTHES(ICONV,IKS) )  ; ZTHES = 0.0
-!ALLOCATE( ZRV(ICONV,IKS) ) ; ZRV   = 0.0
-!ALLOCATE( ZRC(ICONV,IKS) )   ; ZRC   = 0.0
-!ALLOCATE( ZRI(ICONV,IKS) )   ; ZRI   = 0.0
 ALLOCATE( ZRW(ICONV,IKS) )   ; ZRW   = 0.0
-!ALLOCATE( ZDXDY(ICONV) )  ; ZDXDY = 0.0
 !
          ! updraft variables
 !
@@ -465,19 +349,11 @@ ALLOCATE( ZUTHV(ICONV,IKS) )
 ALLOCATE( ZURW(ICONV,IKS) )
 ALLOCATE( ZURC(ICONV,IKS) )
 ALLOCATE( ZURI(ICONV,IKS) )
-!ALLOCATE( ZTHLCL(ICONV) )
-!ALLOCATE( ZTLCL(ICONV) )
-!ALLOCATE( ZRVLCL(ICONV) )
-!ALLOCATE( ZWLCL(ICONV) )
 ALLOCATE( ZMFLCL(ICONV) )
-!ALLOCATE( ZZLCL(ICONV) )
-!ALLOCATE( ZTHVELCL(ICONV) )
 ALLOCATE( ZCAPE(ICONV) )
 !
          ! work variables
 !
-ALLOCATE( IJINDEX(ICONV) )
-ALLOCATE( IJPINDEX(ICONV) )
 ALLOCATE( ZCPH(ICONV) )
 ALLOCATE( ZLV(ICONV) )
 ALLOCATE( ZLS(ICONV) )
@@ -487,61 +363,8 @@ ALLOCATE( ZLS(ICONV) )
 !                   arrays using mask GTRIG
 !                   ---------------------------------------------------
 !
-IJINDEX(:)    = PACK( IINDEX(:), MASK=GTRIG1(:) )
-!
-DO JK = IKB, IKE
-DO JI = 1, ICONV
-  !JL = IJINDEX(JI)
-  JL = JI
-  !ZZ(JI,JK)     = PZZ(JL,JK)
-  !ZPRES(JI,JK)  = PPABST(JL,JK)
-  !ZTT(JI,JK)    = PTT(JL,JK)
-  !ZTH(JI,JK)    = ZTHT(JL,JK)
-  !ZTHES(JI,JK)  = ZSTHES(JL,JK)
-  !ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
-  !ZRC(JI,JK)    = MAX( 0., PRCT(JL,JK) )
-  !ZRI(JI,JK)    = MAX( 0., PRIT(JL,JK) )
-  !ZTHV(JI,JK)   = ZSTHV(JL,JK)
-END DO
-END DO
-!
-DO JI = 1, KLON
-  IJSINDEX(JI) = JI
-END DO
-IJPINDEX(:) = PACK( IJSINDEX(:), MASK=GTRIG1(:) )
-DO JI = 1, ICONV
-  !JL = IJPINDEX(JI)
-  JL = JI
-  !IDPL(JI)      = ISDPL(JL)
-  !IPBL(JI)      = ISPBL(JL)
-  !ILCL(JI)      = ISLCL(JL)
-  !ZTHLCL(JI)    = ZSTHLCL(JL)
-  !ZTLCL(JI)     = ZSTLCL(JL)
-  !ZRVLCL(JI)    = ZSRVLCL(JL)
-  !ZWLCL(JI)     = ZSWLCL(JL)
-  !ZZLCL(JI)     = ZSZLCL(JL)
-  !ZTHVELCL(JI)  = ZSTHVELCL(JL)
-  !ZDXDY(JI)     = ZSDXDY(JL)
-END DO
-ALLOCATE( GWORK(ICONV) )
-GWORK=.FALSE.
-GWORK(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
-
 ALLOCATE( GTRIG2(ICONV) )
-GTRIG2(:)     = GWORK(:)
-!
-DEALLOCATE( GWORK )
-DEALLOCATE( IJPINDEX )
-!DEALLOCATE( ISDPL )
-!DEALLOCATE( ISPBL )
-!DEALLOCATE( ISLCL )
-!DEALLOCATE( ZSTHLCL )
-!DEALLOCATE( ZSTLCL )
-!DEALLOCATE( ZSRVLCL )
-!DEALLOCATE( ZSWLCL )
-!DEALLOCATE( ZSZLCL )
-!DEALLOCATE( ZSTHVELCL )
-!DEALLOCATE( ZSDXDY )
+GTRIG2(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
 !
 !
 !*           3.2    Compute pressure difference
@@ -576,7 +399,6 @@ DEALLOCATE( ZLS )
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-!ZDXDY(:)  = XA25
 ZMFLCL(:) = XA25 * 1.E-3
 !
 !
@@ -752,14 +574,12 @@ ENDIF
 !
   DO JK = IKB, IKE
   DO JI = 1, ICONV
-    !JL = IJINDEX(JI)
-    if(gtrig1(ji) == .true.)then
-    JL = JI
-    PTTEN(JL,JK)   = ZTHC(JI,JK)
-    PRVTEN(JL,JK)  = ZRVC(JI,JK)
-    PRCTEN(JL,JK)  = ZRCC(JI,JK)
-    PRITEN(JL,JK)  = ZRIC(JI,JK)
-    endif
+    IF(GTRIG1(JI) == .TRUE.)THEN
+      PTTEN(JI,JK)   = ZTHC(JI,JK)
+      PRVTEN(JI,JK)  = ZRVC(JI,JK)
+      PRCTEN(JI,JK)  = ZRCC(JI,JK)
+      PRITEN(JI,JK)  = ZRIC(JI,JK)
+    ENDIF
   END DO
   END DO
 !
@@ -767,14 +587,11 @@ ENDIF
 !                   Cloud base and top levels
 !                   -------------------------
 !
-  !ILCL(:) = MIN( ILCL(:), ICTL(:) )
   DO JI = 1, ICONV
-    !JL = IJINDEX(JI)
-    JL = JI
-    if(gtrig1(ji) == .true.)then
-    KCLTOP(JL) = ICTL(JI)
-    KCLBAS(JL) = MIN(ISLCL(JI), ICTL(JI))
-    endif
+    IF(GTRIG1(JI) == .TRUE.)THEN
+      KCLTOP(JI) = ICTL(JI)
+      KCLBAS(JI) = MIN(ISLCL(JI), ICTL(JI))
+    ENDIF
   END DO
 !
 !
@@ -789,10 +606,8 @@ ENDIF
 !
     DO JK = IKB, IKE
     DO JI = 1, ICONV
-      !JL = IJINDEX(JI)
-      JL=JI
       IF(GTRIG1(JI) == .TRUE.)THEN
-        ZCH1(JI,JK,:) = PCH1(JL,JK,:)
+        ZCH1(JI,JK,:) = PCH1(JI,JK,:)
       ENDIF
     END DO
     END DO
@@ -838,10 +653,8 @@ ENDIF
 !
       DO JK = IKB, IKE
         DO JI = 1, ICONV
-          !JL = IJINDEX(JI)
-          JL=JI
           IF(GTRIG1(JI) == .TRUE.)THEN
-            PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+            PCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
           ENDIF
         END DO
       END DO
@@ -859,11 +672,9 @@ ENDIF
   ZWORK2(:) = 1.
   DO JK = IKB, IKE
   DO JI = 1, ICONV
-    !JL = IJINDEX(JI)
-    JL=JI
     IF(GTRIG1(JI) == .TRUE.)THEN
-      IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
-      PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
+      IF ( KCLTOP(JI) <= IKB+1 ) ZWORK2(JI) = 0.
+      PUMF(JI,JK) = ZUMF(JI,JK) * ZWORK2(JI)
     ENDIF
   END DO
   END DO
@@ -896,29 +707,11 @@ ENDIF
     DEALLOCATE( ZWORK3 )
   END IF
 !
-!    vertical index
-!
-!DEALLOCATE( IDPL )
-!DEALLOCATE( IPBL )
-!DEALLOCATE( ILCL )
-!DEALLOCATE( ICTL )
-!DEALLOCATE( IETL )
-!
 ! grid scale variables
 !
-!DEALLOCATE( ZZ )
-!DEALLOCATE( ZPRES )
 DEALLOCATE( ZDPRES )
-!DEALLOCATE( ZTT )
-!DEALLOCATE( ZTH )
-!DEALLOCATE( ZTHV )
 DEALLOCATE( ZTHL )
-!DEALLOCATE( ZTHES )
 DEALLOCATE( ZRW )
-!DEALLOCATE( ZRV )
-!DEALLOCATE( ZRC )
-!DEALLOCATE( ZRI )
-!DEALLOCATE( ZDXDY )
 !
 ! updraft variables
 !
@@ -930,21 +723,8 @@ DEALLOCATE( ZUTHV )
 DEALLOCATE( ZURW )
 DEALLOCATE( ZURC )
 DEALLOCATE( ZURI )
-!DEALLOCATE( ZTHLCL )
-!DEALLOCATE( ZTLCL )
-!DEALLOCATE( ZRVLCL )
-!DEALLOCATE( ZWLCL )
-!DEALLOCATE( ZZLCL )
-!DEALLOCATE( ZTHVELCL )
 DEALLOCATE( ZMFLCL )
 DEALLOCATE( ZCAPE )
-!
-! work arrays
-!
-!DEALLOCATE( IINDEX )
-DEALLOCATE( IJINDEX )
-!DEALLOCATE( IJSINDEX )
-!DEALLOCATE( GTRIG1 )
 !
 !
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',1,ZHOOK_HANDLE)
