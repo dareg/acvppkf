@@ -4,7 +4,7 @@
                                      PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, PTHVELCL,  &
                                      PMFLCL, OTRIG, KLCL, KDPL, KPBL,                &
                                      PUMF, PUER, PUDR, PUTHL, PUTHV, PURW,           &
-                                     PURC, PURI, PCAPE, KCTL, KETL )
+                                     PURC, PURI, PCAPE, KCTL, KETL,GTRIG1 )
     USE PARKIND1, ONLY : JPRB
     USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 !    ###############################################################################
@@ -108,6 +108,7 @@ REAL, DIMENSION(KLON),     INTENT(IN) :: PMFLCL ! cloud  base unit mass flux
 REAL, DIMENSION(KLON),     INTENT(IN) :: PZLCL  ! height at LCL (m)
 REAL, DIMENSION(KLON),     INTENT(IN) :: PTHVELCL  ! environm. theta_v at LCL (K)
 LOGICAL, DIMENSION(KLON),  INTENT(INOUT):: OTRIG! logical mask for convection
+LOGICAL, DIMENSION(KLON),  INTENT(IN):: GTRIG1! logical mask for convection
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KLCL   ! contains vert. index of LCL
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KDPL   ! contains vert. index of DPL
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KPBL   !  " vert. index of source layertop
@@ -509,7 +510,7 @@ END DO
 JKP=IKE
 DO JK = JKM, JKP
    DO JI = 1, IIE
-   IF ( JK >= KDPL(JI)  .AND. JK <= IWORK(JI) ) THEN
+   IF ( JK >= KDPL(JI)  .AND. JK <= IWORK(JI) .AND. GTRIG1(JI)) THEN
        PUER(JI,JK) = PUER(JI,JK) + PMFLCL(JI) * PDPRES(JI,JK) / ( ZWORK2(JI) + 0.1 )
        PUMF(JI,JK) = PUMF(JI,JK-1) + PUER(JI,JK)
    END IF

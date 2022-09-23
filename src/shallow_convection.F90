@@ -411,6 +411,7 @@ CALL CONVECT_TRIGGER_SHAL(  KLON, KLON, KLEV,                              &
 
 !
 ICONV = COUNT( GTRIG1(:) )
+Iconv=klon
 !IF ( ICONV == 0 )  THEN
 !  !DEALLOCATE( ZSTHLCL )
 !  !DEALLOCATE( ZSTLCL )
@@ -490,7 +491,8 @@ IJINDEX(:)    = PACK( IINDEX(:), MASK=GTRIG1(:) )
 !
 DO JK = IKB, IKE
 DO JI = 1, ICONV
-  JL = IJINDEX(JI)
+  !JL = IJINDEX(JI)
+  JL = JI
   ZZ(JI,JK)     = PZZ(JL,JK)
   ZPRES(JI,JK)  = PPABST(JL,JK)
   ZTT(JI,JK)    = PTT(JL,JK)
@@ -508,7 +510,8 @@ DO JI = 1, KLON
 END DO
 IJPINDEX(:) = PACK( IJSINDEX(:), MASK=GTRIG1(:) )
 DO JI = 1, ICONV
-  JL = IJPINDEX(JI)
+  !JL = IJPINDEX(JI)
+  JL = JI
   IDPL(JI)      = ISDPL(JL)
   IPBL(JI)      = ISPBL(JL)
   ILCL(JI)      = ISLCL(JL)
@@ -521,6 +524,7 @@ DO JI = 1, ICONV
   ZDXDY(JI)     = ZSDXDY(JL)
 END DO
 ALLOCATE( GWORK(ICONV) )
+GWORK=.FALSE.
 GWORK(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
 
 ALLOCATE( GTRIG2(ICONV) )
@@ -582,7 +586,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
                            ZTHLCL, ZTLCL, ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL,   &
                            ZMFLCL, GTRIG2, ILCL, IDPL, IPBL,                &
                            ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
-                           ZURC, ZURI, ZCAPE, ICTL, IETL                    )
+                           ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1                    )
 !
 !
 !
@@ -748,11 +752,14 @@ ENDIF
 !
   DO JK = IKB, IKE
   DO JI = 1, ICONV
-    JL = IJINDEX(JI)
+    !JL = IJINDEX(JI)
+    if(gtrig1(ji) == .true.)then
+    JL = JI
     PTTEN(JL,JK)   = ZTHC(JI,JK)
     PRVTEN(JL,JK)  = ZRVC(JI,JK)
     PRCTEN(JL,JK)  = ZRCC(JI,JK)
     PRITEN(JL,JK)  = ZRIC(JI,JK)
+    endif
   END DO
   END DO
 !
@@ -762,9 +769,12 @@ ENDIF
 !
   ILCL(:) = MIN( ILCL(:), ICTL(:) )
   DO JI = 1, ICONV
-    JL = IJINDEX(JI)
+    !JL = IJINDEX(JI)
+    JL = JI
+    if(gtrig1(ji) == .true.)then
     KCLTOP(JL) = ICTL(JI)
     KCLBAS(JL) = ILCL(JI)
+    endif
   END DO
 !
 !
@@ -843,7 +853,8 @@ ENDIF
   ZWORK2(:) = 1.
   DO JK = IKB, IKE
   DO JI = 1, ICONV
-    JL = IJINDEX(JI)
+    !JL = IJINDEX(JI)
+    JL = JI
     IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
     PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
   END DO
