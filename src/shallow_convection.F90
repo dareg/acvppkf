@@ -167,7 +167,6 @@ REAL                               :: ZW1     ! work variable
 !
 !*       0.2   Declarations of local allocatable  variables :
 !
-INTEGER, DIMENSION(KLON)  :: ILCL    ! index for lifting condensation level
 INTEGER, DIMENSION(KLON)  :: IETL    ! index for zero buoyancy level
 INTEGER, DIMENSION(KLON)  :: ICTL    ! index for cloud top level
 INTEGER, DIMENSION(KLON)  :: ILFS    ! index for level of free sink
@@ -183,19 +182,10 @@ REAL, DIMENSION(KLON)     :: ZSZLCL  ! LCL height
 REAL, DIMENSION(KLON)     :: ZSTHVELCL! envir. theta_v at LCL
 !
 ! grid scale variables
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZZ      ! height of model layer (m)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZPRES   ! grid scale pressure
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDPRES  ! pressure difference between
                                               ! bottom and top of layer (Pa)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTT     ! temperature
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTH     ! grid scale theta
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHV    ! grid scale theta_v
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHL    ! grid scale enthalpy (J/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHES, ZTHEST ! grid scale saturated theta_e
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRW     ! grid scale total water (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRV     ! grid scale water vapor (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRC     ! grid scale cloud water (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRI     ! grid scale cloud ice (kg/kg)
 !
 ! updraft variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUMF    ! updraft mass flux (kg/s)
@@ -224,8 +214,8 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRIC    ! conv. adj. grid scale r_i
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZWSUB   ! envir. compensating subsidence (Pa/s)
 !
-LOGICAL, DIMENSION(KLON) :: GTRIG1  ! logical mask for convection
-LOGICAL, DIMENSION(:),ALLOCATABLE :: GTRIG2  ! logical mask for convection
+LOGICAL, DIMENSION(KLON)           :: GTRIG1  ! logical mask for convection
+LOGICAL, DIMENSION(:),ALLOCATABLE  :: GTRIG2  ! logical mask for convection
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZCPH    ! specific heat C_ph
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZLV, ZLS! latent heat of vaporis., sublim.
 REAL                               :: ZES     ! saturation vapor mixng ratio
@@ -426,7 +416,6 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
   ALLOCATE( ZDMF(ICONV,IKS) )
   ALLOCATE( ZDER(ICONV,IKS) )
   ALLOCATE( ZDDR(ICONV,IKS) )
-  !ALLOCATE( ILFS(ICONV) )
   ALLOCATE( ZLMASS(ICONV,IKS) )
   ZDMF(:,:) = 0.
   ZDER(:,:) = 0.
