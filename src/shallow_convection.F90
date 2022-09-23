@@ -167,8 +167,8 @@ REAL                               :: ZW1     ! work variable
 !
 !*       0.2   Declarations of local allocatable  variables :
 !
-INTEGER, DIMENSION(KLON)  :: IDPL    ! index for parcel departure level
-INTEGER, DIMENSION(KLON)  :: IPBL    ! index for source layer top
+!INTEGER, DIMENSION(KLON)  :: IDPL    ! index for parcel departure level
+!INTEGER, DIMENSION(KLON)  :: IPBL    ! index for source layer top
 INTEGER, DIMENSION(KLON)  :: ILCL    ! index for lifting condensation level
 INTEGER, DIMENSION(KLON)  :: IETL    ! index for zero buoyancy level
 INTEGER, DIMENSION(KLON)  :: ICTL    ! index for cloud top level
@@ -212,12 +212,12 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURC    ! updraft cloud water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURI    ! updraft cloud ice   (kg/kg)
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZMFLCL  ! cloud base unit mass flux(kg/s)
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZCAPE   ! available potent. energy
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHLCL  ! updraft theta at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZTLCL   ! updraft temp. at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZRVLCL  ! updraft rv at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZWLCL   ! updraft w at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZZLCL   ! LCL height
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHVELCL! envir. theta_v at LCL
+!REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHLCL  ! updraft theta at LCL
+!REAL, DIMENSION(:),   ALLOCATABLE  :: ZTLCL   ! updraft temp. at LCL
+!REAL, DIMENSION(:),   ALLOCATABLE  :: ZRVLCL  ! updraft rv at LCL
+!REAL, DIMENSION(:),   ALLOCATABLE  :: ZWLCL   ! updraft w at LCL
+!REAL, DIMENSION(:),   ALLOCATABLE  :: ZZLCL   ! LCL height
+!REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHVELCL! envir. theta_v at LCL
 !
 ! downdraft variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDMF    ! downdraft mass flux (kg/s)
@@ -465,13 +465,13 @@ ALLOCATE( ZUTHV(ICONV,IKS) )
 ALLOCATE( ZURW(ICONV,IKS) )
 ALLOCATE( ZURC(ICONV,IKS) )
 ALLOCATE( ZURI(ICONV,IKS) )
-ALLOCATE( ZTHLCL(ICONV) )
-ALLOCATE( ZTLCL(ICONV) )
-ALLOCATE( ZRVLCL(ICONV) )
-ALLOCATE( ZWLCL(ICONV) )
+!ALLOCATE( ZTHLCL(ICONV) )
+!ALLOCATE( ZTLCL(ICONV) )
+!ALLOCATE( ZRVLCL(ICONV) )
+!ALLOCATE( ZWLCL(ICONV) )
 ALLOCATE( ZMFLCL(ICONV) )
-ALLOCATE( ZZLCL(ICONV) )
-ALLOCATE( ZTHVELCL(ICONV) )
+!ALLOCATE( ZZLCL(ICONV) )
+!ALLOCATE( ZTHVELCL(ICONV) )
 ALLOCATE( ZCAPE(ICONV) )
 !
          ! work variables
@@ -512,15 +512,15 @@ IJPINDEX(:) = PACK( IJSINDEX(:), MASK=GTRIG1(:) )
 DO JI = 1, ICONV
   !JL = IJPINDEX(JI)
   JL = JI
-  IDPL(JI)      = ISDPL(JL)
-  IPBL(JI)      = ISPBL(JL)
-  ILCL(JI)      = ISLCL(JL)
-  ZTHLCL(JI)    = ZSTHLCL(JL)
-  ZTLCL(JI)     = ZSTLCL(JL)
-  ZRVLCL(JI)    = ZSRVLCL(JL)
-  ZWLCL(JI)     = ZSWLCL(JL)
-  ZZLCL(JI)     = ZSZLCL(JL)
-  ZTHVELCL(JI)  = ZSTHVELCL(JL)
+  !IDPL(JI)      = ISDPL(JL)
+  !IPBL(JI)      = ISPBL(JL)
+  !ILCL(JI)      = ISLCL(JL)
+  !ZTHLCL(JI)    = ZSTHLCL(JL)
+  !ZTLCL(JI)     = ZSTLCL(JL)
+  !ZRVLCL(JI)    = ZSRVLCL(JL)
+  !ZWLCL(JI)     = ZSWLCL(JL)
+  !ZZLCL(JI)     = ZSZLCL(JL)
+  !ZTHVELCL(JI)  = ZSTHVELCL(JL)
   ZDXDY(JI)     = ZSDXDY(JL)
 END DO
 ALLOCATE( GWORK(ICONV) )
@@ -583,8 +583,8 @@ ZMFLCL(:) = XA25 * 1.E-3
 !
 CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, ZSTHV, ZSTHES, ZRW, &
-                           ZTHLCL, ZTLCL, ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL,   &
-                           ZMFLCL, GTRIG2, ILCL, IDPL, IPBL,                &
+                           ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,   &
+                           ZMFLCL, GTRIG2, ISLCL, ISDPL, ISPBL,                &
                            ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
                            ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1                    )
 !
@@ -641,7 +641,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
                              PPABST, ZDPRES, PZZ, ZDXDY, ZLMASS,    &
                              ZTHL, ZTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
-                             ILCL, IDPL, IPBL, ICTL,              &
+                             ISLCL, ISDPL, ISPBL, ICTL,              &
                              ZUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
                              ZURC, ZURI, ZCAPE, ZTIMEC, IFTSTEPS  )
 !
@@ -767,13 +767,13 @@ ENDIF
 !                   Cloud base and top levels
 !                   -------------------------
 !
-  ILCL(:) = MIN( ILCL(:), ICTL(:) )
+  !ILCL(:) = MIN( ILCL(:), ICTL(:) )
   DO JI = 1, ICONV
     !JL = IJINDEX(JI)
     JL = JI
     if(gtrig1(ji) == .true.)then
     KCLTOP(JL) = ICTL(JI)
-    KCLBAS(JL) = ILCL(JI)
+    KCLBAS(JL) = MIN(ISLCL(JI), ICTL(JI))
     endif
   END DO
 !
@@ -795,7 +795,7 @@ ENDIF
     END DO
 !
     CALL CONVECT_CHEM_TRANSPORT( ICONV, KLEV, KCH1, ZCH1, ZCH1C,          &
-                                 IDPL, IPBL, ILCL, ICTL, ILFS, ILFS,      &
+                                 ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                  ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
                                  ZTIMEC, ZDXDY, ZDMF(:,1), ZLMASS, ZWSUB, &
                                  IFTSTEPS )
@@ -922,12 +922,12 @@ DEALLOCATE( ZUTHV )
 DEALLOCATE( ZURW )
 DEALLOCATE( ZURC )
 DEALLOCATE( ZURI )
-DEALLOCATE( ZTHLCL )
-DEALLOCATE( ZTLCL )
-DEALLOCATE( ZRVLCL )
-DEALLOCATE( ZWLCL )
-DEALLOCATE( ZZLCL )
-DEALLOCATE( ZTHVELCL )
+!DEALLOCATE( ZTHLCL )
+!DEALLOCATE( ZTLCL )
+!DEALLOCATE( ZRVLCL )
+!DEALLOCATE( ZWLCL )
+!DEALLOCATE( ZZLCL )
+!DEALLOCATE( ZTHVELCL )
 DEALLOCATE( ZMFLCL )
 DEALLOCATE( ZCAPE )
 !

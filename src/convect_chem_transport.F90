@@ -142,10 +142,10 @@ JKP = JK + 1
 !
     DO JN = 1, INCH1
      DO JI = 1, IIE
-       IF ( KDPL(JI) <= JK .AND. KLCL(JI) > JK )                             &
+       IF ( KDPL(JI) <= JK .AND. MIN(KLCL(JI), KCTL(JI)) > JK )                             &
             ZUCH1(JI,JK,JN) = ZWORK1(JI,JN)
 !
-       IF ( KLCL(JI) - 1 <= JK .AND. KCTL(JI) > JK ) THEN
+       IF ( MIN(KLCL(JI), KCTL(JI)) - 1 <= JK .AND. KCTL(JI) > JK ) THEN
            ZUCH1(JI,JKP,JN) = ZUCH1(JI,JK,JN)
                             !if you have reactive i.e. non-passive tracers
                             ! update their values here and add the corresponding
