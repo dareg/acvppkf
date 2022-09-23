@@ -325,14 +325,6 @@ ZDPRES = 0.0
 ZTHL  = 0.0
 ZRW   = 0.0
 !
-!
-!*           3.1    Gather grid scale and updraft base variables in
-!                   arrays using mask GTRIG
-!                   ---------------------------------------------------
-!
-GTRIG2(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
-!
-!
 !*           3.2    Compute pressure difference
 !                   ---------------------------------------------------
 !
