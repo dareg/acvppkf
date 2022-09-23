@@ -92,7 +92,7 @@ INTEGER, DIMENSION(KLON),  INTENT(IN) :: KCTL   ! index for cloud top level
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KDPL   ! index for departure level
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KPBL   ! index for top of source layer
 REAL, DIMENSION(KLON),  INTENT(INOUT) :: PTIMEC ! convection time step
-REAL, DIMENSION(KLON),     INTENT(IN) :: PDXDY  ! grid area (m^2)
+REAL,                      INTENT(IN) :: PDXDY  ! grid area (m^2)
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTHL   ! grid scale enthalpy (J/kg)
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTH    ! grid scale theta
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PRW    ! grid scale total water
@@ -287,7 +287,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
              ZTIMEC(:) = MIN( ZTIMEC(:), ZWORK1(:) )
 !
               ! transform vertical velocity in mass flux units
-             ZOMG(:,JK) = PWSUB(:,JK) * PDXDY(:) / XG
+             ZOMG(:,JK) = PWSUB(:,JK) * PDXDY / XG
          END WHERE
      END DO
 !

@@ -79,7 +79,7 @@ REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PDER ! downdraft entrainment (kg/s)
 REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PDDR ! downdraft detrainment (kg/s)
 !
 REAL, DIMENSION(KLON),     INTENT(IN) :: PTIMEC! convection time step
-REAL, DIMENSION(KLON),     INTENT(IN) :: PDXDY ! grid area (m^2)
+REAL,                      INTENT(IN) :: PDXDY ! grid area (m^2)
 REAL, DIMENSION(KLON),     INTENT(IN) :: PMIXF ! mixed fraction at LFS
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PLMASS! mass of model layer (kg)
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PWSUB ! envir. compensating subsidence(Pa/s)
@@ -197,7 +197,7 @@ END DO
 PCH1C(:,IKB:IKE,:) = PCH1(:,IKB:IKE,:) ! initialize adjusted envir. values
 !
 DO JK = IKB, IKE
-   ZOMG(:,JK) = PWSUB(:,JK) * PDXDY(:) / XG ! environmental subsidence
+   ZOMG(:,JK) = PWSUB(:,JK) * PDXDY / XG ! environmental subsidence
 END DO
 !
 ZTIMEC(:) = PTIMEC(:) / REAL( KFTSTEPS ) ! adjust  fractional time step

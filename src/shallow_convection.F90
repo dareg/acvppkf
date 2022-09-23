@@ -183,7 +183,7 @@ REAL, DIMENSION(KLON)     :: ZSRVLCL ! updraft rv at LCL
 REAL, DIMENSION(KLON)     :: ZSWLCL  ! updraft w at LCL
 REAL, DIMENSION(KLON)     :: ZSZLCL  ! LCL height
 REAL, DIMENSION(KLON)     :: ZSTHVELCL! envir. theta_v at LCL
-REAL, DIMENSION(KLON)     :: ZSDXDY  ! grid area (m^2)
+!REAL, DIMENSION(KLON)     :: ZSDXDY  ! grid area (m^2)
 !
 ! grid scale variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZZ      ! height of model layer (m)
@@ -199,7 +199,7 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRW     ! grid scale total water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRV     ! grid scale water vapor (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRC     ! grid scale cloud water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRI     ! grid scale cloud ice (kg/kg)
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZDXDY   ! grid area (m^2)
+!REAL, DIMENSION(:),   ALLOCATABLE  :: ZDXDY   ! grid area (m^2)
 !
 ! updraft variables
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUMF    ! updraft mass flux (kg/s)
@@ -453,7 +453,7 @@ ALLOCATE( ZTHL(ICONV,IKS) )  ; ZTHL  = 0.0
 !ALLOCATE( ZRC(ICONV,IKS) )   ; ZRC   = 0.0
 !ALLOCATE( ZRI(ICONV,IKS) )   ; ZRI   = 0.0
 ALLOCATE( ZRW(ICONV,IKS) )   ; ZRW   = 0.0
-ALLOCATE( ZDXDY(ICONV) )  ; ZDXDY = 0.0
+!ALLOCATE( ZDXDY(ICONV) )  ; ZDXDY = 0.0
 !
          ! updraft variables
 !
@@ -521,7 +521,7 @@ DO JI = 1, ICONV
   !ZWLCL(JI)     = ZSWLCL(JL)
   !ZZLCL(JI)     = ZSZLCL(JL)
   !ZTHVELCL(JI)  = ZSTHVELCL(JL)
-  ZDXDY(JI)     = ZSDXDY(JL)
+  !ZDXDY(JI)     = ZSDXDY(JL)
 END DO
 ALLOCATE( GWORK(ICONV) )
 GWORK=.FALSE.
@@ -576,7 +576,7 @@ DEALLOCATE( ZLS )
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-ZDXDY(:)  = XA25
+!ZDXDY(:)  = XA25
 ZMFLCL(:) = XA25 * 1.E-3
 !
 !
@@ -611,7 +611,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
   ZDDR(:,:) = 0.
   ILFS(:)   = IKB
   DO JK = IKB, IKE
-    ZLMASS(:,JK)  = ZDXDY(:) * ZDPRES(:,JK) / XG  ! mass of model layer
+    ZLMASS(:,JK)  = XA25 * ZDPRES(:,JK) / XG  ! mass of model layer
   END DO
   ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !
@@ -638,7 +638,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !                   ---------------------------------------------------
 !
   CALL CONVECT_CLOSURE_SHAL( ICONV, KLEV,                         &
-                             PPABST, ZDPRES, PZZ, ZDXDY, ZLMASS,    &
+                             PPABST, ZDPRES, PZZ, XA25, ZLMASS,    &
                              ZTHL, ZTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
                              ISLCL, ISDPL, ISPBL, ICTL,              &
@@ -797,7 +797,7 @@ ENDIF
     CALL CONVECT_CHEM_TRANSPORT( ICONV, KLEV, KCH1, ZCH1, ZCH1C,          &
                                  ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                  ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
-                                 ZTIMEC, ZDXDY, ZDMF(:,1), ZLMASS, ZWSUB, &
+                                 ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
                                  IFTSTEPS )
 !
 !
@@ -848,7 +848,7 @@ ENDIF
 !                   ------------------------------------
 !
   DO JK = IKB, IKE
-    ZUMF(:,JK)  = ZUMF(:,JK) / ZDXDY(:) ! Mass flux per unit area
+    ZUMF(:,JK)  = ZUMF(:,JK) / XA25 ! Mass flux per unit area
   END DO
   ZWORK2(:) = 1.
   DO JK = IKB, IKE
@@ -910,7 +910,7 @@ DEALLOCATE( ZRW )
 !DEALLOCATE( ZRV )
 !DEALLOCATE( ZRC )
 !DEALLOCATE( ZRI )
-DEALLOCATE( ZDXDY )
+!DEALLOCATE( ZDXDY )
 !
 ! updraft variables
 !
