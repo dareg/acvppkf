@@ -149,7 +149,6 @@ REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tendency
 !
 !*       0.2   Declarations of local fixed memory variables :
 !
-INTEGER  :: ICONV            ! number of convective columns
 INTEGER  :: IIB, IIE                ! horizontal loop bounds
 INTEGER  :: IKB, IKE                ! vertical loop bounds
 INTEGER  :: IKS                     ! vertical dimension
@@ -323,37 +322,35 @@ CALL CONVECT_TRIGGER_SHAL(  KLON, KLON, KLEV,                              &
 !               --------------------------------------------------------------
 
 !
-ICONV=KLON
-!
-ALLOCATE( ZDPRES(ICONV,IKS) ) ;   ZDPRES = 0.0
-ALLOCATE( ZTHL(ICONV,IKS) )  ; ZTHL  = 0.0
-ALLOCATE( ZRW(ICONV,IKS) )   ; ZRW   = 0.0
+ALLOCATE( ZDPRES(KLON,IKS) ) ;   ZDPRES = 0.0
+ALLOCATE( ZTHL(KLON,IKS) )  ; ZTHL  = 0.0
+ALLOCATE( ZRW(KLON,IKS) )   ; ZRW   = 0.0
 !
          ! updraft variables
 !
-ALLOCATE( ZUMF(ICONV,IKS) )
-ALLOCATE( ZUER(ICONV,IKS) )
-ALLOCATE( ZUDR(ICONV,IKS) )
-ALLOCATE( ZUTHL(ICONV,IKS) )
-ALLOCATE( ZUTHV(ICONV,IKS) )
-ALLOCATE( ZURW(ICONV,IKS) )
-ALLOCATE( ZURC(ICONV,IKS) )
-ALLOCATE( ZURI(ICONV,IKS) )
-ALLOCATE( ZMFLCL(ICONV) )
-ALLOCATE( ZCAPE(ICONV) )
+ALLOCATE( ZUMF(KLON,IKS) )
+ALLOCATE( ZUER(KLON,IKS) )
+ALLOCATE( ZUDR(KLON,IKS) )
+ALLOCATE( ZUTHL(KLON,IKS) )
+ALLOCATE( ZUTHV(KLON,IKS) )
+ALLOCATE( ZURW(KLON,IKS) )
+ALLOCATE( ZURC(KLON,IKS) )
+ALLOCATE( ZURI(KLON,IKS) )
+ALLOCATE( ZMFLCL(KLON) )
+ALLOCATE( ZCAPE(KLON) )
 !
          ! work variables
 !
-ALLOCATE( ZCPH(ICONV) )
-ALLOCATE( ZLV(ICONV) )
-ALLOCATE( ZLS(ICONV) )
+ALLOCATE( ZCPH(KLON) )
+ALLOCATE( ZLV(KLON) )
+ALLOCATE( ZLS(KLON) )
 !
 !
 !*           3.1    Gather grid scale and updraft base variables in
 !                   arrays using mask GTRIG
 !                   ---------------------------------------------------
 !
-ALLOCATE( GTRIG2(ICONV) )
+ALLOCATE( GTRIG2(KLON) )
 GTRIG2(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
 !
 !
@@ -393,7 +390,7 @@ ZMFLCL(:) = XA25 * 1.E-3
 !
 !
 !
-CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
+CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV,                                     &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, ZSTHV, ZSTHES, ZRW, &
                            ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,   &
                            ZMFLCL, GTRIG2, ISLCL, ISDPL, ISPBL,                &
@@ -413,10 +410,10 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !
 ! downdraft variables
 !
-  ALLOCATE( ZDMF(ICONV,IKS) )
-  ALLOCATE( ZDER(ICONV,IKS) )
-  ALLOCATE( ZDDR(ICONV,IKS) )
-  ALLOCATE( ZLMASS(ICONV,IKS) )
+  ALLOCATE( ZDMF(KLON,IKS) )
+  ALLOCATE( ZDER(KLON,IKS) )
+  ALLOCATE( ZDDR(KLON,IKS) )
+  ALLOCATE( ZLMASS(KLON,IKS) )
   ZDMF(:,:) = 0.
   ZDER(:,:) = 0.
   ZDDR(:,:) = 0.
@@ -428,12 +425,12 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !
 ! closure variables
 !
-  ALLOCATE( ZTIMEC(ICONV) )
-  ALLOCATE( ZTHC(ICONV,IKS) )
-  ALLOCATE( ZRVC(ICONV,IKS) )
-  ALLOCATE( ZRCC(ICONV,IKS) )
-  ALLOCATE( ZRIC(ICONV,IKS) )
-  ALLOCATE( ZWSUB(ICONV,IKS) )
+  ALLOCATE( ZTIMEC(KLON) )
+  ALLOCATE( ZTHC(KLON,IKS) )
+  ALLOCATE( ZRVC(KLON,IKS) )
+  ALLOCATE( ZRCC(KLON,IKS) )
+  ALLOCATE( ZRIC(KLON,IKS) )
+  ALLOCATE( ZWSUB(KLON,IKS) )
 !
 !-------------------------------------------------------------------------------
 !
@@ -448,7 +445,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !                   within an advective time step ZTIMEC.
 !                   ---------------------------------------------------
 !
-  CALL CONVECT_CLOSURE_SHAL( ICONV, KLEV,                         &
+  CALL CONVECT_CLOSURE_SHAL( KLON, KLEV,                         &
                              PPABST, ZDPRES, PZZ, XA25, ZLMASS,    &
                              ZTHL, ZTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
@@ -489,7 +486,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !
 !
 IF (LLSMOOTH) THEN
-  DO JI = 1, ICONV
+  DO JI = 1, KLON
      JK = ICTL(JI)
      JKM= MAX(2,ICTL(JI)-1)
      JKP= MAX(2,ICTL(JI)-2)
@@ -517,7 +514,7 @@ ENDIF
   ZWORK2B(:) = 0.
   DO JK = IKB+1, JKM
     JKP = JK + 1
-    DO JI = 1, ICONV
+    DO JI = 1, KLON
       IF ( JK <= ICTL(JI) ) THEN
       ZW1 =  ZRVC(JI,JK) + ZRCC(JI,JK) + ZRIC(JI,JK)
       ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
@@ -533,7 +530,7 @@ ENDIF
 !
           ! Budget error (integral must be zero)
 !
-  DO JI = 1, ICONV
+  DO JI = 1, KLON
     IF ( ICTL(JI) > IKB+1 ) THEN
       JKP = ICTL(JI)
       ZW1 = XG / ( PPABST(JI,IKB) - PPABST(JI,JKP) - &
@@ -546,7 +543,7 @@ ENDIF
           ! Apply uniform correction
 !
   DO JK = JKM, IKB+1, -1
-  DO JI = 1, ICONV
+  DO JI = 1, KLON
     IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
       ! ZW1 = ABS(ZRVC(JI,JK)) +  ABS(ZRCC(JI,JK)) +  ABS(ZRIC(JI,JK)) + 1.E-12
       ! ZRVC(JI,JK) = ZRVC(JI,JK) - ABS(ZRVC(JI,JK))/ZW1*ZWORK2(JI)           ! moisture
@@ -562,7 +559,7 @@ ENDIF
           ! the final 2D tables
 !
   DO JK = IKB, IKE
-  DO JI = 1, ICONV
+  DO JI = 1, KLON
     IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       PTTEN(JI,JK)   = ZTHC(JI,JK)
       PRVTEN(JI,JK)  = ZRVC(JI,JK)
@@ -576,7 +573,7 @@ ENDIF
 !                   Cloud base and top levels
 !                   -------------------------
 !
-  DO JI = 1, ICONV
+  DO JI = 1, KLON
     IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       KCLTOP(JI) = ICTL(JI)
       KCLBAS(JI) = MIN(ISLCL(JI), ICTL(JI))
@@ -589,19 +586,19 @@ ENDIF
 !
   IF ( OCH1CONV ) THEN
 !
-    ALLOCATE( ZCH1(ICONV,IKS,KCH1) )
-    ALLOCATE( ZCH1C(ICONV,IKS,KCH1) )
-    ALLOCATE( ZWORK3(ICONV,KCH1) )
+    ALLOCATE( ZCH1(KLON,IKS,KCH1) )
+    ALLOCATE( ZCH1C(KLON,IKS,KCH1) )
+    ALLOCATE( ZWORK3(KLON,KCH1) )
 !
     DO JK = IKB, IKE
-    DO JI = 1, ICONV
+    DO JI = 1, KLON
       IF(GTRIG1(JI) .EQV. .TRUE.)THEN
         ZCH1(JI,JK,:) = PCH1(JI,JK,:)
       ENDIF
     END DO
     END DO
 !
-    CALL CONVECT_CHEM_TRANSPORT( ICONV, KLEV, KCH1, ZCH1, ZCH1C,          &
+    CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KCH1, ZCH1, ZCH1C,          &
                                  ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                  ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
                                  ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
@@ -621,7 +618,7 @@ ENDIF
         ZWORK2(:)    = 0.
         DO JK = IKB+1, JKM
           JKP = JK + 1
-          DO JI = 1, ICONV
+          DO JI = 1, KLON
             ZW1 = .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP))
             ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
             ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
@@ -631,7 +628,7 @@ ENDIF
              ! Apply concentration weighted correction
 !
         DO JK = JKM, IKB+1, -1
-          DO JI = 1, ICONV
+          DO JI = 1, KLON
             IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
               ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
                                 ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
@@ -641,7 +638,7 @@ ENDIF
       END IF
 !
       DO JK = IKB, IKE
-        DO JI = 1, ICONV
+        DO JI = 1, KLON
           IF(GTRIG1(JI) .EQV. .TRUE.)THEN
             PCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
           ENDIF
@@ -660,7 +657,7 @@ ENDIF
   END DO
   ZWORK2(:) = 1.
   DO JK = IKB, IKE
-  DO JI = 1, ICONV
+  DO JI = 1, KLON
     IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       IF ( KCLTOP(JI) <= IKB+1 ) ZWORK2(JI) = 0.
       PUMF(JI,JK) = ZUMF(JI,JK) * ZWORK2(JI)
