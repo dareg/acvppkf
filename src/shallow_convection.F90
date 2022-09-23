@@ -789,8 +789,11 @@ ENDIF
 !
     DO JK = IKB, IKE
     DO JI = 1, ICONV
-      JL = IJINDEX(JI)
-      ZCH1(JI,JK,:) = PCH1(JL,JK,:)
+      !JL = IJINDEX(JI)
+      JL=JI
+      IF(GTRIG1(JI) == .TRUE.)THEN
+        ZCH1(JI,JK,:) = PCH1(JL,JK,:)
+      ENDIF
     END DO
     END DO
 !
@@ -835,8 +838,11 @@ ENDIF
 !
       DO JK = IKB, IKE
         DO JI = 1, ICONV
-          JL = IJINDEX(JI)
-          PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+          !JL = IJINDEX(JI)
+          JL=JI
+          IF(GTRIG1(JI) == .TRUE.)THEN
+            PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+          ENDIF
         END DO
       END DO
     END DO
@@ -854,9 +860,11 @@ ENDIF
   DO JK = IKB, IKE
   DO JI = 1, ICONV
     !JL = IJINDEX(JI)
-    JL = JI
-    IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
-    PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
+    JL=JI
+    IF(GTRIG1(JI) == .TRUE.)THEN
+      IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
+      PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
+    ENDIF
   END DO
   END DO
 !
