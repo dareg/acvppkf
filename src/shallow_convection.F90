@@ -574,7 +574,7 @@ ENDIF
 !
   DO JK = IKB, IKE
   DO JI = 1, ICONV
-    IF(GTRIG1(JI) == .TRUE.)THEN
+    IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       PTTEN(JI,JK)   = ZTHC(JI,JK)
       PRVTEN(JI,JK)  = ZRVC(JI,JK)
       PRCTEN(JI,JK)  = ZRCC(JI,JK)
@@ -588,7 +588,7 @@ ENDIF
 !                   -------------------------
 !
   DO JI = 1, ICONV
-    IF(GTRIG1(JI) == .TRUE.)THEN
+    IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       KCLTOP(JI) = ICTL(JI)
       KCLBAS(JI) = MIN(ISLCL(JI), ICTL(JI))
     ENDIF
@@ -606,7 +606,7 @@ ENDIF
 !
     DO JK = IKB, IKE
     DO JI = 1, ICONV
-      IF(GTRIG1(JI) == .TRUE.)THEN
+      IF(GTRIG1(JI) .EQV. .TRUE.)THEN
         ZCH1(JI,JK,:) = PCH1(JI,JK,:)
       ENDIF
     END DO
@@ -653,7 +653,7 @@ ENDIF
 !
       DO JK = IKB, IKE
         DO JI = 1, ICONV
-          IF(GTRIG1(JI) == .TRUE.)THEN
+          IF(GTRIG1(JI) .EQV. .TRUE.)THEN
             PCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
           ENDIF
         END DO
@@ -672,7 +672,7 @@ ENDIF
   ZWORK2(:) = 1.
   DO JK = IKB, IKE
   DO JI = 1, ICONV
-    IF(GTRIG1(JI) == .TRUE.)THEN
+    IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       IF ( KCLTOP(JI) <= IKB+1 ) ZWORK2(JI) = 0.
       PUMF(JI,JK) = ZUMF(JI,JK) * ZWORK2(JI)
     ENDIF
