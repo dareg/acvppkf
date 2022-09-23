@@ -246,8 +246,8 @@ GWORK1(:) = OTRIG1(:)  ! logical array to limit adjustment to not definitively
 DO JK = IKB, IKE
   ZTHLC(:,JK) = PTHL(:,JK) ! initialize adjusted envir. values
   PRWC(:,JK)  = PRW(:,JK)
-  PRCC(:,JK)  = PRC(:,JK)
-  PRIC(:,JK)  = PRI(:,JK)
+  PRCC(:,JK)  = MAX(0., PRC(:,JK))
+  PRIC(:,JK)  = MAX(0., PRI(:,JK))
   PTHC(:,JK)  = PTH(:,JK)
 END DO
 !
@@ -295,8 +295,8 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
      WHERE( GWORK4(:,:) )
            ZTHLC(:,:) = PTHL(:,:) ! reinitialize adjusted envir. values
            PRWC(:,:)  = PRW(:,:)  ! when iteration criterium not attained
-           PRCC(:,:)  = PRC(:,:)
-           PRIC(:,:)  = PRI(:,:)
+           PRCC(:,:)  = MAX(0., PRC(:,:))
+           PRIC(:,:)  = MAX(0., PRI(:,:))
            PTHC(:,:)  = PTH(:,:)
      END WHERE
 !
@@ -404,10 +404,10 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
                       - ZRWMFOUT(:,:) - PUER(:,:) * PRW(:,:)    )
            PRCC(:,:)  = PRCC(:,:) + ZTIMC(:,:) / PLMASS(:,:) *  (      &
                ZRCMFIN(:,:) + PUDR(:,:) * PURC(:,:) - ZRCMFOUT(:,:) -  &
-                         PUER(:,:) * PRC(:,:)    )
+                         PUER(:,:) * MAX(0., PRC(:,:))    )
            PRIC(:,:)  = PRIC(:,:) + ZTIMC(:,:) / PLMASS(:,:) *  (      &
                ZRIMFIN(:,:) + PUDR(:,:) * PURI(:,:) - ZRIMFOUT(:,:) -  &
-                         PUER(:,:) * PRI(:,:)    )
+                         PUER(:,:) * MAX(0., PRI(:,:))    )
 !
 !
 !******************************************************************************

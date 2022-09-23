@@ -449,9 +449,9 @@ ALLOCATE( ZDPRES(ICONV,IKS) ) ;   ZDPRES = 0.0
 !ALLOCATE( ZTHV(ICONV,IKS) )   ;   ZTHV   = 0.0
 ALLOCATE( ZTHL(ICONV,IKS) )  ; ZTHL  = 0.0
 !ALLOCATE( ZTHES(ICONV,IKS) )  ; ZTHES = 0.0
-ALLOCATE( ZRV(ICONV,IKS) ) ; ZRV   = 0.0
-ALLOCATE( ZRC(ICONV,IKS) )   ; ZRC   = 0.0
-ALLOCATE( ZRI(ICONV,IKS) )   ; ZRI   = 0.0
+!ALLOCATE( ZRV(ICONV,IKS) ) ; ZRV   = 0.0
+!ALLOCATE( ZRC(ICONV,IKS) )   ; ZRC   = 0.0
+!ALLOCATE( ZRI(ICONV,IKS) )   ; ZRI   = 0.0
 ALLOCATE( ZRW(ICONV,IKS) )   ; ZRW   = 0.0
 ALLOCATE( ZDXDY(ICONV) )  ; ZDXDY = 0.0
 !
@@ -498,9 +498,9 @@ DO JI = 1, ICONV
   !ZTT(JI,JK)    = PTT(JL,JK)
   !ZTH(JI,JK)    = ZTHT(JL,JK)
   !ZTHES(JI,JK)  = ZSTHES(JL,JK)
-  ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
-  ZRC(JI,JK)    = MAX( 0., PRCT(JL,JK) )
-  ZRI(JI,JK)    = MAX( 0., PRIT(JL,JK) )
+  !ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
+  !ZRC(JI,JK)    = MAX( 0., PRCT(JL,JK) )
+  !ZRI(JI,JK)    = MAX( 0., PRIT(JL,JK) )
   !ZTHV(JI,JK)   = ZSTHV(JL,JK)
 END DO
 END DO
@@ -556,12 +556,12 @@ END DO
 !                  ----------------------------------------------------------
 !
 DO JK = IKB, IKE, 1
-  ZRW(:,JK)  = ZRV(:,JK) + ZRC(:,JK) + ZRI(:,JK)
+  ZRW(:,JK)  = MAX(0., PRVT(:,JK)) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK))
   ZCPH(:)    = XCPD + XCPV * ZRW(:,JK)
   ZLV(:)     = XLVTT + ( XCPV - XCL ) * ( PTT(:,JK) - XTT ) ! compute L_v
   ZLS(:)     = XLSTT + ( XCPV - XCI ) * ( PTT(:,JK) - XTT ) ! compute L_i
   ZTHL(:,JK) = ZCPH(:) * PTT(:,JK) + ( 1. + ZRW(:,JK) ) * XG * PZZ(:,JK) &
-               - ZLV(:) * ZRC(:,JK) - ZLS(:) * ZRI(:,JK)
+               - ZLV(:) * MAX(0., PRCT(:,JK)) - ZLS(:) * MAX(0., PRIT(:,JK))
 END DO
 !
 DEALLOCATE( ZCPH )
@@ -639,7 +639,7 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !
   CALL CONVECT_CLOSURE_SHAL( ICONV, KLEV,                         &
                              PPABST, ZDPRES, PZZ, ZDXDY, ZLMASS,    &
-                             ZTHL, ZTHT, ZRW, ZRC, ZRI, GTRIG2,    &
+                             ZTHL, ZTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
                              ILCL, IDPL, IPBL, ICTL,              &
                              ZUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
@@ -661,11 +661,11 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
   DO JK = IKB, IKE
      ZTHC(:,JK) = ( ZTHC(:,JK) - ZTHT(:,JK) ) / ZTIMEC(:)             &
        * ( PPABST(:,JK) / XP00 ) ** ZRDOCP ! change theta in temperature
-     ZRVC(:,JK) = ( ZRVC(:,JK) - ZRW(:,JK) + ZRC(:,JK) + ZRI(:,JK) ) &
+     ZRVC(:,JK) = ( ZRVC(:,JK) - ZRW(:,JK) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK)) ) &
                                           / ZTIMEC(:)
 
-     ZRCC(:,JK) = ( ZRCC(:,JK) - ZRC(:,JK) ) / ZTIMEC(:)
-     ZRIC(:,JK) = ( ZRIC(:,JK) - ZRI(:,JK) ) / ZTIMEC(:)
+     ZRCC(:,JK) = ( ZRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / ZTIMEC(:)
+     ZRIC(:,JK) = ( ZRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / ZTIMEC(:)
 !
   END DO
 !
@@ -907,9 +907,9 @@ DEALLOCATE( ZDPRES )
 DEALLOCATE( ZTHL )
 !DEALLOCATE( ZTHES )
 DEALLOCATE( ZRW )
-DEALLOCATE( ZRV )
-DEALLOCATE( ZRC )
-DEALLOCATE( ZRI )
+!DEALLOCATE( ZRV )
+!DEALLOCATE( ZRC )
+!DEALLOCATE( ZRI )
 DEALLOCATE( ZDXDY )
 !
 ! updraft variables
