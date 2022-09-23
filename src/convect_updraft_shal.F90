@@ -103,7 +103,7 @@ REAL, DIMENSION(KLON),     INTENT(IN) :: PTHLCL ! theta at LCL
 REAL, DIMENSION(KLON),     INTENT(IN) :: PTLCL  ! temp. at LCL
 REAL, DIMENSION(KLON),     INTENT(IN) :: PRVLCL ! vapor mixing ratio at  LCL
 REAL, DIMENSION(KLON),     INTENT(IN) :: PWLCL  ! parcel velocity at LCL (m/s)
-REAL, DIMENSION(KLON),     INTENT(IN) :: PMFLCL ! cloud  base unit mass flux
+REAL,                      INTENT(IN) :: PMFLCL ! cloud  base unit mass flux
                                                 ! (kg/s)
 REAL, DIMENSION(KLON),     INTENT(IN) :: PZLCL  ! height at LCL (m)
 REAL, DIMENSION(KLON),     INTENT(IN) :: PTHVELCL  ! environm. theta_v at LCL (K)
@@ -222,7 +222,7 @@ JKM=IKB
 DO JK = JKM, JKP
    DO JI = 1, IIE
    IF ( JK >= KDPL(JI) .AND. JK < KLCL(JI) ) THEN
-        PUMF(JI,JK)  = PMFLCL(JI)
+        PUMF(JI,JK)  = PMFLCL
         PUTHL(JI,JK) = ZWORK1(JI)
         PUTHV(JI,JK) = PTHLCL(JI) * ( 1. + ZEPSA * PRVLCL(JI) ) /             &
                                   ( 1. + PRVLCL(JI) )
@@ -342,7 +342,7 @@ DO JK = IKB + 1, IKE - 1
 !
   ZE2=MIN(ZD2,MAX(.3,ZE2))
 !
-! ZWORK1(:) = XENTR * PMFLCL(:) * PDPRES(:,JKP) / XCRAD ! rate of env. inflow
+! ZWORK1(:) = XENTR * PMFLCL * PDPRES(:,JKP) / XCRAD ! rate of env. inflow
 !*MOD
   zwork1(:) = xentr * xg / xcrad * pumf(:,jk) * ( pz(:,jkp) - pz(:,jk) )
 ! ZWORK1(:) = XENTR * pumf(:,jk) * PDPRES(:,JKP) / XCRAD ! rate of env. inflow
@@ -511,7 +511,7 @@ JKP=IKE
 DO JK = JKM, JKP
    DO JI = 1, IIE
    IF ( JK >= KDPL(JI)  .AND. JK <= IWORK(JI) .AND. GTRIG1(JI)) THEN
-       PUER(JI,JK) = PUER(JI,JK) + PMFLCL(JI) * PDPRES(JI,JK) / ( ZWORK2(JI) + 0.1 )
+       PUER(JI,JK) = PUER(JI,JK) + PMFLCL * PDPRES(JI,JK) / ( ZWORK2(JI) + 0.1 )
        PUMF(JI,JK) = PUMF(JI,JK-1) + PUER(JI,JK)
    END IF
    END DO

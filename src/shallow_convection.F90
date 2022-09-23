@@ -195,7 +195,6 @@ REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUTHV   ! updraft theta_v (K)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURW    ! updraft total water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURC    ! updraft cloud water (kg/kg)
 REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURI    ! updraft cloud ice   (kg/kg)
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZMFLCL  ! cloud base unit mass flux(kg/s)
 REAL, DIMENSION(:),   ALLOCATABLE  :: ZCAPE   ! available potent. energy
 !
 ! downdraft variables
@@ -336,7 +335,6 @@ ALLOCATE( ZUTHV(KLON,IKS) )
 ALLOCATE( ZURW(KLON,IKS) )
 ALLOCATE( ZURC(KLON,IKS) )
 ALLOCATE( ZURI(KLON,IKS) )
-ALLOCATE( ZMFLCL(KLON) )
 ALLOCATE( ZCAPE(KLON) )
 !
          ! work variables
@@ -386,14 +384,10 @@ DEALLOCATE( ZLS )
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-ZMFLCL(:) = XA25 * 1.E-3
-!
-!
-!
 CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV,                                     &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, ZSTHV, ZSTHES, ZRW, &
                            ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,   &
-                           ZMFLCL, GTRIG2, ISLCL, ISDPL, ISPBL,                &
+                           XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
                            ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
                            ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1                    )
 !
@@ -709,7 +703,6 @@ DEALLOCATE( ZUTHV )
 DEALLOCATE( ZURW )
 DEALLOCATE( ZURC )
 DEALLOCATE( ZURI )
-DEALLOCATE( ZMFLCL )
 DEALLOCATE( ZCAPE )
 !
 !
