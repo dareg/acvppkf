@@ -441,14 +441,14 @@ Iconv=klon
      ! grid scale variables
 
 
-ALLOCATE( ZZ(ICONV,IKS) ) ;   ZZ  = 0.0
-ALLOCATE( ZPRES(ICONV,IKS) );   ZPRES = 0.0
+!ALLOCATE( ZZ(ICONV,IKS) ) ;   ZZ  = 0.0
+!ALLOCATE( ZPRES(ICONV,IKS) );   ZPRES = 0.0
 ALLOCATE( ZDPRES(ICONV,IKS) ) ;   ZDPRES = 0.0
-ALLOCATE( ZTT(ICONV, IKS) ) ;   ZTT    = 0.0
-ALLOCATE( ZTH(ICONV,IKS) ) ;   ZTH    = 0.0
-ALLOCATE( ZTHV(ICONV,IKS) )   ;   ZTHV   = 0.0
+!ALLOCATE( ZTT(ICONV, IKS) ) ;   ZTT    = 0.0
+!ALLOCATE( ZTH(ICONV,IKS) ) ;   ZTH    = 0.0
+!ALLOCATE( ZTHV(ICONV,IKS) )   ;   ZTHV   = 0.0
 ALLOCATE( ZTHL(ICONV,IKS) )  ; ZTHL  = 0.0
-ALLOCATE( ZTHES(ICONV,IKS) )  ; ZTHES = 0.0
+!ALLOCATE( ZTHES(ICONV,IKS) )  ; ZTHES = 0.0
 ALLOCATE( ZRV(ICONV,IKS) ) ; ZRV   = 0.0
 ALLOCATE( ZRC(ICONV,IKS) )   ; ZRC   = 0.0
 ALLOCATE( ZRI(ICONV,IKS) )   ; ZRI   = 0.0
@@ -493,15 +493,15 @@ DO JK = IKB, IKE
 DO JI = 1, ICONV
   !JL = IJINDEX(JI)
   JL = JI
-  ZZ(JI,JK)     = PZZ(JL,JK)
-  ZPRES(JI,JK)  = PPABST(JL,JK)
-  ZTT(JI,JK)    = PTT(JL,JK)
-  ZTH(JI,JK)    = ZTHT(JL,JK)
-  ZTHES(JI,JK)  = ZSTHES(JL,JK)
+  !ZZ(JI,JK)     = PZZ(JL,JK)
+  !ZPRES(JI,JK)  = PPABST(JL,JK)
+  !ZTT(JI,JK)    = PTT(JL,JK)
+  !ZTH(JI,JK)    = ZTHT(JL,JK)
+  !ZTHES(JI,JK)  = ZSTHES(JL,JK)
   ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
   ZRC(JI,JK)    = MAX( 0., PRCT(JL,JK) )
   ZRI(JI,JK)    = MAX( 0., PRIT(JL,JK) )
-  ZTHV(JI,JK)   = ZSTHV(JL,JK)
+  !ZTHV(JI,JK)   = ZSTHV(JL,JK)
 END DO
 END DO
 !
@@ -549,7 +549,7 @@ DEALLOCATE( IJPINDEX )
 !
 ZDPRES(:,IKB) = 0.
 DO JK = IKB + 1, IKE
-  ZDPRES(:,JK)  = ZPRES(:,JK-1) - ZPRES(:,JK)
+  ZDPRES(:,JK)  = PPABST(:,JK-1) - PPABST(:,JK)
 END DO
 !
 !*           3.3   Compute environm. enthalpy and total water = r_v + r_i + r_c
@@ -558,9 +558,9 @@ END DO
 DO JK = IKB, IKE, 1
   ZRW(:,JK)  = ZRV(:,JK) + ZRC(:,JK) + ZRI(:,JK)
   ZCPH(:)    = XCPD + XCPV * ZRW(:,JK)
-  ZLV(:)     = XLVTT + ( XCPV - XCL ) * ( ZTT(:,JK) - XTT ) ! compute L_v
-  ZLS(:)     = XLSTT + ( XCPV - XCI ) * ( ZTT(:,JK) - XTT ) ! compute L_i
-  ZTHL(:,JK) = ZCPH(:) * ZTT(:,JK) + ( 1. + ZRW(:,JK) ) * XG * ZZ(:,JK) &
+  ZLV(:)     = XLVTT + ( XCPV - XCL ) * ( PTT(:,JK) - XTT ) ! compute L_v
+  ZLS(:)     = XLSTT + ( XCPV - XCI ) * ( PTT(:,JK) - XTT ) ! compute L_i
+  ZTHL(:,JK) = ZCPH(:) * PTT(:,JK) + ( 1. + ZRW(:,JK) ) * XG * PZZ(:,JK) &
                - ZLV(:) * ZRC(:,JK) - ZLS(:) * ZRI(:,JK)
 END DO
 !
@@ -582,7 +582,7 @@ ZMFLCL(:) = XA25 * 1.E-3
 !
 !
 CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
-                           KICE, ZPRES, ZDPRES, ZZ, ZTHL, ZTHV, ZTHES, ZRW, &
+                           KICE, PPABST, ZDPRES, PZZ, ZTHL, ZSTHV, ZSTHES, ZRW, &
                            ZTHLCL, ZTLCL, ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL,   &
                            ZMFLCL, GTRIG2, ILCL, IDPL, IPBL,                &
                            ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
@@ -638,8 +638,8 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !                   ---------------------------------------------------
 !
   CALL CONVECT_CLOSURE_SHAL( ICONV, KLEV,                         &
-                             ZPRES, ZDPRES, ZZ, ZDXDY, ZLMASS,    &
-                             ZTHL, ZTH, ZRW, ZRC, ZRI, GTRIG2,    &
+                             PPABST, ZDPRES, PZZ, ZDXDY, ZLMASS,    &
+                             ZTHL, ZTHT, ZRW, ZRC, ZRI, GTRIG2,    &
                              ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
                              ILCL, IDPL, IPBL, ICTL,              &
                              ZUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
@@ -659,8 +659,8 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
           ! in the tables for the adjusted grid-scale values
 !
   DO JK = IKB, IKE
-     ZTHC(:,JK) = ( ZTHC(:,JK) - ZTH(:,JK) ) / ZTIMEC(:)             &
-       * ( ZPRES(:,JK) / XP00 ) ** ZRDOCP ! change theta in temperature
+     ZTHC(:,JK) = ( ZTHC(:,JK) - ZTHT(:,JK) ) / ZTIMEC(:)             &
+       * ( PPABST(:,JK) / XP00 ) ** ZRDOCP ! change theta in temperature
      ZRVC(:,JK) = ( ZRVC(:,JK) - ZRW(:,JK) + ZRC(:,JK) + ZRI(:,JK) ) &
                                           / ZTIMEC(:)
 
@@ -710,12 +710,12 @@ ENDIF
       IF ( JK <= ICTL(JI) ) THEN
       ZW1 =  ZRVC(JI,JK) + ZRCC(JI,JK) + ZRIC(JI,JK)
       ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
-                                  .5 * (ZPRES(JI,JK-1) - ZPRES(JI,JKP)) / XG
+                                  .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
       ZW1 = ( XCPD + XCPV * ZRW(JI,JK) )* ZTHC(JI,JK)   - &
-            ( XLVTT + ( XCPV - XCL ) * ( ZTT(JI,JK) - XTT ) ) * ZRCC(JI,JK) - &
-            ( XLSTT + ( XCPV - XCL ) * ( ZTT(JI,JK) - XTT ) ) * ZRIC(JI,JK)
+            ( XLVTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRCC(JI,JK) - &
+            ( XLSTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRIC(JI,JK)
       ZWORK2B(JI) = ZWORK2B(JI) + ZW1 *         & ! energy
-                                  .5 * (ZPRES(JI,JK-1) - ZPRES(JI,JKP)) / XG
+                                  .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
       END IF
     END DO
   END DO
@@ -725,7 +725,7 @@ ENDIF
   DO JI = 1, ICONV
     IF ( ICTL(JI) > IKB+1 ) THEN
       JKP = ICTL(JI)
-      ZW1 = XG / ( ZPRES(JI,IKB) - ZPRES(JI,JKP) - &
+      ZW1 = XG / ( PPABST(JI,IKB) - PPABST(JI,JKP) - &
                 .5 * (ZDPRES(JI,IKB+1) - ZDPRES(JI,JKP+1)) )
       ZWORK2(JI) =  ZWORK2(JI) * ZW1
       ZWORK2B(JI) = ZWORK2B(JI)* ZW1
@@ -815,7 +815,7 @@ ENDIF
         DO JK = IKB+1, JKM
           JKP = JK + 1
           DO JI = 1, ICONV
-            ZW1 = .5 * (ZPRES(JI,JK-1) - ZPRES(JI,JKP))
+            ZW1 = .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP))
             ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
             ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
           END DO
@@ -898,14 +898,14 @@ ENDIF
 !
 ! grid scale variables
 !
-DEALLOCATE( ZZ )
-DEALLOCATE( ZPRES )
+!DEALLOCATE( ZZ )
+!DEALLOCATE( ZPRES )
 DEALLOCATE( ZDPRES )
-DEALLOCATE( ZTT )
-DEALLOCATE( ZTH )
-DEALLOCATE( ZTHV )
+!DEALLOCATE( ZTT )
+!DEALLOCATE( ZTH )
+!DEALLOCATE( ZTHV )
 DEALLOCATE( ZTHL )
-DEALLOCATE( ZTHES )
+!DEALLOCATE( ZTHES )
 DEALLOCATE( ZRW )
 DEALLOCATE( ZRV )
 DEALLOCATE( ZRC )
