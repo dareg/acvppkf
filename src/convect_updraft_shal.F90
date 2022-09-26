@@ -151,7 +151,6 @@ REAL, DIMENSION(KLON)    :: ZWORK1, ZWORK2, ZWORK3, ZWORK4, ZWORK5,   &
 INTEGER, DIMENSION(KLON) :: IWORK           ! wok array
 LOGICAL, DIMENSION(KLON) :: GWORK1, GWORK2, GWORK4, GWORK5
                                             ! work arrays
-LOGICAL, DIMENSION(KLON,KLEV) :: GWORK6     ! work array
 !
 !
 !-------------------------------------------------------------------------------
@@ -526,16 +525,19 @@ END DO
 !                    which could produce a thicker cloud.
 !              ---------------------------------------------------
 !
-GWORK6(:,:) = SPREAD( OTRIG(:), DIM=2, NCOPIES=KLEV )
-WHERE ( .NOT. GWORK6(:,:) )
-    PUMF(:,:)  = 0.
-    PUDR(:,:)  = 0.
-    PUER(:,:)  = 0.
-    PUTHL(:,:) = PTHL(:,:)
-    PURW(:,:)  = PRW(:,:)
-    PURC(:,:)  = 0.
-    PURI(:,:)  = 0.
-END WHERE
+DO JK=1,KLEV
+    DO JI=1,KLON
+        IF(.NOT. OTRIG(JI))THEN
+            PUMF(JI,JK)  = 0.
+            PUDR(JI,JK)  = 0.
+            PUER(JI,JK)  = 0.
+            PUTHL(JI,JK) = PTHL(JI,JK)
+            PURW(JI,JK)  = PRW(JI,JK)
+            PURC(JI,JK)  = 0.
+            PURI(JI,JK)  = 0.
+        ENDIF
+    ENDDO
+ENDDO
 !
 IF (LHOOK) CALL DR_HOOK('CONVECT_UPDRAFT_SHAL',1,ZHOOK_HANDLE)
 END SUBROUTINE CONVECT_UPDRAFT_SHAL
