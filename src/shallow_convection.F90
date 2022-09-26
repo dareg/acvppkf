@@ -311,6 +311,9 @@ CALL CONVECT_TRIGGER_SHAL(  KLON, KLON, KLEV,                              &
                             PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
                             ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
+IF(.NOT. ANY(GTRIG1))THEN
+        RETURN
+ENDIF
 !
 !-------------------------------------------------------------------------------
 !
