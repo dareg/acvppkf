@@ -859,21 +859,6 @@ LOGICAL, DIMENSION(ICONV)        :: GTRIG2  ! logical mask for convection
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
 !
-!
-ZZ  = 0.0
-ZPRES = 0.0
-ZDPRES = 0.0
-ZTT    = 0.0
-ZTH    = 0.0
-ZTHV   = 0.0
-ZTHL  = 0.0
-ZTHES = 0.0
-ZRV   = 0.0
-ZRC   = 0.0
-ZRI   = 0.0
-ZRW   = 0.0
-ZDXDY = 0.0
-!
 !*           3.1    Gather grid scale and updraft base variables in
 !                   arrays using mask GTRIG
 !                   ---------------------------------------------------
