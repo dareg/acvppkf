@@ -800,74 +800,70 @@ REAL                               :: ZW1     ! work variable
 !
 !*       0.2   Declarations of local allocatable  variables :
 !
-INTEGER, DIMENSION(:),ALLOCATABLE  :: IDPL    ! index for parcel departure level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: IPBL    ! index for source layer top
-INTEGER, DIMENSION(:),ALLOCATABLE  :: ILCL    ! index for lifting condensation level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: IETL    ! index for zero buoyancy level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: ICTL    ! index for cloud top level
-INTEGER, DIMENSION(:),ALLOCATABLE  :: ILFS    ! index for level of free sink
+INTEGER, DIMENSION(ICONV)  :: IDPL    ! index for parcel departure level
+INTEGER, DIMENSION(ICONV)  :: IPBL    ! index for source layer top
+INTEGER, DIMENSION(ICONV)  :: ILCL    ! index for lifting condensation level
+INTEGER, DIMENSION(ICONV)  :: IETL    ! index for zero buoyancy level
+INTEGER, DIMENSION(ICONV)  :: ICTL    ! index for cloud top level
+INTEGER, DIMENSION(ICONV)  :: ILFS    ! index for level of free sink
 !
 ! grid scale variables
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZZ      ! height of model layer (m)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZPRES   ! grid scale pressure
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDPRES  ! pressure difference between
+REAL, DIMENSION(ICONV,KLEV)  :: ZZ      ! height of model layer (m)
+REAL, DIMENSION(ICONV,KLEV)  :: ZPRES   ! grid scale pressure
+REAL, DIMENSION(ICONV,KLEV)  :: ZDPRES  ! pressure difference between
                                               ! bottom and top of layer (Pa)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZW      ! grid scale vertical velocity on theta grid
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTT     ! temperature
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTH     ! grid scale theta
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHV    ! grid scale theta_v
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHL    ! grid scale enthalpy (J/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHES, ZTHEST ! grid scale saturated theta_e
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRW     ! grid scale total water (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRV     ! grid scale water vapor (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRC     ! grid scale cloud water (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRI     ! grid scale cloud ice (kg/kg)
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZDXDY   ! grid area (m^2)
+REAL, DIMENSION(ICONV,KLEV)  :: ZTT     ! temperature
+REAL, DIMENSION(ICONV,KLEV)  :: ZTH     ! grid scale theta
+REAL, DIMENSION(ICONV,KLEV)  :: ZTHV    ! grid scale theta_v
+REAL, DIMENSION(ICONV,KLEV)  :: ZTHL    ! grid scale enthalpy (J/kg)
+REAL, DIMENSION(ICONV,KLEV)  :: ZTHES   ! grid scale saturated theta_e
+REAL, DIMENSION(ICONV,KLEV)  :: ZRW     ! grid scale total water (kg/kg)
+REAL, DIMENSION(ICONV,KLEV)  :: ZRV     ! grid scale water vapor (kg/kg)
+REAL, DIMENSION(ICONV,KLEV)  :: ZRC     ! grid scale cloud water (kg/kg)
+REAL, DIMENSION(ICONV,KLEV)  :: ZRI     ! grid scale cloud ice (kg/kg)
+REAL, DIMENSION(ICONV)       :: ZDXDY   ! grid area (m^2)
 !
 ! updraft variables
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUMF    ! updraft mass flux (kg/s)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUER    ! updraft entrainment (kg/s)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUDR    ! updraft detrainment (kg/s)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUTHL   ! updraft enthalpy (J/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZUTHV   ! updraft theta_v (K)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURW    ! updraft total water (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURC    ! updraft cloud water (kg/kg)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZURI    ! updraft cloud ice   (kg/kg)
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZMFLCL  ! cloud base unit mass flux(kg/s)
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZCAPE   ! available potent. energy
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHLCL  ! updraft theta at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZTLCL   ! updraft temp. at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZRVLCL  ! updraft rv at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZWLCL   ! updraft w at LCL
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZZLCL   ! LCL height
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZTHVELCL! envir. theta_v at LCL
+REAL, DIMENSION(ICONV,KLEV)  :: ZUMF    ! updraft mass flux (kg/s)
+REAL, DIMENSION(ICONV,KLEV)  :: ZUER    ! updraft entrainment (kg/s)
+REAL, DIMENSION(ICONV,KLEV)  :: ZUDR    ! updraft detrainment (kg/s)
+REAL, DIMENSION(ICONV,KLEV)  :: ZUTHL   ! updraft enthalpy (J/kg)
+REAL, DIMENSION(ICONV,KLEV)  :: ZUTHV   ! updraft theta_v (K)
+REAL, DIMENSION(ICONV,KLEV)  :: ZURW    ! updraft total water (kg/kg)
+REAL, DIMENSION(ICONV,KLEV)  :: ZURC    ! updraft cloud water (kg/kg)
+REAL, DIMENSION(ICONV,KLEV)  :: ZURI    ! updraft cloud ice   (kg/kg)
+REAL, DIMENSION(ICONV)   :: ZMFLCL  ! cloud base unit mass flux(kg/s)
+REAL, DIMENSION(ICONV)   :: ZCAPE   ! available potent. energy
+REAL, DIMENSION(ICONV)   :: ZTHLCL  ! updraft theta at LCL
+REAL, DIMENSION(ICONV)   :: ZTLCL   ! updraft temp. at LCL
+REAL, DIMENSION(ICONV)   :: ZRVLCL  ! updraft rv at LCL
+REAL, DIMENSION(ICONV)   :: ZWLCL   ! updraft w at LCL
+REAL, DIMENSION(ICONV)   :: ZZLCL   ! LCL height
+REAL, DIMENSION(ICONV)   :: ZTHVELCL! envir. theta_v at LCL
 !
 ! downdraft variables
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDMF    ! downdraft mass flux (kg/s)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDER    ! downdraft entrainment (kg/s)
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZDDR    ! downdraft detrainment (kg/s)
+REAL, DIMENSION(ICONV,KLEV)  :: ZDMF    ! downdraft mass flux (kg/s)
+REAL, DIMENSION(ICONV,KLEV)  :: ZDER    ! downdraft entrainment (kg/s)
+REAL, DIMENSION(ICONV,KLEV)  :: ZDDR    ! downdraft detrainment (kg/s)
 !
 ! closure variables
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZLMASS  ! mass of model layer (kg)
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZTIMEC  ! advective time period
+REAL, DIMENSION(ICONV,KLEV) :: ZLMASS  ! mass of model layer (kg)
+REAL, DIMENSION(ICONV) :: ZTIMEC  ! advective time period
 !
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZTHC    ! conv. adj. grid scale theta
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRVC    ! conv. adj. grid scale r_w
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRCC    ! conv. adj. grid scale r_c
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZRIC    ! conv. adj. grid scale r_i
-REAL, DIMENSION(:,:), ALLOCATABLE  :: ZWSUB   ! envir. compensating subsidence (Pa/s)
+REAL, DIMENSION(ICONV,KLEV)  :: ZTHC    ! conv. adj. grid scale theta
+REAL, DIMENSION(ICONV,KLEV)  :: ZRVC    ! conv. adj. grid scale r_w
+REAL, DIMENSION(ICONV,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
+REAL, DIMENSION(ICONV,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
+REAL, DIMENSION(ICONV,KLEV)  :: ZWSUB   ! envir. compensating subsidence (Pa/s)
 !
-LOGICAL, DIMENSION(:),ALLOCATABLE  :: GWORK   ! logical work array
 INTEGER, DIMENSION(KLON)           :: IINDEX, IJINDEX, IJSINDEX, IJPINDEX!hor.index
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZCPH    ! specific heat C_ph
-REAL, DIMENSION(:),   ALLOCATABLE  :: ZLV, ZLS! latent heat of vaporis., sublim.
-REAL                               :: ZES     ! saturation vapor mixng ratio
+REAL, DIMENSION(ICONV)     :: ZCPH    ! specific heat C_ph
+REAL, DIMENSION(ICONV)     :: ZLV, ZLS! latent heat of vaporis., sublim.
 !
 ! Chemical Tracers:
-REAL, DIMENSION(:,:,:), ALLOCATABLE:: ZCH1    ! grid scale chemical specy (kg/kg)
-REAL, DIMENSION(:,:,:), ALLOCATABLE:: ZCH1C   ! conv. adjust. chemical specy 1
-REAL, DIMENSION(:,:),   ALLOCATABLE:: ZWORK3  ! conv. adjust. chemical specy 1
-LOGICAL, DIMENSION(:,:,:),ALLOCATABLE::GTRIG4 ! logical mask
+REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1    ! grid scale chemical specy (kg/kg)
+REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1C   ! conv. adjust. chemical specy 1
+REAL, DIMENSION(ICONV,KCH1):: ZWORK3  ! conv. adjust. chemical specy 1
 LOGICAL, DIMENSION(ICONV)  :: GTRIG2  ! logical mask for convection
 !
 !-------------------------------------------------------------------------------
@@ -880,55 +876,20 @@ REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
 IKS=KLEV
 !
-     ! vertical index variables
 !
-ALLOCATE( IDPL(ICONV) )
-ALLOCATE( IPBL(ICONV) )
-ALLOCATE( ILCL(ICONV) )
-ALLOCATE( ICTL(ICONV) )
-ALLOCATE( IETL(ICONV) )
-!
-     ! grid scale variables
-!
-ALLOCATE( ZZ(ICONV,IKS) ) ;   ZZ  = 0.0
-ALLOCATE( ZPRES(ICONV,IKS) );   ZPRES = 0.0
-ALLOCATE( ZDPRES(ICONV,IKS) ) ;   ZDPRES = 0.0
-ALLOCATE( ZTT(ICONV, IKS) ) ;   ZTT    = 0.0
-ALLOCATE( ZTH(ICONV,IKS) ) ;   ZTH    = 0.0
-ALLOCATE( ZTHV(ICONV,IKS) )   ;   ZTHV   = 0.0
-ALLOCATE( ZTHL(ICONV,IKS) )  ; ZTHL  = 0.0
-ALLOCATE( ZTHES(ICONV,IKS) )  ; ZTHES = 0.0
-ALLOCATE( ZRV(ICONV,IKS) ) ; ZRV   = 0.0
-ALLOCATE( ZRC(ICONV,IKS) )   ; ZRC   = 0.0
-ALLOCATE( ZRI(ICONV,IKS) )   ; ZRI   = 0.0
-ALLOCATE( ZRW(ICONV,IKS) )   ; ZRW   = 0.0
-ALLOCATE( ZDXDY(ICONV) )  ; ZDXDY = 0.0
-!
-         ! updraft variables
-!
-ALLOCATE( ZUMF(ICONV,IKS) )
-ALLOCATE( ZUER(ICONV,IKS) )
-ALLOCATE( ZUDR(ICONV,IKS) )
-ALLOCATE( ZUTHL(ICONV,IKS) )
-ALLOCATE( ZUTHV(ICONV,IKS) )
-ALLOCATE( ZURW(ICONV,IKS) )
-ALLOCATE( ZURC(ICONV,IKS) )
-ALLOCATE( ZURI(ICONV,IKS) )
-ALLOCATE( ZTHLCL(ICONV) )
-ALLOCATE( ZTLCL(ICONV) )
-ALLOCATE( ZRVLCL(ICONV) )
-ALLOCATE( ZWLCL(ICONV) )
-ALLOCATE( ZMFLCL(ICONV) )
-ALLOCATE( ZZLCL(ICONV) )
-ALLOCATE( ZTHVELCL(ICONV) )
-ALLOCATE( ZCAPE(ICONV) )
-!
-         ! work variables
-!
-ALLOCATE( ZCPH(ICONV) )
-ALLOCATE( ZLV(ICONV) )
-ALLOCATE( ZLS(ICONV) )
-!
+ZZ  = 0.0
+ZPRES = 0.0
+ZDPRES = 0.0
+ZTT    = 0.0
+ZTH    = 0.0
+ZTHV   = 0.0
+ZTHL  = 0.0
+ZTHES = 0.0
+ZRV   = 0.0
+ZRC   = 0.0
+ZRI   = 0.0
+ZRW   = 0.0
+ZDXDY = 0.0
 !
 !*           3.1    Gather grid scale and updraft base variables in
 !                   arrays using mask GTRIG
@@ -974,12 +935,8 @@ DO JI = 1, ICONV
   ZZLCL(JI)     = ZSZLCL(JL)
   ZTHVELCL(JI)  = ZSTHVELCL(JL)
 END DO
-ALLOCATE( GWORK(ICONV) )
-GWORK(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
-GTRIG2(:)     = GWORK(:)
+GTRIG2(:)      = PACK( GTRIG1(:),  MASK=GTRIG1(:) )
 GTRIG1=.TRUE.
-!
-DEALLOCATE( GWORK )
 !
 !
 !*           3.2    Compute pressure difference
@@ -1002,9 +959,6 @@ DO JK = IKB, IKE, 1
                - ZLV(:) * ZRC(:,JK) - ZLS(:) * ZRI(:,JK)
 END DO
 !
-DEALLOCATE( ZCPH )
-DEALLOCATE( ZLV )
-DEALLOCATE( ZLS )
 !
 !-------------------------------------------------------------------------------
 !
@@ -1039,11 +993,6 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
 !
 ! downdraft variables
 !
-  ALLOCATE( ZDMF(ICONV,IKS) )
-  ALLOCATE( ZDER(ICONV,IKS) )
-  ALLOCATE( ZDDR(ICONV,IKS) )
-  ALLOCATE( ILFS(ICONV) )
-  ALLOCATE( ZLMASS(ICONV,IKS) )
   ZDMF(:,:) = 0.
   ZDER(:,:) = 0.
   ZDDR(:,:) = 0.
@@ -1052,15 +1001,6 @@ CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
     ZLMASS(:,JK)  = ZDXDY(:) * ZDPRES(:,JK) / XG  ! mass of model layer
   END DO
   ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
-!
-! closure variables
-!
-  ALLOCATE( ZTIMEC(ICONV) )
-  ALLOCATE( ZTHC(ICONV,IKS) )
-  ALLOCATE( ZRVC(ICONV,IKS) )
-  ALLOCATE( ZRCC(ICONV,IKS) )
-  ALLOCATE( ZRIC(ICONV,IKS) )
-  ALLOCATE( ZWSUB(ICONV,IKS) )
 !
 !-------------------------------------------------------------------------------
 !
@@ -1215,10 +1155,6 @@ ENDIF
 !
   IF ( OCH1CONV ) THEN
 !
-    ALLOCATE( ZCH1(ICONV,IKS,KCH1) )
-    ALLOCATE( ZCH1C(ICONV,IKS,KCH1) )
-    ALLOCATE( ZWORK3(ICONV,KCH1) )
-!
     DO JK = IKB, IKE
     DO JI = 1, ICONV
       JL = IJINDEX(JI)
@@ -1290,77 +1226,6 @@ ENDIF
     PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
   END DO
   END DO
-!
-!-------------------------------------------------------------------------------
-!
-!*           10.    Deallocate all local arrays
-!                   ---------------------------
-!
-! downdraft variables
-!
-  DEALLOCATE( ZDMF )
-  DEALLOCATE( ZDER )
-  DEALLOCATE( ZDDR )
-  DEALLOCATE( ILFS )
-  DEALLOCATE( ZLMASS )
-!
-!   closure variables
-!
-  DEALLOCATE( ZTIMEC )
-  DEALLOCATE( ZTHC )
-  DEALLOCATE( ZRVC )
-  DEALLOCATE( ZRCC )
-  DEALLOCATE( ZRIC )
-  DEALLOCATE( ZWSUB )
-!
-  IF ( OCH1CONV ) THEN
-    DEALLOCATE( ZCH1 )
-    DEALLOCATE( ZCH1C )
-    DEALLOCATE( ZWORK3 )
-  END IF
-!
-!    vertical index
-!
-DEALLOCATE( IDPL )
-DEALLOCATE( IPBL )
-DEALLOCATE( ILCL )
-DEALLOCATE( ICTL )
-DEALLOCATE( IETL )
-!
-! grid scale variables
-!
-DEALLOCATE( ZZ )
-DEALLOCATE( ZPRES )
-DEALLOCATE( ZDPRES )
-DEALLOCATE( ZTT )
-DEALLOCATE( ZTH )
-DEALLOCATE( ZTHV )
-DEALLOCATE( ZTHL )
-DEALLOCATE( ZTHES )
-DEALLOCATE( ZRW )
-DEALLOCATE( ZRV )
-DEALLOCATE( ZRC )
-DEALLOCATE( ZRI )
-DEALLOCATE( ZDXDY )
-!
-! updraft variables
-!
-DEALLOCATE( ZUMF )
-DEALLOCATE( ZUER )
-DEALLOCATE( ZUDR )
-DEALLOCATE( ZUTHL )
-DEALLOCATE( ZUTHV )
-DEALLOCATE( ZURW )
-DEALLOCATE( ZURC )
-DEALLOCATE( ZURI )
-DEALLOCATE( ZTHLCL )
-DEALLOCATE( ZTLCL )
-DEALLOCATE( ZRVLCL )
-DEALLOCATE( ZWLCL )
-DEALLOCATE( ZZLCL )
-DEALLOCATE( ZTHVELCL )
-DEALLOCATE( ZMFLCL )
-DEALLOCATE( ZCAPE )
 
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION_SELECT
