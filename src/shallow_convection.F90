@@ -147,7 +147,6 @@ REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tendency
 !
 !*       0.2   Declarations of local fixed memory variables :
 !
-INTEGER  :: IIB, IIE                ! horizontal loop bounds
 INTEGER  :: IKB, IKE                ! vertical loop bounds
 INTEGER  :: JI                      ! horizontal loop index
 INTEGER  :: JK                      ! vertical loop index
@@ -183,8 +182,6 @@ REAL                        :: ZES     ! saturation vapor mixng ratio
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',0,ZHOOK_HANDLE)
-IIB = KIDIA
-IIE = KFDIA
 JCVEXB = MAX( 0, KBDIA - 1 )
 IKB = 1 + JCVEXB
 JCVEXT = MAX( 0, KTDIA - 1)
@@ -225,7 +222,7 @@ ZTHT(:,:) = 300.
 ZSTHV(:,:)= 300.
 ZSTHES(:,:)= 400.
 DO JK = IKB, IKE
-DO JI = IIB, IIE
+DO JI = KIDIA, KFDIA
   IF ( PPABST(JI,JK) > 40.E2 ) THEN
     ZTHT(JI,JK)  = PTT(JI,JK) * ( XP00 / PPABST(JI,JK) ) ** ZRDOCP
     ZSTHV(JI,JK) = ZTHT(JI,JK) * ( 1. + ZEPSA * PRVT(JI,JK) ) /              &
@@ -839,7 +836,7 @@ REAL, DIMENSION(ICONV,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(ICONV,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
 REAL, DIMENSION(ICONV,KLEV)  :: ZWSUB   ! envir. compensating subsidence (Pa/s)
 !
-INTEGER, DIMENSION(KLON)     :: IINDEX, IJINDEX, IJSINDEX, IJPINDEX!hor.index
+INTEGER, DIMENSION(KLON)     :: IINDEX, IJINDEX, IJPINDEX!hor.index
 REAL, DIMENSION(ICONV)       :: ZCPH    ! specific heat C_ph
 REAL, DIMENSION(ICONV)       :: ZLV, ZLS! latent heat of vaporis., sublim.
 !
@@ -885,10 +882,7 @@ DO JI = 1, ICONV
 END DO
 END DO
 !
-DO JI = 1, KLON
-  IJSINDEX(JI) = JI
-END DO
-IJPINDEX(:) = PACK( IJSINDEX(:), MASK=GTRIG1(:) )
+IJPINDEX(:) = PACK( IINDEX(:), MASK=GTRIG1(:) )
 DO JI = 1, ICONV
   JL = IJPINDEX(JI)
   IDPL(JI)      = ISDPL(JL)
