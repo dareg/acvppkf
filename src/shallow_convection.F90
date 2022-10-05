@@ -253,7 +253,7 @@ ISLCL(:) = MAX( IKB, 2 )   ! initialize DPL PBL and LCL
 ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
-CALL CONVECT_TRIGGER_SHAL(  KLON, KLEV,                              &
+CALL CONVECT_TRIGGER_SHAL(  KLON, KLEV, KIDIA, KFDIA,                    &
                             PPABST, ZTHT, ZSTHV, ZSTHES,                 &
                             PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &

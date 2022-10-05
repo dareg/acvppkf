@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_TRIGGER_SHAL(  KLON, KLEV,                 &
+      SUBROUTINE CONVECT_TRIGGER_SHAL(  KLON, KLEV, KIDIA, KFDIA,            &
                                         PPRES, PTH, PTHV, PTHES,             &
                                         PRV, PW, PZ, PTKECLS,                &
                                         PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, &
@@ -91,6 +91,8 @@ IMPLICIT NONE
 !
 INTEGER, INTENT(IN)                   :: KLON      ! horizontal loop index
 INTEGER, INTENT(IN)                   :: KLEV      ! vertical loop index
+INTEGER, INTENT(IN)                   :: KIDIA     ! value of the first point in x
+INTEGER, INTENT(IN)                   :: KFDIA     ! value of the last point in x
 !REAL, DIMENSION(KLON),     INTENT(IN) :: PDXDY     ! grid area
 REAL, DIMENSION(KLON),     INTENT(IN) :: PTKECLS   ! TKE CLS
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTH, PTHV ! theta, theta_v
@@ -361,7 +363,7 @@ DO JKK = IKB + 1, IKE - 2
      JKM = IKB
      DO JL = JKM, JT
         JK = JL + 1
-        DO JI = 1, KLON
+        DO JI = KIDIA, KFDIA
            ZWORK1(JI) = ( 2. * ZTHEUL(JI) /                                &
             ( PTHES(JI,JK) + PTHES(JI,JL) ) - 1. ) * ( PZ(JI,JK) - PZ(JI,JL) )
            IF ( JL < ILCL(JI) ) ZWORK1(JI) = 0.
