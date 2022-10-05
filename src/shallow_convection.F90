@@ -523,7 +523,7 @@ CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV,                                     &
 !
 !
 IF (LLSMOOTH) THEN
-  DO JI = 1, KLON
+  DO JI = KIDIA,KFDIA
      JK = ICTL(JI)
      JKM= MAX(2,ICTL(JI)-1)
      JKP= MAX(2,ICTL(JI)-2)
@@ -551,7 +551,7 @@ ENDIF
   ZWORK2B(:) = 0.
   DO JK = IKB+1, JKM
     JKP = JK + 1
-    DO JI = 1, KLON
+    DO JI = KIDIA,KFDIA
       IF ( JK <= ICTL(JI) ) THEN
       ZW1 =  ZRVC(JI,JK) + ZRCC(JI,JK) + ZRIC(JI,JK)
       ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
@@ -567,7 +567,7 @@ ENDIF
 !
           ! Budget error (integral must be zero)
 !
-  DO JI = 1, KLON
+  DO JI = KIDIA,KFDIA
     IF ( ICTL(JI) > IKB+1 ) THEN
       JKP = ICTL(JI)
       ZW1 = XG / ( PPABST(JI,IKB) - PPABST(JI,JKP) - &
@@ -580,7 +580,7 @@ ENDIF
           ! Apply uniform correction
 !
   DO JK = JKM, IKB+1, -1
-  DO JI = 1, KLON
+  DO JI = KIDIA,KFDIA
     IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
       ! ZW1 = ABS(ZRVC(JI,JK)) +  ABS(ZRCC(JI,JK)) +  ABS(ZRIC(JI,JK)) + 1.E-12
       ! ZRVC(JI,JK) = ZRVC(JI,JK) - ABS(ZRVC(JI,JK))/ZW1*ZWORK2(JI)           ! moisture
@@ -596,7 +596,7 @@ ENDIF
           ! the final 2D tables
 !
   DO JK = IKB, IKE
-  DO JI = 1, KLON
+  DO JI = KIDIA,KFDIA
     IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       PTTEN(JI,JK)   = ZTHC(JI,JK)
       PRVTEN(JI,JK)  = ZRVC(JI,JK)
@@ -610,7 +610,7 @@ ENDIF
 !                   Cloud base and top levels
 !                   -------------------------
 !
-  DO JI = 1, KLON
+  DO JI = KIDIA,KFDIA
     IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       KCLTOP(JI) = ICTL(JI)
       KCLBAS(JI) = MIN(ISLCL(JI), ICTL(JI))
@@ -625,7 +625,7 @@ ENDIF
 !
 !
     DO JK = IKB, IKE
-    DO JI = 1, KLON
+    DO JI = KIDIA,KFDIA
       IF(GTRIG1(JI) .EQV. .TRUE.)THEN
         ZCH1(JI,JK,:) = PCH1(JI,JK,:)
       ENDIF
@@ -652,7 +652,7 @@ ENDIF
         ZWORK2(:)    = 0.
         DO JK = IKB+1, JKM
           JKP = JK + 1
-          DO JI = 1, KLON
+          DO JI = KIDIA,KFDIA
             ZW1 = .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP))
             ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
             ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
@@ -662,7 +662,7 @@ ENDIF
              ! Apply concentration weighted correction
 !
         DO JK = JKM, IKB+1, -1
-          DO JI = 1, KLON
+          DO JI = KIDIA,KFDIA
             IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
               ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
                                 ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
@@ -672,7 +672,7 @@ ENDIF
       END IF
 !
       DO JK = IKB, IKE
-        DO JI = 1, KLON
+        DO JI = KIDIA,KFDIA
           IF(GTRIG1(JI) .EQV. .TRUE.)THEN
             PCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
           ENDIF
@@ -691,7 +691,7 @@ ENDIF
   END DO
   ZWORK2(:) = 1.
   DO JK = IKB, IKE
-  DO JI = 1, KLON
+  DO JI = KIDIA,KFDIA
     IF(GTRIG1(JI) .EQV. .TRUE.)THEN
       IF ( KCLTOP(JI) <= IKB+1 ) ZWORK2(JI) = 0.
       PUMF(JI,JK) = ZUMF(JI,JK) * ZWORK2(JI)
