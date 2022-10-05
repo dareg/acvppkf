@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_TRIGGER_SHAL(  ORI_KLON,KLON, KLEV,                 &
+      SUBROUTINE CONVECT_TRIGGER_SHAL(  KLON, KLEV,                 &
                                         PPRES, PTH, PTHV, PTHES,             &
                                         PRV, PW, PZ, PTKECLS,                &
                                         PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, &
@@ -89,17 +89,16 @@ IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
-INTEGER, INTENT(IN) :: ORI_KLON
 INTEGER, INTENT(IN)                   :: KLON      ! horizontal loop index
 INTEGER, INTENT(IN)                   :: KLEV      ! vertical loop index
 !REAL, DIMENSION(KLON),     INTENT(IN) :: PDXDY     ! grid area
-REAL, DIMENSION(ORI_KLON),     INTENT(IN) :: PTKECLS   ! TKE CLS
-REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PTH, PTHV ! theta, theta_v
-REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PTHES     ! envir. satur. theta_e
-REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PRV       ! vapor mixing ratio
-REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PPRES     ! pressure
-REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PZ        ! height of grid point (m)
-REAL, DIMENSION(ORI_KLON,KLEV),INTENT(IN) :: PW        ! vertical velocity
+REAL, DIMENSION(KLON),     INTENT(IN) :: PTKECLS   ! TKE CLS
+REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTH, PTHV ! theta, theta_v
+REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTHES     ! envir. satur. theta_e
+REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PRV       ! vapor mixing ratio
+REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PPRES     ! pressure
+REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PZ        ! height of grid point (m)
+REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PW        ! vertical velocity
 !
 REAL, DIMENSION(KLON),     INTENT(OUT):: PTHLCL    ! theta at LCL
 REAL, DIMENSION(KLON),     INTENT(OUT):: PTLCL     ! temp. at LCL
