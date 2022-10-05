@@ -115,7 +115,7 @@ INTEGER, DIMENSION(KLON),  INTENT(INOUT):: KPBL    ! contains index of source la
 !
 INTEGER :: JKK, JK, JKP, JKM, JKDL, JL, JKT, JT! vertical loop index
 INTEGER :: JI                                  ! horizontal loop index
-INTEGER :: IIE, IKB, IKE                       ! horizontal + vertical loop bounds
+INTEGER :: IKB, IKE                       ! horizontal + vertical loop bounds
 REAL    :: ZEPS, ZEPSA                         ! R_d / R_v, R_v / R_d
 REAL    :: ZCPORD, ZRDOCP                      ! C_pd / R_d, R_d / C_pd
 !
@@ -146,7 +146,6 @@ LOGICAL, DIMENSION(KLON) :: GWORK1                 ! work array
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_TRIGGER_SHAL',0,ZHOOK_HANDLE)
-IIE = KLON
 IKB = 1 + JCVEXB
 IKE = KLEV - JCVEXT
 !
@@ -203,7 +202,7 @@ DO JKK = IKB + 1, IKE - 2
 !
      DO JK = JKK, IKE - 1
        JKM = JK + 1
-       DO JI = 1, IIE
+       DO JI = 1, KLON
          IF ( GWORK1(JI) .AND. ZDPTHMIX(JI) < XZPBL ) THEN
             IPBL(JI)     = JK
             ZWORK1(JI)   = PPRES(JI,JK) - PPRES(JI,JKM)
@@ -284,7 +283,7 @@ DO JKK = IKB + 1, IKE - 2
 !               --------------------------------------------------
 !
     DO JK = JKK, IKE - 1
-       DO JI = 1, IIE
+       DO JI = 1, KLON
          IF ( ZPLCL(JI) <= PPRES(JI,JK) .AND. GWORK1(JI) ) ILCL(JI) = JK + 1
        END DO
     END DO
@@ -293,7 +292,7 @@ DO JKK = IKB + 1, IKE - 2
 !*        5.2   Estimate height and environm. theta_v at LCL
 !               --------------------------------------------------
 !
-    DO JI = 1, IIE
+    DO JI = 1, KLON
         JK   = ILCL(JI)
         JKM  = JK - 1
         ZDP(JI)    = LOG( ZPLCL(JI) / PPRES(JI,JKM) ) /                     &
@@ -316,7 +315,7 @@ DO JKK = IKB + 1, IKE - 2
 !               -------------------------------------------------------------
 !
 !            !  normalize w grid scale to a 25 km refer. grid
-!    DO JI = 1, IIE
+!    DO JI = 1, KLON
 !       JK  = ILCL(JI)
 !       JKM = JK - 1
 !       ZWORK1(JI) =  ( PW(JI,JKM)  + ( PW(JI,JK) - PW(JI,JKM) ) * ZDP(JI) )  &
@@ -331,7 +330,7 @@ DO JKK = IKB + 1, IKE - 2
 !*       6.2    Compute parcel vertical velocity at LCL
 !               ---------------------------------------
 !
-!    DO JI = 1, IIE
+!    DO JI = 1, KLON
 !       JKDL = IDPL(JI)
 !       ZWORK3(JI) = XG * ZWORK1(JI) * ( ZZLCL(JI) - PZ(JI,JKDL) )       &
 !                      / ( PTHV(JI,JKDL) + ZTHVELCL(JI) )
@@ -362,7 +361,7 @@ DO JKK = IKB + 1, IKE - 2
      JKM = IKB
      DO JL = JKM, JT
         JK = JL + 1
-        DO JI = 1, IIE
+        DO JI = 1, KLON
            ZWORK1(JI) = ( 2. * ZTHEUL(JI) /                                &
             ( PTHES(JI,JK) + PTHES(JI,JL) ) - 1. ) * ( PZ(JI,JK) - PZ(JI,JL) )
            IF ( JL < ILCL(JI) ) ZWORK1(JI) = 0.
