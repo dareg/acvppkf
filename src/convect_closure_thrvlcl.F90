@@ -96,7 +96,7 @@ INTEGER, DIMENSION(KLON),  INTENT(OUT):: KLCL   ! contains vert. index of LCL
 !
 INTEGER :: JK, JKM, JKMIN, JKMAX      ! vertical loop index
 INTEGER :: JI                         ! horizontal loop index 
-INTEGER :: IIE, IKB, IKE              ! horizontal + vertical loop bounds
+INTEGER :: IKB, IKE              ! horizontal + vertical loop bounds
 REAL    :: ZEPS           ! R_d / R_v
 REAL    :: ZCPORD, ZRDOCP ! C_pd / R_d, R_d / C_pd
 !
@@ -116,7 +116,6 @@ REAL, DIMENSION(KLON) :: ZWORK1, ZWORK2     ! work arrays
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_THRVLCL',0,ZHOOK_HANDLE)
-IIE = KLON
 IKB = 1 + JCVEXB 
 IKE = KLEV - JCVEXT 
 !
@@ -149,7 +148,7 @@ KLCL(:)     = IKB + 1
      JKMIN=IKB
      DO JK = IKB + 1, JKMAX
         JKM = JK + 1
-        DO JI = 1, IIE
+        DO JI = 1, KLON
         IF ( JK >= KDPL(JI) .AND. JK <= KPBL(JI) ) THEN
 !           
             ZWORK1(JI)   = PPRES(JI,JK) - PPRES(JI,JKM)
@@ -227,7 +226,7 @@ END WHERE
 !               -----------------------------------------
 !
      DO JK = JKMIN, IKE - 1
-        DO JI = 1, IIE
+        DO JI = 1, KLON
         IF ( ZPLCL(JI) <= PPRES(JI,JK) .AND. OWORK1(JI) ) THEN
             KLCL(JI)  = JK + 1
             PZLCL(JI) = PZ(JI,JK+1)
@@ -239,7 +238,7 @@ END WHERE
 !*        4.2   Estimate height and environmental temperature at LCL
 !               ----------------------------------------------------
 !
-    DO JI = 1, IIE
+    DO JI = 1, KLON
         JK   = KLCL(JI)
         JKM  = JK - 1
         ZDP(JI)     = ALOG( ZPLCL(JI) / PPRES(JI,JKM) ) /                     &

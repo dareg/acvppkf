@@ -89,7 +89,7 @@ INTEGER,                INTENT(IN) :: KFTSTEPS  ! maximum fractional time steps
 !*       0.2   Declarations of local variables :
 !
 INTEGER :: INCH1          ! number of chemical tracers
-INTEGER :: IIE, IKB, IKE  ! horizontal + vertical loop bounds
+INTEGER :: IKB, IKE  ! horizontal + vertical loop bounds
 INTEGER :: IKS            ! vertical dimension
 INTEGER :: JI             ! horizontal loop index
 INTEGER :: JK, JKP        ! vertical loop index
@@ -113,7 +113,6 @@ REAL, DIMENSION(KLON,KCH)      :: ZWORK1, ZWORK2, ZWORK3
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CHEM_TRANSPORT',0,ZHOOK_HANDLE)
 INCH1  = KCH
-IIE    = KLON
 IKB    = 1 + JCVEXB
 IKS    = KLEV
 IKE    = KLEV - JCVEXT
@@ -128,7 +127,7 @@ ZUCH1(:,:,:) = 0.
 !*      2.1     Initialization  at LCL
 !               ----------------------------------
 !
-DO JI = 1, IIE
+DO JI = 1, KLON
     JKLD = KDPL(JI)
     JKLP = KPBL(JI)
     ZWORK1(JI,:) = .5 * ( PCH1(JI,JKLD,:) + PCH1(JI,JKLP,:) )
@@ -141,7 +140,7 @@ DO JK = MINVAL( KDPL(:) ), JKMAX
 JKP = JK + 1
 !
     DO JN = 1, INCH1
-     DO JI = 1, IIE
+     DO JI = 1, KLON
        IF ( KDPL(JI) <= JK .AND. MIN(KLCL(JI), KCTL(JI)) > JK )                             &
             ZUCH1(JI,JK,JN) = ZWORK1(JI,JN)
 !
@@ -168,7 +167,7 @@ ZDCH1(:,:,:) = 0.
 !               -------------------------
 !
 ZWORK1(:,:) = SPREAD( PMIXF(:), DIM=2, NCOPIES=INCH1 )
-DO JI = 1, IIE
+DO JI = 1, KLON
      JK = KLFS(JI)
      ZDCH1(JI,JK,:) = ZWORK1(JI,:) * PCH1(JI,JK,:) +                          &
                                        ( 1. - ZWORK1(JI,:) ) * ZUCH1(JI,JK,:)
@@ -180,7 +179,7 @@ END DO
 DO JK = MAXVAL( KLFS(:) ), IKB + 1, -1
 JKP = JK - 1
     DO JN = 1, INCH1
-    DO JI = 1, IIE
+    DO JI = 1, KLON
       IF ( JK <= KLFS(JI) .AND. JKP >= KDBL(JI) ) THEN
        ZDCH1(JI,JKP,JN) = ( ZDCH1(JI,JK,JN) * PDMF(JI,JK) -              &
                             PCH1(JI,JK,JN) *  PDER(JI,JKP) ) /           &

@@ -129,7 +129,7 @@ REAL, DIMENSION(KLON),     INTENT(OUT):: PCAPE  ! available potent. energy
 !
 !*       0.2   Declarations of local variables :
 !
-INTEGER :: IIE, IKB, IKE  ! horizontal and vertical loop bounds
+INTEGER :: IKB, IKE  ! horizontal and vertical loop bounds
 INTEGER :: JI             ! horizontal loop index
 INTEGER :: JK, JKP, JKM, JK1, JK2   ! vertical loop index
 REAL    :: ZEPSA          ! R_v / R_d, C_pv / C_pd
@@ -162,7 +162,6 @@ REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_UPDRAFT_SHAL',0,ZHOOK_HANDLE)
 IKB = 1 + JCVEXB
 IKE = KLEV - JCVEXT
-IIE = KLON
 !
 !
 !*       1.     Initialize updraft properties and local variables
@@ -219,7 +218,7 @@ JKP=IKE
 JKM=IKB
 
 DO JK = JKM, JKP
-   DO JI = 1, IIE
+   DO JI = 1, KLON
    IF ( JK >= KDPL(JI) .AND. JK < KLCL(JI) ) THEN
         PUMF(JI,JK)  = PMFLCL
         PUTHL(JI,JK) = ZWORK1(JI)
@@ -421,7 +420,7 @@ END DO
 !                or > 3km (deep convection) or CAPE < 1
 !                ------------------------------------------------
 !
-    DO JI = 1, IIE
+    DO JI = 1, KLON
           JK  = KCTL(JI)
           ZWORK1(JI) = PZ(JI,JK) - PZLCL(JI)
           OTRIG(JI) = ZWORK1(JI) >= XCDEPTH  .AND. ZWORK1(JI) < XCDEPTH_D        &
@@ -441,7 +440,7 @@ KETL(:) = MIN( KETL(:), KCTL(:) )
 ZWORK1(:) = 0.
 WHERE ( KETL(:) == KCTL(:) ) ZWORK1(:) = 1.
 !
-DO JI = 1, IIE
+DO JI = 1, KLON
     JK = KETL(JI)
     PUDR(JI,JK)   = PUDR(JI,JK) +                                    &
                           ( PUMF(JI,JK) - PUER(JI,JK) )  * ZWORK1(JI)
@@ -470,21 +469,21 @@ JK1 = IKB
 JK2 = IKE
 
 DO JK = JK1, JK2
-    DO JI = 1, IIE
+    DO JI = 1, KLON
     IF( JK > KETL(JI) .AND. JK <= KCTL(JI) ) THEN
         ZWORK1(JI) = ZWORK1(JI) + PDPRES(JI,JK)
     END IF
     END DO
 END DO
 !
-DO JI = 1, IIE
+DO JI = 1, KLON
     JK = KETL(JI)
     ZWORK1(JI) = PUMF(JI,JK) / MAX( 1., ZWORK1(JI) )
 END DO
 !
 DO JK = JK1 + 1, JK2
     JKP = JK - 1
-    DO JI = 1, IIE
+    DO JI = 1, KLON
     IF ( JK > KETL(JI) .AND. JK <= KCTL(JI) ) THEN
         PUDR(JI,JK)  = PDPRES(JI,JK) * ZWORK1(JI)
         PUMF(JI,JK)  = PUMF(JI,JKP) - PUDR(JI,JK)
@@ -498,7 +497,7 @@ END DO
 !
 !IWORK(:) = MIN( KPBL(:), KLCL(:) - 1 )
 IWORK(:) = KPBL(:)
-DO JI = 1, IIE
+DO JI = 1, KLON
      JK  = KDPL(JI)
      JKP = IWORK(JI)
 !          mixed layer depth
@@ -508,7 +507,7 @@ END DO
 !JKP = MAXVAL( IWORK(:) )
 JKP=IKE
 DO JK = JKM, JKP
-   DO JI = 1, IIE
+   DO JI = 1, KLON
    IF ( JK >= KDPL(JI)  .AND. JK <= IWORK(JI) .AND. GTRIG1(JI)) THEN
        PUER(JI,JK) = PUER(JI,JK) + PMFLCL * PDPRES(JI,JK) / ( ZWORK2(JI) + 0.1 )
        PUMF(JI,JK) = PUMF(JI,JK-1) + PUER(JI,JK)

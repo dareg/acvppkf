@@ -129,7 +129,7 @@ REAL, DIMENSION(KLON,KLEV), INTENT(OUT)  :: PWSUB ! envir. compensating subsiden
 !
 !*       0.2   Declarations of local variables :
 !
-INTEGER :: IIE, IKB, IKE  ! horizontal + vertical loop bounds
+INTEGER :: IKB, IKE  ! horizontal + vertical loop bounds
 INTEGER :: IKS            ! vertical dimension
 INTEGER :: JK, JKP, JKMAX ! vertical loop index
 INTEGER :: JI             ! horizontal loop index
@@ -203,7 +203,6 @@ WHERE( .NOT. OTRIG1(:) ) ZWORK5(:) = 0.
 !*       0.3   Compute loop bounds
 !              -------------------
 !
-IIE    = KLON
 IKB    = 1 + JCVEXB
 IKS    = KLEV
 IKE    = KLEV - JCVEXT
@@ -231,7 +230,7 @@ IWORK1(:) = ILCL(:)
 !JKP = MINVAL( KDPL(:) )
 JKP=IKB
 DO JK = JKP, IKE
-  DO JI = 1, IIE
+  DO JI = 1, KLON
     IF( JK > KDPL(JI) .AND. JK <= IWORK1(JI) ) THEN
         ZWORK1(JI)  = PLMASS(JI,JK) / ( ( PUER(JI,JK) + 1.E-5 ) * PTIMEC(JI) )
         ZADJMAX(JI) = MIN( ZADJMAX(JI), ZWORK1(JI) )
@@ -306,7 +305,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !           automatically become zero.
 !           ----------------------------------------------------
 !
-    DO JI = 1, IIE
+    DO JI = 1, KLON
        JK=KCTL(JI)
        ZWORK1(JI) = PUDR(JI,JK) * PDPRES(JI,JK) / ( PLMASS(JI,JK) + .1 )    &
                                                             - PWSUB(JI,JK)
@@ -352,11 +351,11 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
              ZRIMFOUT(:,:)  = 0.
 !
          DO JK = IKB + 1, JKMAX
-           DO JI = 1, IIE
+           DO JI = 1, KLON
               GWORK4(JI,JK) = GWORK3(JI) .AND. JK <= KCTL(JI)
            END DO
            JKP = MAX( IKB + 1, JK - 1 )
-           DO JI = 1, IIE
+           DO JI = 1, KLON
            IF ( GWORK3(JI) ) THEN
 !
                ZWORK1(JI)       = SIGN( 1., ZOMG(JI,JK) )
@@ -372,7 +371,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
                ZRIMFOUT(JI,JK)  =   ZOMG(JI,JK) * PRIC(JI,JK)  * ZWORK2(JI)
            END IF
            END DO
-           DO JI = 1, IIE
+           DO JI = 1, KLON
            IF ( GWORK3(JI) ) THEN
                ZTHMFIN(JI,JKP)  = ZTHMFIN(JI,JKP)  + ZTHMFOUT(JI,JK) * ZWORK2(JI)
                ZTHMFOUT(JI,JKP) = ZTHMFOUT(JI,JKP) + ZTHMFIN(JI,JK)  * ZWORK1(JI)
@@ -421,7 +420,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                  ----------------------------------------------
 !
       DO JK = IKB + 1, JKMAX
-         DO JI = 1, IIE
+         DO JI = 1, KLON
          IF( GWORK1(JI) .AND. JK <= KCTL(JI) ) THEN
            ZPI(JI)    = ( XP00 / PPRES(JI,JK) ) ** ZRDOCP
            ZCPH(JI)   = XCPD + PRWC(JI,JK) * XCPV
@@ -478,7 +477,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !
       DO JK = IKB, JKMAX
         JKP = JK - 1
-        DO JI = 1, IIE
+        DO JI = 1, KLON
           ZWORK4(JI) = 1.
           IF ( JK == ILCL(JI) ) ZWORK4(JI) = 0.
 !
@@ -494,7 +493,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
         CALL CONVECT_SATMIXRATIO( KLON, PPRES(:,JK), ZWORK2, ZWORK3, ZLV, ZLS, ZCPH )
 !
 !
-        DO JI = 1, IIE
+        DO JI = 1, KLON
           IF ( GWORK3(JI) ) THEN
               ZTHES2(JI)  = ZWORK2(JI) * ZPI(JI) ** ( 1. - 0.28 * ZWORK3(JI) )   &
                                    * EXP( ( 3374.6525 / ZWORK2(JI) - 2.5403 ) &
