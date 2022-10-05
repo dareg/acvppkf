@@ -262,7 +262,7 @@ ICONV = COUNT(GTRIG1(:))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < KLON/2) THEN ! a regler
-  CALL SHALLOW_CONVECTION_SELECT( KLON, ICONV, KLEV, KICE, OSETTADJ,&
+  CALL SHALLOW_CONVECTION_SELECT( KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
                                   PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                   PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                   PRITEN, KCLTOP, KCLBAS, PUMF,     &
@@ -272,7 +272,7 @@ ELSE IF (ICONV < KLON/2) THEN ! a regler
                                   ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,  &
                                   ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
 ELSE
-  CALL SHALLOW_CONVECTION_ALL( KLON, KLEV, KICE, OSETTADJ, PTADJS,  &
+  CALL SHALLOW_CONVECTION_ALL( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
                                PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                PTTEN, PRVTEN, PRCTEN, PRITEN,       &
                                KCLTOP, KCLBAS, PUMF, OCH1CONV, KCH1,&
@@ -285,7 +285,7 @@ ENDIF
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',1,ZHOOK_HANDLE)
 CONTAINS
 !
-SUBROUTINE SHALLOW_CONVECTION_ALL( KLON, KLEV, KICE, OSETTADJ, PTADJS,  &
+SUBROUTINE SHALLOW_CONVECTION_ALL( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    PTTEN, PRVTEN, PRCTEN, PRITEN,       &
                                    KCLTOP, KCLBAS, PUMF, OCH1CONV, KCH1,&
@@ -308,6 +308,8 @@ IMPLICIT NONE
 !
 INTEGER,                         INTENT(IN)   :: KLON     ! horizontal dimension
 INTEGER,                         INTENT(IN)   :: KLEV     ! vertical dimension
+INTEGER,                         INTENT(IN)   :: KIDIA    ! value of the first point in x
+INTEGER,                         INTENT(IN)   :: KFDIA    ! value of the last point in x
 INTEGER,                         INTENT(IN)   :: KICE     ! flag for ice ( 1 = yes,
                                                           !                0 = no ice )
 LOGICAL,                         INTENT(IN)   :: OSETTADJ ! logical to set convective
@@ -700,7 +702,7 @@ ENDIF
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_ALL',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION_ALL
 !
-SUBROUTINE SHALLOW_CONVECTION_SELECT( KLON, ICONV, KLEV, KICE, OSETTADJ,&
+SUBROUTINE SHALLOW_CONVECTION_SELECT( KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
                                       PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                       PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                       PRITEN, KCLTOP, KCLBAS, PUMF,     &
@@ -721,8 +723,10 @@ IMPLICIT NONE
 !
 !
 INTEGER,                         INTENT(IN)   :: KLON     ! horizontal dimension
-INTEGER,                         INTENT(IN)   :: ICONV     ! number of convective columns 
+INTEGER,                         INTENT(IN)   :: ICONV    ! number of convective columns 
 INTEGER,                         INTENT(IN)   :: KLEV     ! vertical dimension
+INTEGER,                         INTENT(IN)   :: KIDIA    ! value of the first point in x
+INTEGER,                         INTENT(IN)   :: KFDIA    ! value of the last point in x
 INTEGER,                         INTENT(IN)   :: KICE     ! flag for ice ( 1 = yes,
                                                           !                0 = no ice )
 LOGICAL,                         INTENT(IN)   :: OSETTADJ ! logical to set convective
