@@ -194,8 +194,6 @@ PTTEN(:,:)  = 0.
 PRVTEN(:,:) = 0.
 PRCTEN(:,:) = 0.
 PRITEN(:,:) = 0.
-! PUTEN(:,:)  = 0.
-! PVTEN(:,:)  = 0.
 PUMF(:,:)   = 0.
 KCLTOP(:)  = 0
 KCLBAS(:)  = 0
@@ -260,7 +258,7 @@ CALL CONVECT_TRIGGER_SHAL(  KLON, KLEV, KIDIA, KFDIA,                    &
 ICONV = COUNT(GTRIG1(:))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
-ELSE IF (ICONV < KLON/2) THEN ! a regler
+ELSE IF (ICONV < KLON/2) THEN
   CALL SHALLOW_CONVECTION_SELECT( KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
                                   PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                   PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
@@ -540,8 +538,6 @@ REAL, DIMENSION(ICONV,KLEV)  :: ZRVC    ! conv. adj. grid scale r_w
 REAL, DIMENSION(ICONV,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(ICONV,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
 !
-INTEGER, DIMENSION(KLON)     :: IINDEX, IJINDEX, IJPINDEX!hor.index
-!
 ! Chemical Tracers:
 REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1    ! grid scale chemical specy (kg/kg)
 REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1C   ! conv. adjust. chemical specy 1
@@ -551,43 +547,42 @@ REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
 
 ! Gather grid scale and updraft base variables in arrays using mask GTRIG
-DO JI = 1, KLON
-  IINDEX(JI) = JI
-END DO
-GTRIG(:) = .FALSE.
-GTRIG(KIDIA:KFDIA) = .TRUE.
-GTRIG(:)      = UNPACK( GTRIG1(:), MASK=GTRIG, FIELD=.FALSE. )
-IJINDEX(:)    = PACK( IINDEX(:), MASK=GTRIG(:) )
+GTRIG(:) = GTRIG1(:)
+GTRIG1=.TRUE.
 
 DO JK = IKB, IKE
-DO JI = 1, ICONV
-  JL = IJINDEX(JI)
-  ZZ(JI,JK)     = PZZ(JL,JK)
-  ZPRES(JI,JK)  = PPABST(JL,JK)
-  ZTT(JI,JK)    = PTT(JL,JK)
-  ZTH(JI,JK)    = ZTHT(JL,JK)
-  ZTHES(JI,JK)  = ZSTHES(JL,JK)
-  ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
-  ZRC(JI,JK)    = MAX( 0., PRCT(JL,JK) )
-  ZRI(JI,JK)    = MAX( 0., PRIT(JL,JK) )
-  ZTHV(JI,JK)   = ZSTHV(JL,JK)
+JI=1
+DO JL = KIDIA, KFDIA
+  IF(GTRIG(JL)) THEN
+    ZZ(JI,JK)     = PZZ(JL,JK)
+    ZPRES(JI,JK)  = PPABST(JL,JK)
+    ZTT(JI,JK)    = PTT(JL,JK)
+    ZTH(JI,JK)    = ZTHT(JL,JK)
+    ZTHES(JI,JK)  = ZSTHES(JL,JK)
+    ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
+    ZRC(JI,JK)    = MAX( 0., PRCT(JL,JK) )
+    ZRI(JI,JK)    = MAX( 0., PRIT(JL,JK) )
+    ZTHV(JI,JK)   = ZSTHV(JL,JK)
+    JI=JI+1
+  ENDIF
 END DO
 END DO
 
-IJPINDEX(:) = PACK( IINDEX(:), MASK=GTRIG1(:) )
-DO JI = 1, ICONV
-  JL = IJPINDEX(JI)
-  IDPL(JI)      = ISDPL(JL)
-  IPBL(JI)      = ISPBL(JL)
-  ILCL(JI)      = ISLCL(JL)
-  ZTHLCL(JI)    = ZSTHLCL(JL)
-  ZTLCL(JI)     = ZSTLCL(JL)
-  ZRVLCL(JI)    = ZSRVLCL(JL)
-  ZWLCL(JI)     = ZSWLCL(JL)
-  ZZLCL(JI)     = ZSZLCL(JL)
-  ZTHVELCL(JI)  = ZSTHVELCL(JL)
+JI=1
+DO JL = KIDIA,KFDIA
+  IF(GTRIG(JL))THEN
+    IDPL(JI)      = ISDPL(JL)
+    IPBL(JI)      = ISPBL(JL)
+    ILCL(JI)      = ISLCL(JL)
+    ZTHLCL(JI)    = ZSTHLCL(JL)
+    ZTLCL(JI)     = ZSTLCL(JL)
+    ZRVLCL(JI)    = ZSRVLCL(JL)
+    ZWLCL(JI)     = ZSWLCL(JL)
+    ZZLCL(JI)     = ZSZLCL(JL)
+    ZTHVELCL(JI)  = ZSTHVELCL(JL)
+    JI=JI+1
+  ENDIF
 END DO
-GTRIG1=.TRUE.
 
 CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
@@ -598,29 +593,38 @@ CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 ZTIMEC, ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, &
                                 ZRCC, ZRIC, ICTL)
 DO JK = IKB, IKE
-DO JI = 1, ICONV
-  JL = IJINDEX(JI)
-  PTTEN(JL,JK)   = ZTHC(JI,JK)
-  PRVTEN(JL,JK)  = ZRVC(JI,JK)
-  PRCTEN(JL,JK)  = ZRCC(JI,JK)
-  PRITEN(JL,JK)  = ZRIC(JI,JK)
+JI=1
+DO JL = KIDIA, KFDIA
+  IF(GTRIG(JL))THEN
+    PTTEN(JL,JK)   = ZTHC(JI,JK)
+    PRVTEN(JL,JK)  = ZRVC(JI,JK)
+    PRCTEN(JL,JK)  = ZRCC(JI,JK)
+    PRITEN(JL,JK)  = ZRIC(JI,JK)
+    JI=JI+1
+  ENDIF
 END DO
 END DO
 
 ILCL(:) = MIN( ILCL(:), ICTL(:) )
-DO JI = 1, ICONV
-  JL = IJINDEX(JI)
-  KCLTOP(JL) = ICTL(JI)
-  KCLBAS(JL) = ILCL(JI)
+JI=1
+DO JL = KIDIA, KFDIA
+  IF(GTRIG(JL))THEN
+    KCLTOP(JL) = ICTL(JI)
+    KCLBAS(JL) = ILCL(JI)
+    JI=JI+1
+  ENDIF
 END DO
 
 IF ( OCH1CONV ) THEN
   JKM = IKE
   DO JN = 1, KCH1
     DO JK = IKB, IKE
-      DO JI = 1, ICONV
-        JL = IJINDEX(JI)
-        PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+      JI=1
+      DO JL = KIDIA, KFDIA
+        IF(GTRIG(JL))THEN
+          PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+          JI=JI+1
+        ENDIF
       END DO
     END DO
   END DO
@@ -628,10 +632,13 @@ END IF
 
 ZWORK2(:) = 1.
 DO JK = IKB, IKE
-DO JI = 1, ICONV
-  JL = IJINDEX(JI)
-  IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
-  PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
+JI=1
+DO JL = KIDIA, KFDIA
+  IF(GTRIG(JL))THEN
+    IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
+    PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
+    JI=JI+1
+  ENDIF
 END DO
 END DO
 
@@ -660,53 +667,53 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 !
-INTEGER,                         INTENT(IN)   :: KLON     ! horizontal dimension
-INTEGER,                         INTENT(IN)   :: KLEV     ! vertical dimension
-INTEGER,                         INTENT(IN)   :: KIDIA    ! value of the first point in x
-INTEGER,                         INTENT(IN)   :: KFDIA    ! value of the last point in x
-INTEGER,                         INTENT(IN)   :: KICE     ! flag for ice ( 1 = yes,
-                                                          !                0 = no ice )
-LOGICAL,                         INTENT(IN)   :: OSETTADJ ! logical to set convective
-                                                          ! adjustment time by user
-REAL,                            INTENT(IN)   :: PTADJS   ! user defined adjustment time
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PTT      ! grid scale temperature at t
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PRVT     ! grid scale water vapor "
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PRCT     ! grid scale r_c  "
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PRIT     ! grid scale r_i "
-                                                          ! velocity (m/s)
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PPABST   ! grid scale pressure at t
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PZZ      ! height of model layer (m)
-                                                        ! tendency (K/s)
-                                                        ! they are given a value of
-                                                        ! 0 if no convection
+INTEGER,                         INTENT(IN)  :: KLON     ! horizontal dimension
+INTEGER,                         INTENT(IN)  :: KLEV     ! vertical dimension
+INTEGER,                         INTENT(IN)  :: KIDIA    ! value of the first point in x
+INTEGER,                         INTENT(IN)  :: KFDIA    ! value of the last point in x
+INTEGER,                         INTENT(IN)  :: KICE     ! flag for ice ( 1 = yes,
+                                                         !                0 = no ice )
+LOGICAL,                         INTENT(IN)  :: OSETTADJ ! logical to set convective
+                                                         ! adjustment time by user
+REAL,                            INTENT(IN)  :: PTADJS   ! user defined adjustment time
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: PTT      ! grid scale temperature at t
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: PRVT     ! grid scale water vapor "
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: PRCT     ! grid scale r_c  "
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: PRIT     ! grid scale r_i "
+                                                         ! velocity (m/s)
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: PPABST   ! grid scale pressure at t
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: PZZ      ! height of model layer (m)
+                                                       ! tendency (K/s)
+                                                       ! they are given a value of
+                                                       ! 0 if no convection
 !
-LOGICAL,                         INTENT(IN)   :: OCH1CONV ! include tracer transport
-INTEGER,                         INTENT(IN)   :: KCH1     ! number of species
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(IN)   :: PCH1! grid scale chemical species
+LOGICAL,                         INTENT(IN)  :: OCH1CONV ! include tracer transport
+INTEGER,                         INTENT(IN)  :: KCH1     ! number of species
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(IN)  :: PCH1     ! grid scale chemical species
 
-INTEGER, INTENT(IN)                           :: IKB, IKE ! vertical loop bounds
-INTEGER, INTENT(INOUT)                        :: IFTSTEPS ! only used for chemical tracers
-REAL   , INTENT(IN)                           :: ZRDOCP   ! R_d/C_p
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: ZTHT, ZSTHV, ZSTHES  ! grid scale theta, theta_v
-INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISDPL   ! index for parcel departure level
-INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISPBL   ! index for source layer top
-INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISLCL   ! index for lifting condensation level
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHLCL ! updraft theta at LCL/L
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTLCL  ! updraft temp. at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSRVLCL ! updraft rv at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSWLCL  ! updraft w at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSZLCL  ! LCL height
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHVELCL! envir. theta_v at LCL
-LOGICAL, DIMENSION(KLON)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for convection
-REAL, DIMENSION(KLON),           INTENT(OUT)  :: ZTIMEC  ! advective time period
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT)  :: ZCH1    ! grid scale chemical specy (kg/kg)
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT)  :: ZCH1C   ! conv. adjust. chemical specy 1
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZUMF    ! updraft mass flux (kg/s)
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZTHC    ! conv. adj. grid scale theta
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZRVC    ! conv. adj. grid scale r_w
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZRCC    ! conv. adj. grid scale r_c
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZRIC    ! conv. adj. grid scale r_i
-INTEGER, DIMENSION(KLON),        INTENT(OUT)  :: ICTL    ! index for cloud top level
+INTEGER, INTENT(IN)                          :: IKB, IKE ! vertical loop bounds
+INTEGER, INTENT(INOUT)                       :: IFTSTEPS ! only used for chemical tracers
+REAL   , INTENT(IN)                          :: ZRDOCP   ! R_d/C_p
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: ZTHT, ZSTHV, ZSTHES  ! grid scale theta, theta_v
+INTEGER, DIMENSION(KLON)  ,      INTENT(IN)  :: ISDPL   ! index for parcel departure level
+INTEGER, DIMENSION(KLON)  ,      INTENT(IN)  :: ISPBL   ! index for source layer top
+INTEGER, DIMENSION(KLON)  ,      INTENT(IN)  :: ISLCL   ! index for lifting condensation level
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSTHLCL ! updraft theta at LCL/L
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSTLCL  ! updraft temp. at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSRVLCL ! updraft rv at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSWLCL  ! updraft w at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSZLCL  ! LCL height
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSTHVELCL! envir. theta_v at LCL
+LOGICAL, DIMENSION(KLON)  ,      INTENT(IN)  :: GTRIG1  ! logical mask for convection
+REAL, DIMENSION(KLON),           INTENT(OUT) :: ZTIMEC  ! advective time period
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: ZCH1    ! grid scale chemical specy (kg/kg)
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: ZCH1C   ! conv. adjust. chemical specy 1
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZUMF    ! updraft mass flux (kg/s)
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZTHC    ! conv. adj. grid scale theta
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRVC    ! conv. adj. grid scale r_w
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRCC    ! conv. adj. grid scale r_c
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRIC    ! conv. adj. grid scale r_i
+INTEGER, DIMENSION(KLON),        INTENT(OUT) :: ICTL    ! index for cloud top level
 !
 !
 REAL, DIMENSION(KLON)              :: ZWORK2, ZWORK2B ! work array
