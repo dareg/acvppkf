@@ -705,15 +705,15 @@ REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSWLCL  ! updraft w at LCL
 REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSZLCL  ! LCL height
 REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for convection
-REAL, DIMENSION(KLON), intent(out)       :: ZTIMEC  ! advective time period
-REAL, DIMENSION(KLON,KLEV,KCH1), intent(out):: ZCH1    ! grid scale chemical specy (kg/kg)
-REAL, DIMENSION(KLON,KLEV,KCH1), intent(out):: ZCH1C   ! conv. adjust. chemical specy 1
-REAL, DIMENSION(KLON,KLEV), intent(out)  :: ZUMF    ! updraft mass flux (kg/s)
-REAL, DIMENSION(KLON,KLEV), intent(out)  :: ZTHC    ! conv. adj. grid scale theta
-REAL, DIMENSION(KLON,KLEV), intent(out)  :: ZRVC    ! conv. adj. grid scale r_w
-REAL, DIMENSION(KLON,KLEV), intent(out)  :: ZRCC    ! conv. adj. grid scale r_c
-REAL, DIMENSION(KLON,KLEV), intent(out)  :: ZRIC    ! conv. adj. grid scale r_i
-INTEGER, DIMENSION(KLON), intent(out)  :: ICTL    ! index for cloud top level
+REAL, DIMENSION(KLON),           INTENT(OUT)  :: ZTIMEC  ! advective time period
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT)  :: ZCH1    ! grid scale chemical specy (kg/kg)
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT)  :: ZCH1C   ! conv. adjust. chemical specy 1
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZUMF    ! updraft mass flux (kg/s)
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZTHC    ! conv. adj. grid scale theta
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZRVC    ! conv. adj. grid scale r_w
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZRCC    ! conv. adj. grid scale r_c
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT)  :: ZRIC    ! conv. adj. grid scale r_i
+INTEGER, DIMENSION(KLON),        INTENT(OUT)  :: ICTL    ! index for cloud top level
 !
 !
 REAL, DIMENSION(KLON)              :: ZWORK2, ZWORK2B ! work array
@@ -799,28 +799,15 @@ CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV,                                     &
                            XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
                            ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
                            ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1                    )
-!
-!
-!
-!*           4.2    In routine UPDRAFT GTRIG1 has been set to false when cloud
-!                   thickness is smaller than 3 km
-!                   -----------------------------------------------------------
-!
-!
-!
-!*       4.3    Allocate memory for downdraft variables
-!               ---------------------------------------
-!
-! downdraft variables
-!
-  ZDMF(:,:) = 0.
-  ZDER(:,:) = 0.
-  ZDDR(:,:) = 0.
-  ILFS(:)   = IKB
-  DO JK = IKB, IKE
-    ZLMASS(:,JK)  = XA25 * ZDPRES(:,JK) / XG  ! mass of model layer
-  END DO
-  ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
+
+ZDMF(:,:) = 0.
+ZDER(:,:) = 0.
+ZDDR(:,:) = 0.
+ILFS(:)   = IKB
+DO JK = IKB, IKE
+  ZLMASS(:,JK)  = XA25 * ZDPRES(:,JK) / XG  ! mass of model layer
+END DO
+ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !
 !-------------------------------------------------------------------------------
 !
@@ -856,16 +843,15 @@ CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV,                                     &
           ! in order to save memory, the tendencies are temporarily stored
           ! in the tables for the adjusted grid-scale values
 !
-  DO JK = IKB, IKE
-     ZTHC(:,JK) = ( ZTHC(:,JK) - ZTHT(:,JK) ) / ZTIMEC(:)             &
-       * ( PPABST(:,JK) / XP00 ) ** ZRDOCP ! change theta in temperature
-     ZRVC(:,JK) = ( ZRVC(:,JK) - ZRW(:,JK) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK)) ) &
-                                          / ZTIMEC(:)
+DO JK = IKB, IKE
+   ZTHC(:,JK) = ( ZTHC(:,JK) - ZTHT(:,JK) ) / ZTIMEC(:)             &
+     * ( PPABST(:,JK) / XP00 ) ** ZRDOCP ! change theta in temperature
+   ZRVC(:,JK) = ( ZRVC(:,JK) - ZRW(:,JK) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK)) ) &
+                                        / ZTIMEC(:)
 
-     ZRCC(:,JK) = ( ZRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / ZTIMEC(:)
-     ZRIC(:,JK) = ( ZRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / ZTIMEC(:)
-!
-  END DO
+   ZRCC(:,JK) = ( ZRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / ZTIMEC(:)
+   ZRIC(:,JK) = ( ZRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / ZTIMEC(:)
+END DO
 !
 !
 !*           8.2    Apply conservation correction
@@ -898,98 +884,64 @@ ENDIF
 !
           ! Compute vertical integrals - Fluxes
 !
-  !JKM = MAXVAL( ICTL(:) )
-  JKM = IKE
-  ZWORK2(:) = 0.
-  ZWORK2B(:) = 0.
-  DO JK = IKB+1, JKM
-    JKP = JK + 1
-    DO JI = KIDIA,KFDIA
-      IF ( JK <= ICTL(JI) ) THEN
-      ZW1 =  ZRVC(JI,JK) + ZRCC(JI,JK) + ZRIC(JI,JK)
-      ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
-                                  .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
-      ZW1 = ( XCPD + XCPV * ZRW(JI,JK) )* ZTHC(JI,JK)   - &
-            ( XLVTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRCC(JI,JK) - &
-            ( XLSTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRIC(JI,JK)
-      ZWORK2B(JI) = ZWORK2B(JI) + ZW1 *         & ! energy
-                                  .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
-      END IF
-    END DO
+JKM = IKE
+ZWORK2(:) = 0.
+ZWORK2B(:) = 0.
+DO JK = IKB+1, JKM
+  JKP = JK + 1
+  DO JI = KIDIA,KFDIA
+    IF ( JK <= ICTL(JI) ) THEN
+    ZW1 =  ZRVC(JI,JK) + ZRCC(JI,JK) + ZRIC(JI,JK)
+    ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
+                                .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
+    ZW1 = ( XCPD + XCPV * ZRW(JI,JK) )* ZTHC(JI,JK)   - &
+          ( XLVTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRCC(JI,JK) - &
+          ( XLSTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRIC(JI,JK)
+    ZWORK2B(JI) = ZWORK2B(JI) + ZW1 *         & ! energy
+                                .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
+    END IF
   END DO
+END DO
 !
           ! Budget error (integral must be zero)
 !
-  DO JI = KIDIA,KFDIA
-    IF ( ICTL(JI) > IKB+1 ) THEN
-      JKP = ICTL(JI)
-      ZW1 = XG / ( PPABST(JI,IKB) - PPABST(JI,JKP) - &
-                .5 * (ZDPRES(JI,IKB+1) - ZDPRES(JI,JKP+1)) )
-      ZWORK2(JI) =  ZWORK2(JI) * ZW1
-      ZWORK2B(JI) = ZWORK2B(JI)* ZW1
-    END IF
-  END DO
+DO JI = KIDIA,KFDIA
+  IF ( ICTL(JI) > IKB+1 ) THEN
+    JKP = ICTL(JI)
+    ZW1 = XG / ( PPABST(JI,IKB) - PPABST(JI,JKP) - &
+              .5 * (ZDPRES(JI,IKB+1) - ZDPRES(JI,JKP+1)) )
+    ZWORK2(JI) =  ZWORK2(JI) * ZW1
+    ZWORK2B(JI) = ZWORK2B(JI)* ZW1
+  END IF
+END DO
 !
           ! Apply uniform correction
 !
-  DO JK = JKM, IKB+1, -1
-  DO JI = KIDIA,KFDIA
-    IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
-      ! ZW1 = ABS(ZRVC(JI,JK)) +  ABS(ZRCC(JI,JK)) +  ABS(ZRIC(JI,JK)) + 1.E-12
-      ! ZRVC(JI,JK) = ZRVC(JI,JK) - ABS(ZRVC(JI,JK))/ZW1*ZWORK2(JI)           ! moisture
-      ZRVC(JI,JK) = ZRVC(JI,JK) - ZWORK2(JI)                                ! moisture
-      ! ZRCC(JI,JK) = ZRCC(JI,JK) - ABS(ZRCC(JI,JK))/ZW1*ZWORK2(JI)
-      ! ZRIC(JI,JK) = ZRIC(JI,JK) - ABS(ZRIC(JI,JK))/ZW1*ZWORK2(JI)
-      ZTHC(JI,JK) = ZTHC(JI,JK) - ZWORK2B(JI) /  XCPD                       ! enthalpy
-    END IF
-  END DO
-  END DO
-!
-          ! execute a "scatter"= pack command to store the tendencies in
-          ! the final 2D tables
-!
-  !DO JK = IKB, IKE
-  !DO JI = KIDIA,KFDIA
-  !  IF(GTRIG1(JI) .EQV. .TRUE.)THEN
-  !    PTTEN(JI,JK)   = ZTHC(JI,JK)
-  !    PRVTEN(JI,JK)  = ZRVC(JI,JK)
-  !    PRCTEN(JI,JK)  = ZRCC(JI,JK)
-  !    PRITEN(JI,JK)  = ZRIC(JI,JK)
-  !  ENDIF
-  !END DO
-  !END DO
-!
-!
-!                   Cloud base and top levels
-!                   -------------------------
-!
-  !DO JI = KIDIA,KFDIA
-  !  IF(GTRIG1(JI) .EQV. .TRUE.)THEN
-  !    KCLTOP(JI) = ICTL(JI)
-  !    KCLBAS(JI) = MIN(ISLCL(JI), ICTL(JI))
-  !  ENDIF
-  !END DO
-!
+DO JK = JKM, IKB+1, -1
+DO JI = KIDIA,KFDIA
+  IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
+    ZRVC(JI,JK) = ZRVC(JI,JK) - ZWORK2(JI)                                ! moisture
+    ZTHC(JI,JK) = ZTHC(JI,JK) - ZWORK2B(JI) /  XCPD                       ! enthalpy
+  END IF
+END DO
+END DO
 !
 !*           8.7    Compute convective tendencies for Tracers
 !                   ------------------------------------------
 !
-  IF ( OCH1CONV ) THEN
-!
-!
-    DO JK = IKB, IKE
-    DO JI = KIDIA,KFDIA
-      IF(GTRIG1(JI) .EQV. .TRUE.)THEN
-        ZCH1(JI,JK,:) = PCH1(JI,JK,:)
-      ENDIF
-    END DO
-    END DO
-!
-    CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KCH1, ZCH1, ZCH1C,          &
-                                 ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
-                                 ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
-                                 ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
-                                 IFTSTEPS )
+IF ( OCH1CONV ) THEN
+  DO JK = IKB, IKE
+  DO JI = KIDIA,KFDIA
+    IF(GTRIG1(JI) .EQV. .TRUE.)THEN
+      ZCH1(JI,JK,:) = PCH1(JI,JK,:)
+    ENDIF
+  END DO
+  END DO
+  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KCH1, ZCH1, ZCH1C,          &
+                               ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
+                               ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
+                               ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
+                               IFTSTEPS )
 !
 !
 !*           8.8    Apply conservation correction
@@ -997,61 +949,37 @@ ENDIF
 !
           ! Compute vertical integrals
 !
-    !JKM = MAXVAL( ICTL(:) )
-    JKM = IKE
-    DO JN = 1, KCH1
-      IF(JN < NSV_LGBEG .OR. JN>NSV_LGEND-1) THEN ! no correction for xy lagrangian variables
-        ZWORK3(:,JN) = 0.
-        ZWORK2(:)    = 0.
-        DO JK = IKB+1, JKM
-          JKP = JK + 1
-          DO JI = KIDIA,KFDIA
-            ZW1 = .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP))
-            ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
-            ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
-          END DO
+  JKM = IKE
+  DO JN = 1, KCH1
+    IF(JN < NSV_LGBEG .OR. JN>NSV_LGEND-1) THEN ! no correction for xy lagrangian variables
+      ZWORK3(:,JN) = 0.
+      ZWORK2(:)    = 0.
+      DO JK = IKB+1, JKM
+        JKP = JK + 1
+        DO JI = KIDIA,KFDIA
+          ZW1 = .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP))
+          ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
+          ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
         END DO
+      END DO
 !
-             ! Apply concentration weighted correction
+! Apply concentration weighted correction
 !
-        DO JK = JKM, IKB+1, -1
-          DO JI = KIDIA,KFDIA
-            IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
-              ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
-                                ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
-            END IF
-          END DO
+      DO JK = JKM, IKB+1, -1
+        DO JI = KIDIA,KFDIA
+          IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
+            ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
+                              ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
+          END IF
         END DO
-      END IF
-!
-      !DO JK = IKB, IKE
-      !  DO JI = KIDIA,KFDIA
-      !    IF(GTRIG1(JI) .EQV. .TRUE.)THEN
-      !      PCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
-      !    ENDIF
-      !  END DO
-      !END DO
-    END DO
-  END IF
-!
-!-------------------------------------------------------------------------------
-!
-!*           9.     Write up- and downdraft mass fluxes
-!                   ------------------------------------
-!
-  DO JK = IKB, IKE
-    ZUMF(:,JK)  = ZUMF(:,JK) / XA25 ! Mass flux per unit area
+      END DO
+    END IF
   END DO
-  !ZWORK2(:) = 1.
-  !DO JK = IKB, IKE
-  !DO JI = KIDIA,KFDIA
-  !  IF(GTRIG1(JI) .EQV. .TRUE.)THEN
-  !    IF ( KCLTOP(JI) <= IKB+1 ) ZWORK2(JI) = 0.
-  !    PUMF(JI,JK) = ZUMF(JI,JK) * ZWORK2(JI)
-  !  ENDIF
-  !END DO
-  !END DO
-!!
+END IF
+
+DO JK = IKB, IKE
+  ZUMF(:,JK)  = ZUMF(:,JK) / XA25 ! Mass flux per unit area
+END DO
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION_COMPUTE
 END SUBROUTINE SHALLOW_CONVECTION
