@@ -787,11 +787,10 @@ LOGICAL, DIMENSION(KLON)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for conv
 !
 INTEGER  :: JI, JL                  ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
-INTEGER  :: JK, JKM, JKP            ! vertical loop index
+INTEGER  :: JK, JKM                 ! vertical loop index
 !
 LOGICAL, DIMENSION(KLON)           :: GTRIG  ! 2D logical mask for trigger test
-REAL, DIMENSION(KLON)              :: ZWORK2, ZWORK2B ! work array
-REAL                               :: ZW1     ! work variable
+REAL, DIMENSION(KLON)              :: ZWORK2 ! work array
 !
 !
 !*       0.2   Declarations of local allocatable  variables :
@@ -799,37 +798,21 @@ REAL                               :: ZW1     ! work variable
 INTEGER, DIMENSION(ICONV)    :: IDPL    ! index for parcel departure level
 INTEGER, DIMENSION(ICONV)    :: IPBL    ! index for source layer top
 INTEGER, DIMENSION(ICONV)    :: ILCL    ! index for lifting condensation level
-INTEGER, DIMENSION(ICONV)    :: IETL    ! index for zero buoyancy level
 INTEGER, DIMENSION(ICONV)    :: ICTL    ! index for cloud top level
-INTEGER, DIMENSION(ICONV)    :: ILFS    ! index for level of free sink
 !
 ! grid scale variables
 REAL, DIMENSION(ICONV,KLEV)  :: ZZ      ! height of model layer (m)
 REAL, DIMENSION(ICONV,KLEV)  :: ZPRES   ! grid scale pressure
-REAL, DIMENSION(ICONV,KLEV)  :: ZDPRES  ! pressure difference between
-                                              ! bottom and top of layer (Pa)
 REAL, DIMENSION(ICONV,KLEV)  :: ZTT     ! temperature
 REAL, DIMENSION(ICONV,KLEV)  :: ZTH     ! grid scale theta
 REAL, DIMENSION(ICONV,KLEV)  :: ZTHV    ! grid scale theta_v
-REAL, DIMENSION(ICONV,KLEV)  :: ZTHL    ! grid scale enthalpy (J/kg)
 REAL, DIMENSION(ICONV,KLEV)  :: ZTHES   ! grid scale saturated theta_e
-REAL, DIMENSION(ICONV,KLEV)  :: ZRW     ! grid scale total water (kg/kg)
 REAL, DIMENSION(ICONV,KLEV)  :: ZRV     ! grid scale water vapor (kg/kg)
 REAL, DIMENSION(ICONV,KLEV)  :: ZRC     ! grid scale cloud water (kg/kg)
 REAL, DIMENSION(ICONV,KLEV)  :: ZRI     ! grid scale cloud ice (kg/kg)
-REAL, DIMENSION(ICONV)       :: ZDXDY   ! grid area (m^2)
 !
 ! updraft variables
 REAL, DIMENSION(ICONV,KLEV)  :: ZUMF    ! updraft mass flux (kg/s)
-REAL, DIMENSION(ICONV,KLEV)  :: ZUER    ! updraft entrainment (kg/s)
-REAL, DIMENSION(ICONV,KLEV)  :: ZUDR    ! updraft detrainment (kg/s)
-REAL, DIMENSION(ICONV,KLEV)  :: ZUTHL   ! updraft enthalpy (J/kg)
-REAL, DIMENSION(ICONV,KLEV)  :: ZUTHV   ! updraft theta_v (K)
-REAL, DIMENSION(ICONV,KLEV)  :: ZURW    ! updraft total water (kg/kg)
-REAL, DIMENSION(ICONV,KLEV)  :: ZURC    ! updraft cloud water (kg/kg)
-REAL, DIMENSION(ICONV,KLEV)  :: ZURI    ! updraft cloud ice   (kg/kg)
-REAL, DIMENSION(ICONV)       :: ZMFLCL  ! cloud base unit mass flux(kg/s)
-REAL, DIMENSION(ICONV)       :: ZCAPE   ! available potent. energy
 REAL, DIMENSION(ICONV)       :: ZTHLCL  ! updraft theta at LCL
 REAL, DIMENSION(ICONV)       :: ZTLCL   ! updraft temp. at LCL
 REAL, DIMENSION(ICONV)       :: ZRVLCL  ! updraft rv at LCL
@@ -837,44 +820,25 @@ REAL, DIMENSION(ICONV)       :: ZWLCL   ! updraft w at LCL
 REAL, DIMENSION(ICONV)       :: ZZLCL   ! LCL height
 REAL, DIMENSION(ICONV)       :: ZTHVELCL! envir. theta_v at LCL
 !
-! downdraft variables
-REAL, DIMENSION(ICONV,KLEV)  :: ZDMF    ! downdraft mass flux (kg/s)
-REAL, DIMENSION(ICONV,KLEV)  :: ZDER    ! downdraft entrainment (kg/s)
-REAL, DIMENSION(ICONV,KLEV)  :: ZDDR    ! downdraft detrainment (kg/s)
-!
 ! closure variables
-REAL, DIMENSION(ICONV,KLEV)  :: ZLMASS  ! mass of model layer (kg)
 REAL, DIMENSION(ICONV)       :: ZTIMEC  ! advective time period
 !
 REAL, DIMENSION(ICONV,KLEV)  :: ZTHC    ! conv. adj. grid scale theta
 REAL, DIMENSION(ICONV,KLEV)  :: ZRVC    ! conv. adj. grid scale r_w
 REAL, DIMENSION(ICONV,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(ICONV,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
-REAL, DIMENSION(ICONV,KLEV)  :: ZWSUB   ! envir. compensating subsidence (Pa/s)
 !
 INTEGER, DIMENSION(KLON)     :: IINDEX, IJINDEX, IJPINDEX!hor.index
-REAL, DIMENSION(ICONV)       :: ZCPH    ! specific heat C_ph
-REAL, DIMENSION(ICONV)       :: ZLV, ZLS! latent heat of vaporis., sublim.
 !
 ! Chemical Tracers:
 REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1    ! grid scale chemical specy (kg/kg)
 REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1C   ! conv. adjust. chemical specy 1
-REAL, DIMENSION(ICONV,KCH1)      :: ZWORK3  ! conv. adjust. chemical specy 1
-LOGICAL, DIMENSION(ICONV)        :: GTRIG2  ! logical mask for convection
 !
 !-------------------------------------------------------------------------------
-!
-!
-!*       0.3    Compute loop bounds
-!               -------------------
-!
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
-!
-!*           3.1    Gather grid scale and updraft base variables in
-!                   arrays using mask GTRIG
-!                   ---------------------------------------------------
-!
+
+! Gather grid scale and updraft base variables in arrays using mask GTRIG
 DO JI = 1, KLON
   IINDEX(JI) = JI
 END DO
@@ -882,7 +846,7 @@ GTRIG(:) = .FALSE.
 GTRIG(KIDIA:KFDIA) = .TRUE.
 GTRIG(:)      = UNPACK( GTRIG1(:), MASK=GTRIG, FIELD=.FALSE. )
 IJINDEX(:)    = PACK( IINDEX(:), MASK=GTRIG(:) )
-!
+
 DO JK = IKB, IKE
 DO JI = 1, ICONV
   JL = IJINDEX(JI)
@@ -897,7 +861,7 @@ DO JI = 1, ICONV
   ZTHV(JI,JK)   = ZSTHV(JL,JK)
 END DO
 END DO
-!
+
 IJPINDEX(:) = PACK( IINDEX(:), MASK=GTRIG1(:) )
 DO JI = 1, ICONV
   JL = IJPINDEX(JI)
@@ -912,309 +876,56 @@ DO JI = 1, ICONV
   ZTHVELCL(JI)  = ZSTHVELCL(JL)
 END DO
 GTRIG1=.TRUE.
-CALL SHALLOW_CONVECTION_COMPUTE( ICONV, KLEV, KIDIA, ICONV, KICE, OSETTADJ,&
-                                      PTADJS, ZPRES, ZZ, ZTT, ZRV,   &
-                                      ZRC, ZRI,& 
-                                      OCH1CONV, KCH1, PCH1, &
-                                      IKB, IKE, IFTSTEPS, ZRDOCP, ZTH, &
-                                      ZTHV, ZTHES, IDPL, IPBL,      &
-                                      ILCL, ZTHLCL, ZTLCL, ZRVLCL,  &
-                                      ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
-                                    ZTIMEC, ZCH1, ZCH1C, ZUMF,   &
-                                   ZTHC, ZRVC, ZRCC, ZRIC, ICTL &
-                                      )
-!
-!
-!*           3.2    Compute pressure difference
-!                   ---------------------------------------------------
-!
-!ZDPRES(:,IKB) = 0.
-!DO JK = IKB + 1, IKE
-!  ZDPRES(:,JK)  = ZPRES(:,JK-1) - ZPRES(:,JK)
-!END DO
-!!
-!!*           3.3   Compute environm. enthalpy and total water = r_v + r_i + r_c
-!!                  ----------------------------------------------------------
-!!
-!DO JK = IKB, IKE, 1
-!  ZRW(:,JK)  = ZRV(:,JK) + ZRC(:,JK) + ZRI(:,JK)
-!  ZCPH(:)    = XCPD + XCPV * ZRW(:,JK)
-!  ZLV(:)     = XLVTT + ( XCPV - XCL ) * ( ZTT(:,JK) - XTT ) ! compute L_v
-!  ZLS(:)     = XLSTT + ( XCPV - XCI ) * ( ZTT(:,JK) - XTT ) ! compute L_i
-!  ZTHL(:,JK) = ZCPH(:) * ZTT(:,JK) + ( 1. + ZRW(:,JK) ) * XG * ZZ(:,JK) &
-!               - ZLV(:) * ZRC(:,JK) - ZLS(:) * ZRI(:,JK)
-!END DO
-!
-!
-!-------------------------------------------------------------------------------
-!
-!*           4.     Compute updraft properties
-!                   ----------------------------
-!
-!*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
-!                   -------------------------------------------------------------
-!
-!ZDXDY(:)  = XA25
-!ZMFLCL(:) = XA25 * 1.E-3
-!
-!
-!
-!CALL CONVECT_UPDRAFT_SHAL( ICONV, KLEV,                                     &
-!                           KICE, ZPRES, ZDPRES, ZZ, ZTHL, ZTHV, ZTHES, ZRW, &
-!                           ZTHLCL, ZTLCL, ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL,   &
-!                           ZMFLCL, GTRIG2, ILCL, IDPL, IPBL,                &
-!                           ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
-!                           ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1)
-!
-!
-!
-!*           4.2    In routine UPDRAFT GTRIG1 has been set to false when cloud
-!                   thickness is smaller than 3 km
-!                   -----------------------------------------------------------
-!
-!
-!
-!*       4.3    Allocate memory for downdraft variables
-!               ---------------------------------------
-!
-! downdraft variables
-!
-!  ZDMF(:,:) = 0.
-!  ZDER(:,:) = 0.
-!  ZDDR(:,:) = 0.
-!  ILFS(:)   = IKB
-!  DO JK = IKB, IKE
-!    ZLMASS(:,JK)  = ZDXDY(:) * ZDPRES(:,JK) / XG  ! mass of model layer
-!  END DO
-!  ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
-!
-!-------------------------------------------------------------------------------
-!
-!*           5.     Compute downdraft properties
-!                   ----------------------------
-!
-!  ZTIMEC(:) = XCTIME_SHAL
-!  IF ( OSETTADJ ) ZTIMEC(:) = PTADJS
-!!
-!!*           7.     Determine adjusted environmental values assuming
-!!                   that all available buoyant energy must be removed
-!!                   within an advective time step ZTIMEC.
-!!                   ---------------------------------------------------
-!!
-!  CALL CONVECT_CLOSURE_SHAL( ICONV, KLEV,                         &
-!                             ZPRES, ZDPRES, ZZ, ZDXDY, ZLMASS,    &
-!                             ZTHL, ZTH, ZRW, ZRC, ZRI, GTRIG2,    &
-!                             ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
-!                             ILCL, IDPL, IPBL, ICTL,              &
-!                             ZUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
-!                             ZURC, ZURI, ZCAPE, ZTIMEC, IFTSTEPS  )
-!
-!-------------------------------------------------------------------------------
-!
-!*           8.     Determine the final grid-scale (environmental) convective
-!                   tendencies and set convective counter
-!                   --------------------------------------------------------
-!
-!
-!*           8.1    Grid scale tendencies
-!                   ---------------------
-!
-          ! in order to save memory, the tendencies are temporarily stored
-          ! in the tables for the adjusted grid-scale values
-!
-!  DO JK = IKB, IKE
-!     ZTHC(:,JK) = ( ZTHC(:,JK) - ZTH(:,JK) ) / ZTIMEC(:)             &
-!       * ( ZPRES(:,JK) / XP00 ) ** ZRDOCP ! change theta in temperature
-!     ZRVC(:,JK) = ( ZRVC(:,JK) - ZRW(:,JK) + ZRC(:,JK) + ZRI(:,JK) ) &
-!                                          / ZTIMEC(:)
-!
-!     ZRCC(:,JK) = ( ZRCC(:,JK) - ZRC(:,JK) ) / ZTIMEC(:)
-!     ZRIC(:,JK) = ( ZRIC(:,JK) - ZRI(:,JK) ) / ZTIMEC(:)
-!
-!  END DO
-!
-!
-!*           8.2    Apply conservation correction
-!                   -----------------------------
-!
-          ! adjustment at cloud top to smooth possible discontinuous profiles at PBL inversions
-          ! (+ - - tendencies for moisture )
-!
-!
-!IF (LLSMOOTH) THEN
-!  DO JI = 1, ICONV
-!     JK = ICTL(JI)
-!     JKM= MAX(2,ICTL(JI)-1)
-!     JKP= MAX(2,ICTL(JI)-2)
-!     ZRVC(JI,JKM) = ZRVC(JI,JKM) + .5 * ZRVC(JI,JK)
-!     ZRCC(JI,JKM) = ZRCC(JI,JKM) + .5 * ZRCC(JI,JK)
-!     ZRIC(JI,JKM) = ZRIC(JI,JKM) + .5 * ZRIC(JI,JK)
-!     ZTHC(JI,JKM) = ZTHC(JI,JKM) + .5 * ZTHC(JI,JK)
-!     ZRVC(JI,JKP) = ZRVC(JI,JKP) + .3 * ZRVC(JI,JK)
-!     ZRCC(JI,JKP) = ZRCC(JI,JKP) + .3 * ZRCC(JI,JK)
-!     ZRIC(JI,JKP) = ZRIC(JI,JKP) + .3 * ZRIC(JI,JK)
-!     ZTHC(JI,JKP) = ZTHC(JI,JKP) + .3 * ZTHC(JI,JK)
-!     ZRVC(JI,JK)  = .2 * ZRVC(JI,JK)
-!     ZRCC(JI,JK)  = .2 * ZRCC(JI,JK)
-!     ZRIC(JI,JK)  = .2 * ZRIC(JI,JK)
-!     ZTHC(JI,JK)  = .2 * ZTHC(JI,JK)
-!  END DO
-!ENDIF
-!
-!
-          ! Compute vertical integrals - Fluxes
-!
-  !JKM = MAXVAL( ICTL(:) )
-!  JKM = IKE
-!  ZWORK2(:) = 0.
-!  ZWORK2B(:) = 0.
-!  DO JK = IKB+1, JKM
-!    JKP = JK + 1
-!    DO JI = 1, ICONV
-!      IF ( JK <= ICTL(JI) ) THEN
-!      ZW1 =  ZRVC(JI,JK) + ZRCC(JI,JK) + ZRIC(JI,JK)
-!      ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
-!                                  .5 * (ZPRES(JI,JK-1) - ZPRES(JI,JKP)) / XG
-!      ZW1 = ( XCPD + XCPV * ZRW(JI,JK) )* ZTHC(JI,JK)   - &
-!            ( XLVTT + ( XCPV - XCL ) * ( ZTT(JI,JK) - XTT ) ) * ZRCC(JI,JK) - &
-!            ( XLSTT + ( XCPV - XCL ) * ( ZTT(JI,JK) - XTT ) ) * ZRIC(JI,JK)
-!      ZWORK2B(JI) = ZWORK2B(JI) + ZW1 *         & ! energy
-!                                  .5 * (ZPRES(JI,JK-1) - ZPRES(JI,JKP)) / XG
-!      END IF
-!    END DO
-!  END DO
-!
-          ! Budget error (integral must be zero)
-!
-!  DO JI = 1, ICONV
-!    IF ( ICTL(JI) > IKB+1 ) THEN
-!      JKP = ICTL(JI)
-!      ZW1 = XG / ( ZPRES(JI,IKB) - ZPRES(JI,JKP) - &
-!                .5 * (ZDPRES(JI,IKB+1) - ZDPRES(JI,JKP+1)) )
-!      ZWORK2(JI) =  ZWORK2(JI) * ZW1
-!      ZWORK2B(JI) = ZWORK2B(JI)* ZW1
-!    END IF
-!  END DO
-!
-          ! Apply uniform correction
-!
-!  DO JK = JKM, IKB+1, -1
-!  DO JI = 1, ICONV
-!    IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
-!      ! ZW1 = ABS(ZRVC(JI,JK)) +  ABS(ZRCC(JI,JK)) +  ABS(ZRIC(JI,JK)) + 1.E-12
-!      ! ZRVC(JI,JK) = ZRVC(JI,JK) - ABS(ZRVC(JI,JK))/ZW1*ZWORK2(JI)           ! moisture
-!      ZRVC(JI,JK) = ZRVC(JI,JK) - ZWORK2(JI)                                ! moisture
-!      ! ZRCC(JI,JK) = ZRCC(JI,JK) - ABS(ZRCC(JI,JK))/ZW1*ZWORK2(JI)
-!      ! ZRIC(JI,JK) = ZRIC(JI,JK) - ABS(ZRIC(JI,JK))/ZW1*ZWORK2(JI)
-!      ZTHC(JI,JK) = ZTHC(JI,JK) - ZWORK2B(JI) /  XCPD                       ! enthalpy
-!    END IF
-!  END DO
-!  END DO
-!
-          ! execute a "scatter"= pack command to store the tendencies in
-          ! the final 2D tables
-!
-  DO JK = IKB, IKE
-  DO JI = 1, ICONV
-    JL = IJINDEX(JI)
-    PTTEN(JL,JK)   = ZTHC(JI,JK)
-    PRVTEN(JL,JK)  = ZRVC(JI,JK)
-    PRCTEN(JL,JK)  = ZRCC(JI,JK)
-    PRITEN(JL,JK)  = ZRIC(JI,JK)
-  END DO
-  END DO
-!
-!
-!                   Cloud base and top levels
-!                   -------------------------
-!
-  ILCL(:) = MIN( ILCL(:), ICTL(:) )
-  DO JI = 1, ICONV
-    JL = IJINDEX(JI)
-    KCLTOP(JL) = ICTL(JI)
-    KCLBAS(JL) = ILCL(JI)
-  END DO
-!
-!
-!*           8.7    Compute convective tendencies for Tracers
-!                   ------------------------------------------
-!
-  IF ( OCH1CONV ) THEN
-!
-!    DO JK = IKB, IKE
-!    DO JI = 1, ICONV
-!      JL = IJINDEX(JI)
-!      ZCH1(JI,JK,:) = PCH1(JL,JK,:)
-!    END DO
-!    END DO
-!!
-!    CALL CONVECT_CHEM_TRANSPORT( ICONV, KLEV, KCH1, ZCH1, ZCH1C,          &
-!                                 IDPL, IPBL, ILCL, ICTL, ILFS, ILFS,      &
-!                                 ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
-!                                 ZTIMEC, ZDXDY, ZDMF(:,1), ZLMASS, ZWSUB, &
-!                                 IFTSTEPS )
-!
-!
-!*           8.8    Apply conservation correction
-!                   -----------------------------
-!
-          ! Compute vertical integrals
-!
-    !JKM = MAXVAL( ICTL(:) )
-    JKM = IKE
-    DO JN = 1, KCH1
-      !IF(JN < NSV_LGBEG .OR. JN>NSV_LGEND-1) THEN ! no correction for xy lagrangian variables
-      !  ZWORK3(:,JN) = 0.
-      !  ZWORK2(:)    = 0.
-      !  DO JK = IKB+1, JKM
-      !    JKP = JK + 1
-      !    DO JI = 1, ICONV
-      !      ZW1 = .5 * (ZPRES(JI,JK-1) - ZPRES(JI,JKP))
-      !      ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
-      !      ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
-      !    END DO
-      !  END DO
-!
-      !       ! Apply concentration weighted correction
-!
-      !  DO JK = JKM, IKB+1, -1
-      !    DO JI = 1, ICONV
-      !      IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
-      !        ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
-      !                          ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
-      !      END IF
-      !    END DO
-      !  END DO
-      !END IF
-!
-      DO JK = IKB, IKE
-        DO JI = 1, ICONV
-          JL = IJINDEX(JI)
-          PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
-        END DO
+
+CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
+                                OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
+                                ZRC, ZRI, OCH1CONV, KCH1, PCH1, IKB,   &
+                                IKE, IFTSTEPS, ZRDOCP, ZTH, ZTHV,      &
+                                ZTHES, IDPL, IPBL, ILCL, ZTHLCL, ZTLCL,&
+                                ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
+                                ZTIMEC, ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, &
+                                ZRCC, ZRIC, ICTL)
+DO JK = IKB, IKE
+DO JI = 1, ICONV
+  JL = IJINDEX(JI)
+  PTTEN(JL,JK)   = ZTHC(JI,JK)
+  PRVTEN(JL,JK)  = ZRVC(JI,JK)
+  PRCTEN(JL,JK)  = ZRCC(JI,JK)
+  PRITEN(JL,JK)  = ZRIC(JI,JK)
+END DO
+END DO
+
+ILCL(:) = MIN( ILCL(:), ICTL(:) )
+DO JI = 1, ICONV
+  JL = IJINDEX(JI)
+  KCLTOP(JL) = ICTL(JI)
+  KCLBAS(JL) = ILCL(JI)
+END DO
+
+IF ( OCH1CONV ) THEN
+  JKM = IKE
+  DO JN = 1, KCH1
+    DO JK = IKB, IKE
+      DO JI = 1, ICONV
+        JL = IJINDEX(JI)
+        PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
       END DO
     END DO
-  END IF
-!
-!-------------------------------------------------------------------------------
-!
-!*           9.     Write up- and downdraft mass fluxes
-!                   ------------------------------------
-!
-!  DO JK = IKB, IKE
-!    ZUMF(:,JK)  = ZUMF(:,JK) / ZDXDY(:) ! Mass flux per unit area
-!  END DO
-  ZWORK2(:) = 1.
-  DO JK = IKB, IKE
-  DO JI = 1, ICONV
-    JL = IJINDEX(JI)
-    IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
-    PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
   END DO
-  END DO
+END IF
+
+ZWORK2(:) = 1.
+DO JK = IKB, IKE
+DO JI = 1, ICONV
+  JL = IJINDEX(JI)
+  IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
+  PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
+END DO
+END DO
 
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION_SELECT
+!
 SUBROUTINE SHALLOW_CONVECTION_COMPUTE( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
