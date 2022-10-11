@@ -500,6 +500,7 @@ INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM                 ! vertical loop index
 !
 LOGICAL, DIMENSION(KLON)           :: GTRIG  ! 2D logical mask for trigger test
+INTEGER, DIMENSION(KLON)           :: ISORT
 REAL, DIMENSION(KLON)              :: ZWORK2 ! work array
 !
 !
@@ -548,39 +549,42 @@ IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
 
 ! Gather grid scale and updraft base variables in arrays using mask GTRIG
 GTRIG(:) = GTRIG1(:)
-GTRIG1=.TRUE.
+GTRIG1 = .TRUE.
+JL=1
+DO JI=KIDIA,KFDIA
+  IF(GTRIG(JI))THEN
+    ISORT(JI) = JL
+    JL=JL+1
+  ENDIF
+ENDDO
 
 DO JK = IKB, IKE
-JI=1
-DO JL = KIDIA, KFDIA
-  IF(GTRIG(JL)) THEN
-    ZZ(JI,JK)     = PZZ(JL,JK)
-    ZPRES(JI,JK)  = PPABST(JL,JK)
-    ZTT(JI,JK)    = PTT(JL,JK)
-    ZTH(JI,JK)    = ZTHT(JL,JK)
-    ZTHES(JI,JK)  = ZSTHES(JL,JK)
-    ZRV(JI,JK)    = MAX( 0., PRVT(JL,JK) )
-    ZRC(JI,JK)    = MAX( 0., PRCT(JL,JK) )
-    ZRI(JI,JK)    = MAX( 0., PRIT(JL,JK) )
-    ZTHV(JI,JK)   = ZSTHV(JL,JK)
-    JI=JI+1
+DO JI = KIDIA, KFDIA
+  IF(GTRIG(JI))THEN
+    ZZ(ISORT(JI),JK)     = PZZ(JI,JK)
+    ZPRES(ISORT(JI),JK)  = PPABST(JI,JK)
+    ZTT(ISORT(JI),JK)    = PTT(JI,JK)
+    ZTH(ISORT(JI),JK)    = ZTHT(JI,JK)
+    ZTHES(ISORT(JI),JK)  = ZSTHES(JI,JK)
+    ZRV(ISORT(JI),JK)    = MAX( 0., PRVT(JI,JK) )
+    ZRC(ISORT(JI),JK)    = MAX( 0., PRCT(JI,JK) )
+    ZRI(ISORT(JI),JK)    = MAX( 0., PRIT(JI,JK) )
+    ZTHV(ISORT(JI),JK)   = ZSTHV(JI,JK)
   ENDIF
 END DO
 END DO
 
-JI=1
-DO JL = KIDIA,KFDIA
-  IF(GTRIG(JL))THEN
-    IDPL(JI)      = ISDPL(JL)
-    IPBL(JI)      = ISPBL(JL)
-    ILCL(JI)      = ISLCL(JL)
-    ZTHLCL(JI)    = ZSTHLCL(JL)
-    ZTLCL(JI)     = ZSTLCL(JL)
-    ZRVLCL(JI)    = ZSRVLCL(JL)
-    ZWLCL(JI)     = ZSWLCL(JL)
-    ZZLCL(JI)     = ZSZLCL(JL)
-    ZTHVELCL(JI)  = ZSTHVELCL(JL)
-    JI=JI+1
+DO JI = KIDIA,KFDIA
+  IF(GTRIG(JI))THEN
+    IDPL(ISORT(JI))      = ISDPL(JI)
+    IPBL(ISORT(JI))      = ISPBL(JI)
+    ILCL(ISORT(JI))      = ISLCL(JI)
+    ZTHLCL(ISORT(JI))    = ZSTHLCL(JI)
+    ZTLCL(ISORT(JI))     = ZSTLCL(JI)
+    ZRVLCL(ISORT(JI))    = ZSRVLCL(JI)
+    ZWLCL(ISORT(JI))     = ZSWLCL(JI)
+    ZZLCL(ISORT(JI))     = ZSZLCL(JI)
+    ZTHVELCL(ISORT(JI))  = ZSTHVELCL(JI)
   ENDIF
 END DO
 
@@ -593,25 +597,21 @@ CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 ZTIMEC, ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, &
                                 ZRCC, ZRIC, ICTL)
 DO JK = IKB, IKE
-JI=1
-DO JL = KIDIA, KFDIA
-  IF(GTRIG(JL))THEN
-    PTTEN(JL,JK)   = ZTHC(JI,JK)
-    PRVTEN(JL,JK)  = ZRVC(JI,JK)
-    PRCTEN(JL,JK)  = ZRCC(JI,JK)
-    PRITEN(JL,JK)  = ZRIC(JI,JK)
-    JI=JI+1
+DO JI = KIDIA, KFDIA
+  IF(GTRIG(JI))THEN
+    PTTEN(JI,JK)   = ZTHC(ISORT(JI),JK)
+    PRVTEN(JI,JK)  = ZRVC(ISORT(JI),JK)
+    PRCTEN(JI,JK)  = ZRCC(ISORT(JI),JK)
+    PRITEN(JI,JK)  = ZRIC(ISORT(JI),JK)
   ENDIF
 END DO
 END DO
 
 ILCL(:) = MIN( ILCL(:), ICTL(:) )
-JI=1
-DO JL = KIDIA, KFDIA
-  IF(GTRIG(JL))THEN
-    KCLTOP(JL) = ICTL(JI)
-    KCLBAS(JL) = ILCL(JI)
-    JI=JI+1
+DO JI = KIDIA, KFDIA
+  IF(GTRIG(JI))THEN
+    KCLTOP(JI) = ICTL(ISORT(JI))
+    KCLBAS(JI) = ILCL(ISORT(JI))
   ENDIF
 END DO
 
@@ -619,11 +619,9 @@ IF ( OCH1CONV ) THEN
   JKM = IKE
   DO JN = 1, KCH1
     DO JK = IKB, IKE
-      JI=1
-      DO JL = KIDIA, KFDIA
-        IF(GTRIG(JL))THEN
-          PCH1TEN(JL,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
-          JI=JI+1
+      DO JI = KIDIA, KFDIA
+        IF(GTRIG(JI))THEN
+          PCH1TEN(JI,JK,JN) = (ZCH1C(ISORT(JI),JK,JN)-ZCH1(ISORT(JI),JK,JN) ) / ZTIMEC(ISORT(JI))
         ENDIF
       END DO
     END DO
@@ -632,12 +630,10 @@ END IF
 
 ZWORK2(:) = 1.
 DO JK = IKB, IKE
-JI=1
-DO JL = KIDIA, KFDIA
-  IF(GTRIG(JL))THEN
-    IF ( KCLTOP(JL) <= IKB+1 ) ZWORK2(JL) = 0.
-    PUMF(JL,JK) = ZUMF(JI,JK) * ZWORK2(JL)
-    JI=JI+1
+DO JI = KIDIA, KFDIA
+  IF(GTRIG(JI))THEN
+    IF ( KCLTOP(JI) <= IKB+1 ) ZWORK2(JI) = 0.
+    PUMF(JI,JK) = ZUMF(ISORT(JI),JK) * ZWORK2(JI)
   ENDIF
 END DO
 END DO
