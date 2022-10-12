@@ -24,7 +24,6 @@ set(SRC
 	src/convect_satmixratio.F90
 	src/convect_trigger_shal.F90
 	src/convect_updraft_shal.F90
-	src/convection_shal.F90
 	src/crc.c
 	src/eint_mod.F90
 	src/ini_convpar.F90
