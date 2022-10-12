@@ -146,33 +146,33 @@ REAL(KIND=JPRB) :: ZUMFMAX(KLON)
 
 INTEGER  :: JI, JK, JKP, JN  ! loop index
 ! Local arrays (upside/down) necessary for change of ECMWF arrays to convection arrays
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZT     ! grid scale T at time t  (K)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZRV    ! grid scale water vapor  (kg/kg)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZRC    ! grid scale r_c mixing ratio (kg/kg)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZRI    ! grid scale r_i mixing ratio (kg/kg)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZU     ! grid scale horiz. wind u (m/s)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZV     ! grid scale horiz. wind v (m/s)
+REAL , DIMENSION(KLON,KLEV) :: ZT     ! grid scale T at time t  (K)
+REAL , DIMENSION(KLON,KLEV) :: ZRV    ! grid scale water vapor  (kg/kg)
+REAL , DIMENSION(KLON,KLEV) :: ZRC    ! grid scale r_c mixing ratio (kg/kg)
+REAL , DIMENSION(KLON,KLEV) :: ZRI    ! grid scale r_i mixing ratio (kg/kg)
+REAL , DIMENSION(KLON,KLEV) :: ZU     ! grid scale horiz. wind u (m/s)
+REAL , DIMENSION(KLON,KLEV) :: ZV     ! grid scale horiz. wind v (m/s)
 REAL , DIMENSION(KLON,KLEV) :: SHAL_ZW     ! grid scale vertical velocity (m/s)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZPABS  ! grid scale pressure (Pa)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZZZ    ! height of model layer (m)
+REAL , DIMENSION(KLON,KLEV) :: ZPABS  ! grid scale pressure (Pa)
+REAL , DIMENSION(KLON,KLEV) :: ZZZ    ! height of model layer (m)
 
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZTTEN  ! convective temperat. tendency (K/s)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZRVTEN ! convective r_v tendency (1/s)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZRCTEN ! convective r_c tendency (1/s)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZRITEN ! convective r_i tendency (1/s)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZUTEN  ! convective u tendency (m/s^2)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZVTEN  ! convective m tendency (m/s^2)
+REAL , DIMENSION(KLON,KLEV) :: ZTTEN  ! convective temperat. tendency (K/s)
+REAL , DIMENSION(KLON,KLEV) :: ZRVTEN ! convective r_v tendency (1/s)
+REAL , DIMENSION(KLON,KLEV) :: ZRCTEN ! convective r_c tendency (1/s)
+REAL , DIMENSION(KLON,KLEV) :: ZRITEN ! convective r_i tendency (1/s)
+REAL , DIMENSION(KLON,KLEV) :: ZUTEN  ! convective u tendency (m/s^2)
+REAL , DIMENSION(KLON,KLEV) :: ZVTEN  ! convective m tendency (m/s^2)
 REAL , DIMENSION(KLON,KLEV) :: SHAL_ZUMF   ! updraft mass flux   (kg/s m2)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZURV   ! water vapor in updrafts (kg/kg)
-REAL , DIMENSION(KLON,KLEV) :: SHAL_ZURCI  ! total condensate in updrafts (kg/kg)
-INTEGER,  DIMENSION(KLON)   :: SHAL_ICLTOP ! cloud top level (number of model level)
-INTEGER,  DIMENSION(KLON)   :: SHAL_ICLBAS ! cloud base level(number of model level)
+REAL , DIMENSION(KLON,KLEV) :: ZURV   ! water vapor in updrafts (kg/kg)
+REAL , DIMENSION(KLON,KLEV) :: ZURCI  ! total condensate in updrafts (kg/kg)
+INTEGER,  DIMENSION(KLON)   :: ICLTOP ! cloud top level (number of model level)
+INTEGER,  DIMENSION(KLON)   :: ICLBAS ! cloud base level(number of model level)
 REAL , DIMENSION(KLON,KLEV,I_KCH1):: SHAL_ZCH1     ! grid scale chemical species
 REAL , DIMENSION(KLON,KLEV,I_KCH1):: SHAL_ZCH1TEN  ! chemical convective tendency
 
 ! special for shallow convection
 REAL , DIMENSION(KLON,KLEV,I_KCH1) :: SHAL_ZCH1TENS
-INTEGER,  DIMENSION(KLON)   :: SHAL_ICLBASS, SHAL_ICLTOPS
+INTEGER,  DIMENSION(KLON)   :: ICLBASS, ICLTOPS
 !-----------------------------------------------------------------
 
 #include "fcttrm.func.h"
@@ -248,10 +248,10 @@ ZDTCONV=TSPHY
 
 I_KCLTOP(:)  = 1 ! set default value when no convection
 I_KCLBAS(:)  = 1 ! can be changed  depending on user
-SHAL_ICLTOP(:)  = 1
-SHAL_ICLBAS(:)  = 1
-SHAL_ICLTOPS(:) = 1
-SHAL_ICLBASS(:) = 1
+ICLTOP(:)  = 1
+ICLBAS(:)  = 1
+ICLTOPS(:) = 1
+ICLBASS(:) = 1
 
 !*       2.   Flip arrays upside-down as  first vertical level in convection is 1
 !             --------------------------------------------------------------------
@@ -259,14 +259,14 @@ SHAL_ICLBASS(:) = 1
 DO JK = 1, KLEV
   JKP = KLEV - JK + 1
   DO JI = KIDIA, KFDIA
-    SHAL_ZPABS(JI,JKP) = PAPRSF(JI,JK)
-    SHAL_ZZZ(JI,JKP)   = ZAPHIF(JI,JK)
-    SHAL_ZT(JI,JKP)    = PT(JI,JK)
-    SHAL_ZRV(JI,JKP)   = PQ(JI,JK) / ( 1.0 - PQ(JI,JK) ) ! transform specific humidity
-    SHAL_ZRC(JI,JKP)   = PQL(JI,JK) / ( 1.0 - PQL(JI,JK) ) ! in mixing ratio
-    SHAL_ZRI(JI,JKP)   = PQI(JI,JK) / ( 1.0 - PQI(JI,JK) )
-    SHAL_ZU(JI,JKP)    = PU(JI,JK)
-    SHAL_ZV(JI,JKP)    = PV(JI,JK)
+    ZPABS(JI,JKP) = PAPRSF(JI,JK)
+    ZZZ(JI,JKP)   = ZAPHIF(JI,JK)
+    ZT(JI,JKP)    = PT(JI,JK)
+    ZRV(JI,JKP)   = PQ(JI,JK) / ( 1.0 - PQ(JI,JK) ) ! transform specific humidity
+    ZRC(JI,JKP)   = PQL(JI,JK) / ( 1.0 - PQL(JI,JK) ) ! in mixing ratio
+    ZRI(JI,JKP)   = PQI(JI,JK) / ( 1.0 - PQI(JI,JK) )
+    ZU(JI,JKP)    = PU(JI,JK)
+    ZV(JI,JKP)    = PV(JI,JK)
     SHAL_ZW(JI,JKP)    = ZW(JI,JK)
   ENDDO
 ENDDO
@@ -282,15 +282,15 @@ IF ( LLOCHTRANS ) THEN
 ENDIF
 
   I_KCOUNT(:)     =0
-  SHAL_ZTTEN(:,:)    =0.0
-  SHAL_ZRVTEN(:,:)   =0.0
-  SHAL_ZRCTEN(:,:)   =0.0
-  SHAL_ZRITEN(:,:)   =0.0
-  SHAL_ZUTEN(:,:)    =0.0
-  SHAL_ZVTEN(:,:)    =0.0
+  ZTTEN(:,:)    =0.0
+  ZRVTEN(:,:)   =0.0
+  ZRCTEN(:,:)   =0.0
+  ZRITEN(:,:)   =0.0
+  ZUTEN(:,:)    =0.0
+  ZVTEN(:,:)    =0.0
   SHAL_ZUMF(:,:)     =0.0
-  SHAL_ZURV(:,:)     =0.0
-  SHAL_ZURCI(:,:)    =0.0
+  ZURV(:,:)     =0.0
+  ZURCI(:,:)    =0.0
   SHAL_ZCH1TEN(:,:,:)=0.0
   ZCAPE(:)      =0.0
 
@@ -320,15 +320,15 @@ ENDIF
 
   CALL SHALLOW_CONVECTION( KLON, KLEV, KIDIA, KFDIA, I_KBDIA, KTDIA,        &
    & IKICE, LSETTADJ, OTADJS,         &
-   & SHAL_ZPABS, SHAL_ZZZ,ZTKECLS,                         &
-   & SHAL_ZT, SHAL_ZRV, SHAL_ZRC, SHAL_ZRI, SHAL_ZW,                      &
-   & SHAL_ZTTEN, SHAL_ZRVTEN, SHAL_ZRCTEN, SHAL_ZRITEN,          &
-   & SHAL_ICLTOPS, SHAL_ICLBASS, SHAL_ZUMF, &
+   & ZPABS, ZZZ,ZTKECLS,                         &
+   & ZT, ZRV, ZRC, ZRI, SHAL_ZW,                      &
+   & ZTTEN, ZRVTEN, ZRCTEN, ZRITEN,          &
+   & ICLTOPS, ICLBASS, SHAL_ZUMF, &
    & LLOCHTRANS, I_KCH1, SHAL_ZCH1, SHAL_ZCH1TENS )
 
 DO JI = KIDIA, KFDIA
-  SHAL_ICLTOP(JI)   = MAX(SHAL_ICLTOP(JI), SHAL_ICLTOPS(JI))
-  SHAL_ICLBAS(JI)   = MAX(SHAL_ICLBAS(JI), SHAL_ICLBASS(JI))
+  ICLTOP(JI)   = MAX(ICLTOP(JI), ICLTOPS(JI))
+  ICLBAS(JI)   = MAX(ICLBAS(JI), ICLBASS(JI))
 ENDDO
 
 !*       6.  Reflip arrays to ECMWF/ARPEGE vertical structure
@@ -337,26 +337,26 @@ ENDDO
 DO JK = 1, KLEV
   JKP = KLEV - JK + 1
   DO JI = KIDIA, KFDIA
-    ZDTDT(JI,JK)  = SHAL_ZTTEN(JI,JKP)
+    ZDTDT(JI,JK)  = ZTTEN(JI,JKP)
    ! don't transform back to specific hum, does not conserve integrals
-    ZDQVDT(JI,JK) = SHAL_ZRVTEN(JI,JKP) ! / ( 1.0 + ZRV(JI,JKP) ) ** 2
-    ZDQLDT(JI,JK) = SHAL_ZRCTEN(JI,JKP) ! / ( 1.0 + ZRC(JI,JKP) ) ** 2
-    ZDQIDT(JI,JK) = SHAL_ZRITEN(JI,JKP) ! / ( 1.0 + ZRI(JI,JKP) ) ** 2
-    ZDUDT(JI,JK)  = SHAL_ZUTEN(JI,JKP)
-    ZDVDT(JI,JK)  = SHAL_ZVTEN(JI,JKP)
+    ZDQVDT(JI,JK) = ZRVTEN(JI,JKP) ! / ( 1.0 + ZRV(JI,JKP) ) ** 2
+    ZDQLDT(JI,JK) = ZRCTEN(JI,JKP) ! / ( 1.0 + ZRC(JI,JKP) ) ** 2
+    ZDQIDT(JI,JK) = ZRITEN(JI,JKP) ! / ( 1.0 + ZRI(JI,JKP) ) ** 2
+    ZDUDT(JI,JK)  = ZUTEN(JI,JKP)
+    ZDVDT(JI,JK)  = ZVTEN(JI,JKP)
     ZUMF(JI,JK)   = SHAL_ZUMF(JI,JKP)
-    ZUQV(JI,JK)   = SHAL_ZURV(JI,JKP) / ( 1.0 + SHAL_ZURV(JI,JKP) )
-    ZUQL(JI,JK)  = SHAL_ZURCI(JI,JKP)/ ( 1.0 + SHAL_ZURCI(JI,JKP) )
+    ZUQV(JI,JK)   = ZURV(JI,JKP) / ( 1.0 + ZURV(JI,JKP) )
+    ZUQL(JI,JK)  = ZURCI(JI,JKP)/ ( 1.0 + ZURCI(JI,JKP) )
   ENDDO
 ENDDO
 
 DO JI = KIDIA, KFDIA
-  JK = SHAL_ICLTOP(JI)
+  JK = ICLTOP(JI)
   I_KCLTOP(JI) = KLEV - JK + 1
-  JK = SHAL_ICLBAS(JI)
+  JK = ICLBAS(JI)
   I_KCLBAS(JI) = KLEV - JK + 1
-  IF ( SHAL_ICLTOP(JI) == 1 ) I_KCLTOP(JI) = 1
-  IF ( SHAL_ICLBAS(JI) == 1 ) I_KCLBAS(JI) = 1
+  IF ( ICLTOP(JI) == 1 ) I_KCLTOP(JI) = 1
+  IF ( ICLBAS(JI) == 1 ) I_KCLBAS(JI) = 1
 ENDDO
 
 IF ( LLOCHTRANS ) THEN
