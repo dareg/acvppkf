@@ -176,7 +176,6 @@ REAL , DIMENSION(KLON,KLEV,I_KCH1) :: SHAL_ZCH1TENS
 INTEGER,  DIMENSION(KLON)   :: SHAL_ICLBASS, SHAL_ICLTOPS
 !-----------------------------------------------------------------
 
-#include "convection_shal.h"
 #include "fcttrm.func.h"
 #include "wrscmr.intfb.h"
 
@@ -248,69 +247,6 @@ LLUVTRANS=.FALSE. ! not yet well tested but possible to use
 LLOCHTRANS=.FALSE.
 ZDTCONV=TSPHY
 
-! - - - - - - - - - - - - - -
-! Arguments de : CONVECTION
-! - - - - - - - - - - - - - -
-
-! KLON      ! horizontal dimension
-! KLEV      ! vertical dimension
-! KIDIA     ! value of the first point in x
-! KFDIA     ! value of the last point in x
-! KBDIA     ! vertical  computations start at KBDIA (that is at least 1)
-! KTDIA     ! vertical computations can belimited to KLEV+1-KTDIA (default=1)
-
-! ZDTCONV   ! Interval of time between two calls of the deep convection scheme
-! LLREFRESH_ALL ! refresh or not all tendencies  at every call
-! LLODOWN   ! take or not convectivedowndrafts into account
-! IKICE     ! flag for ice ( 1 = yes , 0 = no ice )
-
-! PQ     ! grid scale water vapor (kg/kg)
-! PQL    ! grid scale r_c  (kg/kg)
-! PQI    ! grid scale r_i  (kg/kg)
-! PU     ! grid scale wind in x (m/s)
-! PV     ! grid scale wind in y (m/s)
-! ZW     ! grid scale vertical velocity (m/s)
-
-! KCOUNT ! convective counter (recompute tendency or keep it)
-! ZDTDT  ! convective temperat. tendency (K/s)
-! ZDQVDT ! convective r_v tendency (1/s)
-! ZDQLDT ! convective r_c tendency (1/s)
-
-! Diagnostic variables:
-
-! ZUMF   ! updraft mass flux   (kg/s m2)
-! ZCAPE  ! CAPE (J/kg)
-! KCLTOP ! cloud top level  (number of model level)
-! KCLBAS ! cloud base level (number of model level)
-!        ! they are given a value of 0 if no convection
-! Attention default value of KCLTOP,KCLBAS = 1 if no convection
-
-! Momentum transport:
-
-! LLUVTRANS ! compute convective tendencies for horizontal wind
-! ZDUDT  ! convective tendency for u (m/s^2)
-! ZDVDT  ! convective tendency for v (m/s^2)
-
-! Chemical Tracers:
-
-! LLOCHTRANS ! flag to compute convective transport for chemical tracer
-! KCH1       ! number of species
-! ZCH1       ! grid scale chemical species
-! ZCH1TEN    ! chemical convective tendency (1/s)
-
-!CALL  CONVECTION_SHAL( KLON, KLEV, KIDIA, KFDIA, I_KBDIA, KTDIA,&
-! & IKICE,&
-! & LSETTADJ, OTADJS, LSMOOTH,&
-! & XA25, XCRAD, XCDEPTH, XCDEPTH_D, XDTPERT, XATPERT, XBTPERT,XENTR,&
-! & XZLCL, XZPBL, XWTRIG, XNHGAM, XTFRZ1, XTFRZ2, XSTABT, XSTABC, XAW, XBW,&
-! & PAPRSF, ZAPHIF, ZTKECLS,&
-! & PT, PQ, PQL, PQI, PU, PV, ZW,&
-! & I_KCOUNT, ZDTDT, ZDQVDT, ZDQLDT, ZDQIDT,&
-! & ZUMF, ZCAPE, I_KCLTOP, I_KCLBAS,&
-! & ZUQV, ZUQL,&
-! & ZDUDT, ZDVDT,&
-! & LLOCHTRANS, I_KCH1, ZCH1, ZCH1TEN )
-
 I_KCLTOP(:)  = 1 ! set default value when no convection
 I_KCLBAS(:)  = 1 ! can be changed  depending on user
 SHAL_ICLTOP(:)  = 1
@@ -363,7 +299,6 @@ ENDIF
 !             -------------------------------
 
   CALL INI_CONVPAR
-!  CALL INI_CONVPAR_SHAL
   XA25=YDML_PHY_MF%YRCVMNH%XA25
   XCRAD=YDML_PHY_MF%YRCVMNH%XCRAD
   XCDEPTH=YDML_PHY_MF%YRCVMNH%XCDEPTH
