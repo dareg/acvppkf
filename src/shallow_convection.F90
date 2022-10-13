@@ -374,6 +374,7 @@ REAL, DIMENSION(KLON,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
 ! Chemical Tracers:
 REAL, DIMENSION(KLON,KLEV,KCH1):: ZCH1    ! grid scale chemical specy (kg/kg)
 REAL, DIMENSION(KLON,KLEV,KCH1):: ZCH1C   ! conv. adjust. chemical specy 1
+REAL, DIMENSION(KLON,KLEV,KCH1):: ZPCH1TEN
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_ALL',0,ZHOOK_HANDLE)
 
@@ -385,7 +386,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(KLON, KLEV, KIDIA, KFDIA, KICE,        &
                                 ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL,      &
                                 ZSZLCL, ZSTHVELCL, GTRIG1, ZTIMEC,     &
                                 ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, ZRCC,   &
-                                ZRIC, ICTL, IMINCTL)
+                                ZRIC, ICTL, IMINCTL, ZPCH1TEN)
 DO JK = IKB, IKE
 DO JI = KIDIA,KFDIA
   IF(GTRIG1(JI))THEN
@@ -410,7 +411,7 @@ IF ( OCH1CONV ) THEN
     DO JK = IKB, IKE
       DO JI = KIDIA,KFDIA
         IF(GTRIG1(JI))THEN
-          PCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+          PCH1TEN(JI,JK,JN) = ZPCH1TEN(JI,JK,JN)
         ENDIF
       END DO
     END DO
@@ -546,6 +547,7 @@ REAL, DIMENSION(ICONV,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
 ! Chemical Tracers:
 REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1    ! grid scale chemical specy (kg/kg)
 REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1C   ! conv. adjust. chemical specy 1
+REAL, DIMENSION(KLON,KLEV,KCH1)  :: ZPCH1TEN
 !
 !-------------------------------------------------------------------------------
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
@@ -599,7 +601,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 ZTHES, IDPL, IPBL, ILCL, ZTHLCL, ZTLCL,&
                                 ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
                                 ZTIMEC, ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, &
-                                ZRCC, ZRIC, ICTL, IMINCTL)
+                                ZRCC, ZRIC, ICTL, IMINCTL, ZPCH1TEN)
 DO JK = IKB, IKE
 DO JI = KIDIA, KFDIA
   IF(GTRIG(JI))THEN
@@ -624,7 +626,7 @@ IF ( OCH1CONV ) THEN
     DO JK = IKB, IKE
       DO JI = KIDIA, KFDIA
         IF(GTRIG(JI))THEN
-          PCH1TEN(JI,JK,JN) = (ZCH1C(ISORT(JI),JK,JN)-ZCH1(ISORT(JI),JK,JN) ) / ZTIMEC(ISORT(JI))
+          PCH1TEN(JI,JK,JN) = ZPCH1TEN(ISORT(JI),JK,JN)
         ENDIF
       END DO
     END DO
@@ -652,8 +654,8 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,
                                    ISPBL, ISLCL, ZSTHLCL, ZSTLCL,       &
                                    ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
                                    GTRIG1, ZTIMEC, ZCH1, ZCH1C, ZUMF,   &
-                                   ZTHC, ZRVC, ZRCC, ZRIC, ICTL, IMINCTL &
-                                   )
+                                   ZTHC, ZRVC, ZRCC, ZRIC, ICTL, IMINCTL, &
+                                   ZPCH1TEN)
 
 USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -715,6 +717,7 @@ REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRIC    ! conv. adj. grid scale 
 INTEGER, DIMENSION(KLON),        INTENT(OUT) :: ICTL    ! index for cloud top level
 INTEGER, DIMENSION(KLON),        INTENT(OUT) :: IMINCTL ! min between index for cloud top level
                                                         ! and lifting condensation level
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: ZPCH1TEN
 !
 !
 REAL, DIMENSION(KLON)              :: ZWORK2, ZWORK2B ! work array
@@ -761,6 +764,7 @@ REAL, DIMENSION(KLON)       :: ZLV, ZLS! latent heat of vaporis., sublim.
 !
 ! Chemical Tracers:
 REAL, DIMENSION(KLON,KCH1)     :: ZWORK3  ! conv. adjust. chemical specy 1
+
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',0,ZHOOK_HANDLE)
 ZDPRES = 0.0
@@ -973,6 +977,7 @@ IF ( OCH1CONV ) THEN
             ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
                               ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
           END IF
+          ZPCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
         END DO
       END DO
     END IF
