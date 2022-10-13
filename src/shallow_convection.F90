@@ -357,6 +357,8 @@ INTEGER  :: JK, JKM                 ! vertical loop index
 !*       0.2   Declarations of local allocatable  variables :
 !
 INTEGER, DIMENSION(KLON)  :: ICTL    ! index for cloud top level
+INTEGER, DIMENSION(KLON)  :: IMINCTL ! min between index for cloud top level
+                                     ! and lifting condensation level
 !
 ! updraft variables
 REAL, DIMENSION(KLON,KLEV)  :: ZUMF    ! updraft mass flux (kg/s)
@@ -383,7 +385,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(KLON, KLEV, KIDIA, KFDIA, KICE,        &
                                 ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL,      &
                                 ZSZLCL, ZSTHVELCL, GTRIG1, ZTIMEC,     &
                                 ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, ZRCC,   &
-                                ZRIC, ICTL)
+                                ZRIC, ICTL, IMINCTL)
 DO JK = IKB, IKE
 DO JI = KIDIA,KFDIA
   IF(GTRIG1(JI))THEN
@@ -398,7 +400,7 @@ END DO
 DO JI = KIDIA,KFDIA
   IF(GTRIG1(JI))THEN
     KCLTOP(JI) = ICTL(JI)
-    KCLBAS(JI) = MIN(ISLCL(JI), ICTL(JI))
+    KCLBAS(JI) = IMINCTL(JI)
   ENDIF
 END DO
 
@@ -510,6 +512,8 @@ INTEGER, DIMENSION(ICONV)    :: IDPL    ! index for parcel departure level
 INTEGER, DIMENSION(ICONV)    :: IPBL    ! index for source layer top
 INTEGER, DIMENSION(ICONV)    :: ILCL    ! index for lifting condensation level
 INTEGER, DIMENSION(ICONV)    :: ICTL    ! index for cloud top level
+INTEGER, DIMENSION(KLON)     :: IMINCTL ! min between index for cloud top level
+                                        ! and lifting condensation level
 !
 ! grid scale variables
 REAL, DIMENSION(ICONV,KLEV)  :: ZZ      ! height of model layer (m)
@@ -595,7 +599,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 ZTHES, IDPL, IPBL, ILCL, ZTHLCL, ZTLCL,&
                                 ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
                                 ZTIMEC, ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, &
-                                ZRCC, ZRIC, ICTL)
+                                ZRCC, ZRIC, ICTL, IMINCTL)
 DO JK = IKB, IKE
 DO JI = KIDIA, KFDIA
   IF(GTRIG(JI))THEN
@@ -610,7 +614,7 @@ END DO
 DO JI = KIDIA, KFDIA
   IF(GTRIG(JI))THEN
     KCLTOP(JI) = ICTL(ISORT(JI))
-    KCLBAS(JI) = MIN(ILCL(ISORT(JI)), ICTL(ISORT(JI)))
+    KCLBAS(JI) = IMINCTL(ISORT(JI))
   ENDIF
 END DO
 
@@ -648,7 +652,7 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,
                                    ISPBL, ISLCL, ZSTHLCL, ZSTLCL,       &
                                    ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
                                    GTRIG1, ZTIMEC, ZCH1, ZCH1C, ZUMF,   &
-                                   ZTHC, ZRVC, ZRCC, ZRIC, ICTL &
+                                   ZTHC, ZRVC, ZRCC, ZRIC, ICTL, IMINCTL &
                                    )
 
 USE PARKIND1, ONLY : JPRB
@@ -709,6 +713,8 @@ REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRVC    ! conv. adj. grid scale 
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRIC    ! conv. adj. grid scale r_i
 INTEGER, DIMENSION(KLON),        INTENT(OUT) :: ICTL    ! index for cloud top level
+INTEGER, DIMENSION(KLON),        INTENT(OUT) :: IMINCTL ! min between index for cloud top level
+                                                        ! and lifting condensation level
 !
 !
 REAL, DIMENSION(KLON)              :: ZWORK2, ZWORK2B ! work array
@@ -976,6 +982,11 @@ END IF
 DO JK = IKB, IKE
   ZUMF(:,JK)  = ZUMF(:,JK) / XA25 ! Mass flux per unit area
 END DO
+
+DO JI=KIDIA, KFDIA
+  IMINCTL(JI) = MIN(ISLCL(JI), ICTL(JI))
+ENDDO
+
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION_COMPUTE
 END SUBROUTINE SHALLOW_CONVECTION
