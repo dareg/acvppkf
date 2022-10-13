@@ -204,7 +204,7 @@ DO JKK = IKB + 1, IKE - 2
 !
      DO JK = JKK, IKE - 1
        JKM = JK + 1
-       DO JI = 1, KLON
+       DO JI = KIDIA, KFDIA
          IF ( GWORK1(JI) .AND. ZDPTHMIX(JI) < XZPBL ) THEN
             IPBL(JI)     = JK
             ZWORK1(JI)   = PPRES(JI,JK) - PPRES(JI,JKM)
@@ -285,7 +285,7 @@ DO JKK = IKB + 1, IKE - 2
 !               --------------------------------------------------
 !
     DO JK = JKK, IKE - 1
-       DO JI = 1, KLON
+       DO JI = KIDIA, KFDIA
          IF ( ZPLCL(JI) <= PPRES(JI,JK) .AND. GWORK1(JI) ) ILCL(JI) = JK + 1
        END DO
     END DO
@@ -294,7 +294,7 @@ DO JKK = IKB + 1, IKE - 2
 !*        5.2   Estimate height and environm. theta_v at LCL
 !               --------------------------------------------------
 !
-    DO JI = 1, KLON
+    DO JI = KIDIA, KFDIA
         JK   = ILCL(JI)
         JKM  = JK - 1
         ZDP(JI)    = LOG( ZPLCL(JI) / PPRES(JI,JKM) ) /                     &

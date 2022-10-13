@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CHEM_TRANSPORT( KLON, KLEV, KCH, PCH1, PCH1C,       &
+      SUBROUTINE CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH, PCH1, PCH1C, &
                                          KDPL, KPBL, KLCL, KCTL, KLFS, KDBL, &
                                          PUMF, PUER, PUDR, PDMF, PDER, PDDR, &
                                          PTIMEC, PDXDY, PMIXF, PLMASS, PWSUB,&
@@ -59,6 +59,8 @@ IMPLICIT NONE
 !
 INTEGER,                INTENT(IN) :: KLON     ! horizontal dimension
 INTEGER,                INTENT(IN) :: KLEV     ! vertical dimension
+INTEGER,                INTENT(IN) :: KIDIA    ! value of the first point in x
+INTEGER,                INTENT(IN) :: KFDIA    ! value of the last point in x
 INTEGER,                INTENT(IN) :: KCH      ! number of passive tracers
 !
 REAL,DIMENSION(KLON,KLEV,KCH),INTENT(IN) :: PCH1 ! grid scale tracer concentr.
@@ -127,7 +129,7 @@ ZUCH1(:,:,:) = 0.
 !*      2.1     Initialization  at LCL
 !               ----------------------------------
 !
-DO JI = 1, KLON
+DO JI = KIDIA, KFDIA
     JKLD = KDPL(JI)
     JKLP = KPBL(JI)
     ZWORK1(JI,:) = .5 * ( PCH1(JI,JKLD,:) + PCH1(JI,JKLP,:) )
@@ -140,7 +142,7 @@ DO JK = MINVAL( KDPL(:) ), JKMAX
 JKP = JK + 1
 !
     DO JN = 1, INCH1
-     DO JI = 1, KLON
+     DO JI = KIDIA, KFDIA
        IF ( KDPL(JI) <= JK .AND. MIN(KLCL(JI), KCTL(JI)) > JK )                             &
             ZUCH1(JI,JK,JN) = ZWORK1(JI,JN)
 !
@@ -167,7 +169,7 @@ ZDCH1(:,:,:) = 0.
 !               -------------------------
 !
 ZWORK1(:,:) = SPREAD( PMIXF(:), DIM=2, NCOPIES=INCH1 )
-DO JI = 1, KLON
+DO JI = KIDIA, KFDIA
      JK = KLFS(JI)
      ZDCH1(JI,JK,:) = ZWORK1(JI,:) * PCH1(JI,JK,:) +                          &
                                        ( 1. - ZWORK1(JI,:) ) * ZUCH1(JI,JK,:)
@@ -179,7 +181,7 @@ END DO
 DO JK = MAXVAL( KLFS(:) ), IKB + 1, -1
 JKP = JK - 1
     DO JN = 1, INCH1
-    DO JI = 1, KLON
+    DO JI = KIDIA, KFDIA
       IF ( JK <= KLFS(JI) .AND. JKP >= KDBL(JI) ) THEN
        ZDCH1(JI,JKP,JN) = ( ZDCH1(JI,JK,JN) * PDMF(JI,JK) -              &
                             PCH1(JI,JK,JN) *  PDER(JI,JKP) ) /           &

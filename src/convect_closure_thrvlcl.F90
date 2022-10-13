@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CLOSURE_THRVLCL( KLON, KLEV,                         &
+      SUBROUTINE CONVECT_CLOSURE_THRVLCL( KLON, KLEV, KIDIA, KFDIA,          &
                                           PPRES, PTH, PRV, PZ, OWORK1,        &
                                          PTHLCL, PRVLCL, PZLCL, PTLCL, PTELCL,&
                                           KLCL, KDPL, KPBL )
@@ -77,6 +77,8 @@ IMPLICIT NONE
 !
 INTEGER,                    INTENT(IN) :: KLON  ! horizontal dimension
 INTEGER,                    INTENT(IN) :: KLEV  ! vertical dimension
+INTEGER,                    INTENT(IN) :: KIDIA ! value of the first point in x
+INTEGER,                    INTENT(IN) :: KFDIA ! value of the last point in x
 REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PTH   ! theta
 REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PRV   ! vapor mixing ratio 
 REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PPRES ! pressure
@@ -148,7 +150,7 @@ KLCL(:)     = IKB + 1
      JKMIN=IKB
      DO JK = IKB + 1, JKMAX
         JKM = JK + 1
-        DO JI = 1, KLON
+        DO JI = KIDIA, KFDIA
         IF ( JK >= KDPL(JI) .AND. JK <= KPBL(JI) ) THEN
 !           
             ZWORK1(JI)   = PPRES(JI,JK) - PPRES(JI,JKM)
@@ -226,7 +228,7 @@ END WHERE
 !               -----------------------------------------
 !
      DO JK = JKMIN, IKE - 1
-        DO JI = 1, KLON
+        DO JI = KIDIA, KFDIA
         IF ( ZPLCL(JI) <= PPRES(JI,JK) .AND. OWORK1(JI) ) THEN
             KLCL(JI)  = JK + 1
             PZLCL(JI) = PZ(JI,JK+1)
@@ -238,7 +240,7 @@ END WHERE
 !*        4.2   Estimate height and environmental temperature at LCL
 !               ----------------------------------------------------
 !
-    DO JI = 1, KLON
+    DO JI = KIDIA, KFDIA
         JK   = KLCL(JI)
         JKM  = JK - 1
         ZDP(JI)     = ALOG( ZPLCL(JI) / PPRES(JI,JKM) ) /                     &

@@ -607,11 +607,10 @@ DO JI = KIDIA, KFDIA
 END DO
 END DO
 
-ILCL(:) = MIN( ILCL(:), ICTL(:) )
 DO JI = KIDIA, KFDIA
   IF(GTRIG(JI))THEN
     KCLTOP(JI) = ICTL(ISORT(JI))
-    KCLBAS(JI) = ILCL(ISORT(JI))
+    KCLBAS(JI) = MIN(ILCL(ISORT(JI)), ICTL(ISORT(JI)))
   ENDIF
 END DO
 
@@ -790,7 +789,7 @@ END DO
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV,                                     &
+CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV, KIDIA, KFDIA,                            &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, ZSTHV, ZSTHES, ZRW, &
                            ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,   &
                            XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
@@ -819,7 +818,7 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !                   within an advective time step ZTIMEC.
 !                   ---------------------------------------------------
 !
-  CALL CONVECT_CLOSURE_SHAL( KLON, KLEV,                         &
+  CALL CONVECT_CLOSURE_SHAL( KLON, KLEV, KIDIA, KFDIA,               &
                              PPABST, ZDPRES, PZZ, XA25, ZLMASS,    &
                              ZTHL, ZTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
@@ -934,7 +933,7 @@ IF ( OCH1CONV ) THEN
     ENDIF
   END DO
   END DO
-  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KCH1, ZCH1, ZCH1C,          &
+  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, ZCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
                                ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &

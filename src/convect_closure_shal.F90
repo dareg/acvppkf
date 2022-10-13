@@ -1,5 +1,5 @@
 !     ######spl
-     SUBROUTINE CONVECT_CLOSURE_SHAL( KLON, KLEV,                                 &
+     SUBROUTINE CONVECT_CLOSURE_SHAL( KLON, KLEV, KIDIA, KFDIA,                   &
                                       PPRES, PDPRES, PZ, PDXDY, PLMASS,           &
                                       PTHL, PTH, PRW, PRC, PRI, OTRIG1,           &
                                       PTHC, PRWC, PRCC, PRIC, PWSUB,              &
@@ -87,6 +87,8 @@ IMPLICIT NONE
 !
 INTEGER,                   INTENT(IN) :: KLON   ! horizontal dimension
 INTEGER,                   INTENT(IN) :: KLEV   ! vertical dimension
+INTEGER,                   INTENT(IN) :: KIDIA  ! value of the first point in x
+INTEGER,                   INTENT(IN) :: KFDIA  ! value of the last point in x
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KLCL   ! index lifting condens. level
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KCTL   ! index for cloud top level
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KDPL   ! index for departure level
@@ -230,7 +232,7 @@ IWORK1(:) = ILCL(:)
 !JKP = MINVAL( KDPL(:) )
 JKP=IKB
 DO JK = JKP, IKE
-  DO JI = 1, KLON
+  DO JI = KIDIA, KFDIA
     IF( JK > KDPL(JI) .AND. JK <= IWORK1(JI) ) THEN
         ZWORK1(JI)  = PLMASS(JI,JK) / ( ( PUER(JI,JK) + 1.E-5 ) * PTIMEC(JI) )
         ZADJMAX(JI) = MIN( ZADJMAX(JI), ZWORK1(JI) )
@@ -305,7 +307,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !           automatically become zero.
 !           ----------------------------------------------------
 !
-    DO JI = 1, KLON
+    DO JI = KIDIA, KFDIA
        JK=KCTL(JI)
        ZWORK1(JI) = PUDR(JI,JK) * PDPRES(JI,JK) / ( PLMASS(JI,JK) + .1 )    &
                                                             - PWSUB(JI,JK)
@@ -351,11 +353,11 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
              ZRIMFOUT(:,:)  = 0.
 !
          DO JK = IKB + 1, JKMAX
-           DO JI = 1, KLON
+           DO JI = KIDIA, KFDIA
               GWORK4(JI,JK) = GWORK3(JI) .AND. JK <= KCTL(JI)
            END DO
            JKP = MAX( IKB + 1, JK - 1 )
-           DO JI = 1, KLON
+           DO JI = KIDIA, KFDIA
            IF ( GWORK3(JI) ) THEN
 !
                ZWORK1(JI)       = SIGN( 1., ZOMG(JI,JK) )
@@ -371,7 +373,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
                ZRIMFOUT(JI,JK)  =   ZOMG(JI,JK) * PRIC(JI,JK)  * ZWORK2(JI)
            END IF
            END DO
-           DO JI = 1, KLON
+           DO JI = KIDIA, KFDIA
            IF ( GWORK3(JI) ) THEN
                ZTHMFIN(JI,JKP)  = ZTHMFIN(JI,JKP)  + ZTHMFOUT(JI,JK) * ZWORK2(JI)
                ZTHMFOUT(JI,JKP) = ZTHMFOUT(JI,JKP) + ZTHMFIN(JI,JK)  * ZWORK1(JI)
@@ -420,7 +422,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                  ----------------------------------------------
 !
       DO JK = IKB + 1, JKMAX
-         DO JI = 1, KLON
+         DO JI = KIDIA, KFDIA
          IF( GWORK1(JI) .AND. JK <= KCTL(JI) ) THEN
            ZPI(JI)    = ( XP00 / PPRES(JI,JK) ) ** ZRDOCP
            ZCPH(JI)   = XCPD + PRWC(JI,JK) * XCPV
@@ -442,7 +444,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                           that in routine TRIGGER_FUNCT
 !                  ---------------------------------------------
 !
-      CALL CONVECT_CLOSURE_THRVLCL(  KLON, KLEV,                           &
+      CALL CONVECT_CLOSURE_THRVLCL(  KLON, KLEV, KIDIA, KFDIA,             &
                                      PPRES, PTHC, PRWC, PZ, GWORK1,        &
                                      ZTHLCL, ZRVLCL, ZZLCL, ZTLCL, ZTELCL, &
                                      ILCL, KDPL, KPBL )
@@ -477,7 +479,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !
       DO JK = IKB, JKMAX
         JKP = JK - 1
-        DO JI = 1, KLON
+        DO JI = KIDIA, KFDIA
           ZWORK4(JI) = 1.
           IF ( JK == ILCL(JI) ) ZWORK4(JI) = 0.
 !
@@ -493,7 +495,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
         CALL CONVECT_SATMIXRATIO( KLON, PPRES(:,JK), ZWORK2, ZWORK3, ZLV, ZLS, ZCPH )
 !
 !
-        DO JI = 1, KLON
+        DO JI = KIDIA, KFDIA
           IF ( GWORK3(JI) ) THEN
               ZTHES2(JI)  = ZWORK2(JI) * ZPI(JI) ** ( 1. - 0.28 * ZWORK3(JI) )   &
                                    * EXP( ( 3374.6525 / ZWORK2(JI) - 2.5403 ) &
