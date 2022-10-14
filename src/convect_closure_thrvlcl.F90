@@ -129,16 +129,16 @@ ZEPS      = XRD / XRV
 ZCPORD    = XCPD / XRD
 ZRDOCP    = XRD / XCPD
 !
-ZDPTHMIX(:) = 0.
-ZPRESMIX(:) = 0.
-PTHLCL(:)   = 300.
-PTLCL(:)    = 300.
-PTELCL(:)   = 300.
-PRVLCL(:)   = 0.
-PZLCL(:)    = PZ(:,IKB)
-ZTMIX(:)    = 230.
-ZPLCL(:)    = 1.E4 
-KLCL(:)     = IKB + 1
+ZDPTHMIX(KIDIA:KFDIA) = 0.
+ZPRESMIX(KIDIA:KFDIA) = 0.
+PTHLCL(KIDIA:KFDIA)   = 300.
+PTLCL(KIDIA:KFDIA)    = 300.
+PTELCL(KIDIA:KFDIA)   = 300.
+PRVLCL(KIDIA:KFDIA)   = 0.
+PZLCL(KIDIA:KFDIA)    = PZ(KIDIA:KFDIA,IKB)
+ZTMIX(KIDIA:KFDIA)    = 230.
+ZPLCL(KIDIA:KFDIA)    = 1.E4 
+KLCL(KIDIA:KFDIA)     = IKB + 1
 !
 !
 !*       2.     Construct a mixed layer as in TRIGGER_FUNCT
@@ -164,34 +164,36 @@ KLCL(:)     = IKB + 1
      END DO
 !
 !
-WHERE ( OWORK1(:) )
+DO JI=KIDIA,KFDIA
+  IF ( OWORK1(JI) ) THEN
 !
-        ZPRESMIX(:) = ZPRESMIX(:) / ZDPTHMIX(:)
-        PTHLCL(:)   = PTHLCL(:)   / ZDPTHMIX(:)
-        PRVLCL(:)   = PRVLCL(:)   / ZDPTHMIX(:)
+        ZPRESMIX(JI) = ZPRESMIX(JI) / ZDPTHMIX(JI)
+        PTHLCL(JI)   = PTHLCL(JI)   / ZDPTHMIX(JI)
+        PRVLCL(JI)   = PRVLCL(JI)   / ZDPTHMIX(JI)
 !
 !*       3.1    Use an empirical direct solution ( Bolton formula )
 !               to determine temperature and pressure at LCL.
-!               Nota: the adiabatic saturation temperature is not
+!               NotaJI the adiabatic saturation temperature is not
 !                     equal to the dewpoint temperature
 !               --------------------------------------------------
 !
 !
-        ZTMIX(:)  = PTHLCL(:) * ( ZPRESMIX(:) / XP00 ) ** ZRDOCP
-        ZEVMIX(:) = PRVLCL(:) * ZPRESMIX(:) / ( PRVLCL(:) + ZEPS )
-        ZEVMIX(:) = MAX( 1.E-8, ZEVMIX(:) )
-        ZWORK1(:) = ALOG( ZEVMIX(:) / 613.3 )
+        ZTMIX(JI)  = PTHLCL(JI) * ( ZPRESMIX(JI) / XP00 ) ** ZRDOCP
+        ZEVMIX(JI) = PRVLCL(JI) * ZPRESMIX(JI) / ( PRVLCL(JI) + ZEPS )
+        ZEVMIX(JI) = MAX( 1.E-8, ZEVMIX(JI) )
+        ZWORK1(JI) = ALOG( ZEVMIX(JI) / 613.3 )
               ! dewpoint temperature
-        ZWORK1(:) = ( 4780.8 - 32.19 * ZWORK1(:) ) / ( 17.502 - ZWORK1(:) ) 
+        ZWORK1(JI) = ( 4780.8 - 32.19 * ZWORK1(JI) ) / ( 17.502 - ZWORK1(JI) ) 
               ! adiabatic saturation temperature
-        PTLCL(:)  = ZWORK1(:) - ( .212 + 1.571E-3 * ( ZWORK1(:) - XTT )      &
-                  - 4.36E-4 * ( ZTMIX(:) - XTT ) ) * ( ZTMIX(:) - ZWORK1(:) )
-        PTLCL(:)  = MIN( PTLCL(:), ZTMIX(:) )
-        ZPLCL(:)  = XP00 * ( PTLCL(:) / PTHLCL(:) ) ** ZCPORD
+        PTLCL(JI)  = ZWORK1(JI) - ( .212 + 1.571E-3 * ( ZWORK1(JI) - XTT )      &
+                  - 4.36E-4 * ( ZTMIX(JI) - XTT ) ) * ( ZTMIX(JI) - ZWORK1(JI) )
+        PTLCL(JI)  = MIN( PTLCL(JI), ZTMIX(JI) )
+        ZPLCL(JI)  = XP00 * ( PTLCL(JI) / PTHLCL(JI) ) ** ZCPORD
 !
-END WHERE
+  END IF
+ENDDO
 !
-     ZPLCL(:) = MIN( 2.E5, MAX( 10., ZPLCL(:) ) ) ! bound to avoid overflow
+     ZPLCL(KIDIA:KFDIA) = MIN( 2.E5, MAX( 10., ZPLCL(KIDIA:KFDIA) ) ) ! bound to avoid overflow
 !
 !
 !*       3.2    Correct PTLCL in order to be completely consistent
@@ -199,13 +201,14 @@ END WHERE
 !               --------------------------------------------------
 !
      CALL CONVECT_SATMIXRATIO( KLON, ZPLCL, PTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
-     WHERE( OWORK1(:) )
-        ZWORK2(:) = ZWORK1(:) / PTLCL(:) * ( XBETAW / PTLCL(:) - XGAMW ) ! dr_sat/dT
-        ZWORK2(:) = ( ZWORK1(:) - PRVLCL(:) ) /                              &
-                        ( 1. + ZLV(:) / ZCPH(:) * ZWORK2(:) ) 
-        PTLCL(:)  = PTLCL(:) - ZLV(:) / ZCPH(:) * ZWORK2(:)
-!
-     END WHERE
+     DO JI=KIDIA,KFDIA
+       IF( OWORK1(JI) ) THEN
+        ZWORK2(JI) = ZWORK1(JI) / PTLCL(JI) * ( XBETAW / PTLCL(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ( ZWORK1(JI) - PRVLCL(JI) ) /                              &
+                        ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) ) 
+        PTLCL(JI)  = PTLCL(JI) - ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
+       END IF
+     ENDDO
 !
 !
 !*       3.3    If PRVLCL is oversaturated set humidity and temperature
@@ -213,15 +216,17 @@ END WHERE
 !               -------------------------------------------------------
 !
     CALL CONVECT_SATMIXRATIO( KLON, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
-     WHERE( OWORK1(:) .AND. PRVLCL(:) > ZWORK1(:) )
-        ZWORK2(:) = ZWORK1(:) / ZTMIX(:) * ( XBETAW / ZTMIX(:) - XGAMW ) ! dr_sat/dT
-        ZWORK2(:) = ( ZWORK1(:) - PRVLCL(:) ) /                              &
-                        ( 1. + ZLV(:) / ZCPH(:) * ZWORK2(:) )
-        PTLCL(:)  = ZTMIX(:) + ZLV(:) / ZCPH(:) * ZWORK2(:)
-        PRVLCL(:) = PRVLCL(:) - ZWORK2(:)
-        ZPLCL(:)  = ZPRESMIX(:)
-        PTHLCL(:) = PTLCL(:) * ( XP00 / ZPLCL(:) ) ** ZRDOCP
-     END WHERE
+    DO JI=KIDIA,KFDIA
+    IF( OWORK1(JI) .AND. PRVLCL(JI) > ZWORK1(JI) ) THEN
+        ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( XBETAW / ZTMIX(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ( ZWORK1(JI) - PRVLCL(JI) ) /                              &
+                        ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) )
+        PTLCL(JI)  = ZTMIX(JI) + ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
+        PRVLCL(JI) = PRVLCL(JI) - ZWORK2(JI)
+        ZPLCL(JI)  = ZPRESMIX(JI)
+        PTHLCL(JI) = PTLCL(JI) * ( XP00 / ZPLCL(JI) ) ** ZRDOCP
+      END IF
+    ENDDO
 !
 !
 !*        4.1   Determine  vertical loop index at the LCL 
@@ -252,10 +257,12 @@ END WHERE
            ! The precise height is between the levels KLCL and KLCL-1.
         ZWORK2(JI) = PZ(JI,JKM) + ( PZ(JI,JK) - PZ(JI,JKM) ) * ZDP(JI)
     END DO
-    WHERE( OWORK1(:) )
-       PTELCL(:) = ZWORK1(:)
-       PZLCL(:)  = ZWORK2(:)
-    END WHERE
+    DO JI=KIDIA,KFDIA
+    IF( OWORK1(JI) ) THEN
+       PTELCL(JI) = ZWORK1(JI)
+       PZLCL(JI)  = ZWORK2(JI)
+    END IF
+    ENDDO
 !        
 !
 !
