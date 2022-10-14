@@ -66,13 +66,13 @@ LOGICAL, DIMENSION(KLON)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for conv
 !
 !*       0.2   Declarations of local fixed memory variables :
 !
+INTEGER  :: ZWORK ! work var
 INTEGER  :: JI, JL                  ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM                 ! vertical loop index
 !
 LOGICAL, DIMENSION(KLON)           :: GTRIG  ! 2D logical mask for trigger test
 INTEGER, DIMENSION(ICONV)          :: ISORT
-REAL, DIMENSION(KLON)              :: ZWORK2 ! work array
 !
 !
 !*       0.2   Declarations of local allocatable  variables :
@@ -190,11 +190,11 @@ IF ( OCH1CONV ) THEN
   END DO
 END IF
 
-ZWORK2(:) = 1.
 DO JK = IKB, IKE
 DO JI = KIDIA, ICONV
-    IF ( KCLTOP(ISORT(JI)) <= IKB+1 ) ZWORK2(JI) = 0.
-    PUMF(ISORT(JI),JK) = ZUMF(JI,JK) * ZWORK2(JI)
+    ZWORK = 1
+    IF ( KCLTOP(ISORT(JI)) <= IKB+1 ) ZWORK = 0.
+    PUMF(ISORT(JI),JK) = ZUMF(JI,JK) * ZWORK
 END DO
 END DO
 
