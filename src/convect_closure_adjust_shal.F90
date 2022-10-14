@@ -1,5 +1,5 @@
 !     ######spl
-     SUBROUTINE CONVECT_CLOSURE_ADJUST_SHAL( KLON, KLEV, PADJ,                      &
+     SUBROUTINE CONVECT_CLOSURE_ADJUST_SHAL( KLON, KLEV, KIDIA, KFDIA, PADJ,        &
                                              PUMF, PZUMF, PUER, PZUER, PUDR, PZUDR  )
      USE PARKIND1, ONLY : JPRB
      USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -61,6 +61,8 @@ IMPLICIT NONE
 !
 INTEGER,                    INTENT(IN) :: KLON     ! horizontal dimension
 INTEGER,                    INTENT(IN) :: KLEV     ! vertical dimension
+INTEGER,                    INTENT(IN) :: KIDIA    ! value of the first point in x
+INTEGER,                    INTENT(IN) :: KFDIA    ! value of the last point in x
 REAL, DIMENSION(KLON),      INTENT(IN) :: PADJ     ! mass adjustment factor
 !
 !
@@ -75,7 +77,7 @@ REAL, DIMENSION(KLON,KLEV), INTENT(INOUT) :: PZUDR ! initial value of  "
 !*       0.2   Declarations of local variables :
 !
 INTEGER :: IKB, IKE                 ! vert. loop bounds
-INTEGER :: JK                       ! vertical loop index
+INTEGER :: JK, JI                   ! vertical loop index
 !
 !
 !-------------------------------------------------------------------------------
@@ -94,9 +96,11 @@ IKE  = KLEV - JCVEXT
 !               ----------------------------------------------------
 !
      DO JK = IKB + 1, IKE
-          PUMF(:,JK)  = PZUMF(:,JK)   * PADJ(:)
-          PUER(:,JK)  = PZUER(:,JK)   * PADJ(:)
-          PUDR(:,JK)  = PZUDR(:,JK)   * PADJ(:)
+       DO JI = KIDIA, KFDIA
+          PUMF(JI,JK)  = PZUMF(JI,JK)   * PADJ(JI)
+          PUER(JI,JK)  = PZUER(JI,JK)   * PADJ(JI)
+          PUDR(JI,JK)  = PZUDR(JI,JK)   * PADJ(JI)
+        ENDDO
      END DO
 !
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_ADJUST_SHAL',1,ZHOOK_HANDLE)
