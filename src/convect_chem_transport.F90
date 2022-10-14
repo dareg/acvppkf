@@ -118,7 +118,7 @@ INCH1  = KCH
 IKB    = 1 + JCVEXB
 IKS    = KLEV
 IKE    = KLEV - JCVEXT
-JKMAX  = MAXVAL( KCTL(:) )
+JKMAX  = MAXVAL( KCTL(KIDIA:KFDIA) )
 !
 !
 !*      2.      Updraft computations
@@ -130,9 +130,11 @@ ZUCH1(:,:,:) = 0.
 !               ----------------------------------
 !
 DO JI = KIDIA, KFDIA
-    JKLD = KDPL(JI)
-    JKLP = KPBL(JI)
-    ZWORK1(JI,:) = .5 * ( PCH1(JI,JKLD,:) + PCH1(JI,JKLP,:) )
+    DO JN = 1, INCH1
+      JKLD = KDPL(JI)
+      JKLP = KPBL(JI)
+      ZWORK1(JI,JN) = .5 * ( PCH1(JI,JKLD,JN) + PCH1(JI,JKLP,JN) )
+    ENDDO
 END DO
 !
 !*      2.2     Final updraft loop
@@ -170,9 +172,11 @@ ZDCH1(:,:,:) = 0.
 !
 ZWORK1(:,:) = SPREAD( PMIXF(:), DIM=2, NCOPIES=INCH1 )
 DO JI = KIDIA, KFDIA
+    DO JN = 1, INCH1
      JK = KLFS(JI)
-     ZDCH1(JI,JK,:) = ZWORK1(JI,:) * PCH1(JI,JK,:) +                          &
-                                       ( 1. - ZWORK1(JI,:) ) * ZUCH1(JI,JK,:)
+     ZDCH1(JI,JK,JN) = ZWORK1(JI,JN) * PCH1(JI,JK,JN) +                          &
+                                       ( 1. - ZWORK1(JI,JN) ) * ZUCH1(JI,JK,JN)
+    ENDDO
 END DO
 !
 !*      3.2     Final downdraft loop
@@ -195,19 +199,25 @@ END DO
 !*      4.      Final closure (environmental) computations
 !               ------------------------------------------
 !
-PCH1C(:,IKB:IKE,:) = PCH1(:,IKB:IKE,:) ! initialize adjusted envir. values
+PCH1C(KIDIA:KFDIA,IKB:IKE,1:KCH) = PCH1(KIDIA:KFDIA,IKB:IKE,1:KCH) ! initialize adjusted envir. values
 !
 DO JK = IKB, IKE
-   ZOMG(:,JK) = PWSUB(:,JK) * PDXDY / XG ! environmental subsidence
+  DO JI=KIDIA,KFDIA
+    ZOMG(JI,JK) = PWSUB(JI,JK) * PDXDY / XG ! environmental subsidence
+  ENDDO
 END DO
 !
-ZTIMEC(:) = PTIMEC(:) / REAL( KFTSTEPS ) ! adjust  fractional time step
-                                         ! to be an integer multiple of PTIMEC
-WHERE ( PTIMEC(:) < 1. ) ZTIMEC(:) = 0.
+DO JI=KIDIA,KFDIA
+  ZTIMEC(JI) = PTIMEC(JI) / REAL( KFTSTEPS ) ! adjust  fractional time step
+ENDDO                                    ! to be an integer multiple of PTIMEC
+
+DO JI=KIDIA,KFDIA
+  IF(PTIMEC(JI) < 1.) ZTIMEC(JI) = 0
+ENDDO
 ZTIMC(:,:)= SPREAD( ZTIMEC(:), DIM=2, NCOPIES=IKS )
 !
-ZCH1MFIN(:,:,:)   = 0.
-ZCH1MFOUT(:,:,:)  = 0.
+ZCH1MFIN(KIDIA:KFDIA,1:KLEV,1:KCH)   = 0.
+ZCH1MFOUT(KIDIA:KFDIA,1:KLEV,1:KCH)  = 0.
 !
 DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop
 !
@@ -225,16 +235,18 @@ DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop
 !
       DO JN = 1, INCH1
        DO JK = IKB + 1, JKMAX
-         PCH1C(:,JK,JN) = PCH1C(:,JK,JN) + ZTIMC(:,JK) / PLMASS(:,JK) *  (    &
-                      ZCH1MFIN(:,JK,JN) + PUDR(:,JK) * ZUCH1(:,JK,JN) +       &
-                      PDDR(:,JK) * ZDCH1(:,JK,JN) - ZCH1MFOUT(:,JK,JN) -      &
-                      ( PUER(:,JK) + PDER(:,JK) ) * PCH1(:,JK,JN)    )
-         IF(JN < NSV_LGBEG .OR. JN>NSV_LGEND-1) THEN
-           PCH1C(:,JK,JN) = MAX( 0., PCH1C(:,JK,JN) )
-         ELSE
-           ! no tendency for horizontal Lagrangian variables
-           PCH1C(:,JK,JN) = PCH1(:,JK,JN)
-         END IF
+         DO JI=KIDIA,KFDIA
+           PCH1C(JI,JK,JN) = PCH1C(JI,JK,JN) + ZTIMC(JI,JK) / PLMASS(JI,JK) *  (    &
+                        ZCH1MFIN(JI,JK,JN) + PUDR(JI,JK) * ZUCH1(JI,JK,JN) +       &
+                        PDDR(JI,JK) * ZDCH1(JI,JK,JN) - ZCH1MFOUT(JI,JK,JN) -      &
+                        ( PUER(JI,JK) + PDER(JI,JK) ) * PCH1(JI,JK,JN)    )
+           IF(JN < NSV_LGBEG .OR. JN>NSV_LGEND-1) THEN
+             PCH1C(JI,JK,JN) = MAX( 0., PCH1C(JI,JK,JN) )
+           ELSE
+             ! no tendency for horizontal Lagrangian variables
+             PCH1C(JI,JK,JN) = PCH1(JI,JK,JN)
+           END IF
+         ENDDO
        END DO
       END DO
 !
