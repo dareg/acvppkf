@@ -66,7 +66,6 @@ LOGICAL, DIMENSION(KLON)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for conv
 !
 !*       0.2   Declarations of local fixed memory variables :
 !
-INTEGER  :: ZWORK ! work var
 INTEGER  :: JI, JL                  ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM                 ! vertical loop index
@@ -192,9 +191,7 @@ END IF
 
 DO JK = IKB, IKE
 DO JI = KIDIA, ICONV
-    ZWORK = 1
-    IF ( KCLTOP(ISORT(JI)) <= IKB+1 ) ZWORK = 0.
-    PUMF(ISORT(JI),JK) = ZUMF(JI,JK) * ZWORK
+    PUMF(ISORT(JI),JK) = ZUMF(JI,JK)
 END DO
 END DO
 

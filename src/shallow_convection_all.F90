@@ -64,7 +64,6 @@ REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHVELCL! envir. theta_v at LC
 LOGICAL, DIMENSION(KLON)  ,      INTENT(IN)   :: GTRIG1  ! logical mask for convection
 !
 !
-INTEGER  :: ZWORK ! work var
 INTEGER  :: JI                      ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM                 ! vertical loop index
@@ -135,12 +134,8 @@ IF ( OCH1CONV ) THEN
 END IF
 
 DO JK = IKB, IKE
-DO JI = KIDIA,KFDIA
-  IF(GTRIG1(JI))THEN
-    ZWORK = 1
-    IF ( KCLTOP(JI) <= IKB+1 ) ZWORK = 0.
-    PUMF(JI,JK) = ZUMF(JI,JK) * ZWORK
-  ENDIF
+DO JI = KIDIA, KFDIA
+    PUMF(JI,JK) = ZUMF(JI,JK)
 END DO
 END DO
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_ALL',1,ZHOOK_HANDLE)

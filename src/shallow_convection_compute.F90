@@ -337,7 +337,13 @@ IF ( OCH1CONV ) THEN
 END IF
 
 DO JK = IKB, IKE
-  ZUMF(:,JK)  = ZUMF(:,JK) / XA25 ! Mass flux per unit area
+  DO JI=KIDIA, KFDIA
+    IF (ICTL(JI) <= IKB+1) THEN
+      ZUMF(JI,JK) = 0
+    ELSE
+      ZUMF(JI,JK)  = ZUMF(JI,JK) / XA25 ! MASS FLUX PER UNIT AREA
+    ENDIF
+  ENDDO
 END DO
 
 DO JI=KIDIA, KFDIA
