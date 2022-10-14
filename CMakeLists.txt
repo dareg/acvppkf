@@ -38,6 +38,9 @@ set(SRC
 	src/posnam.F90
 	src/posname.F90
 	src/shallow_convection.F90
+	src/shallow_convection_select.F90
+	src/shallow_convection_all.F90
+	src/shallow_convection_compute.F90
 	src/util_modd_convpar_shal.F90
 	src/util_modd_cst.F90
 	src/util_model_physics_mf_type_mod.F90
