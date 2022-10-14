@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CONDENS( KLON,                                           &
+      SUBROUTINE CONVECT_CONDENS( KLON, KIDIA, KFDIA,                     &
                                   KICE, PPRES, PTHL, PRW, PRCO, PRIO, PZ, &
                                   PT, PEW, PRC, PRI, PLV, PLS, PCPH   )
       USE PARKIND1, ONLY : JPRB
@@ -72,6 +72,8 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 INTEGER, INTENT(IN)                :: KLON    ! horizontal loop index
+INTEGER, INTENT(IN)                :: KIDIA   ! value of the first point in x
+INTEGER, INTENT(IN)                :: KFDIA   ! value of the last point in x
 INTEGER, INTENT(IN)                :: KICE    ! flag for ice ( 1 = yes,
                                               !                0 = no ice )
 REAL, DIMENSION(KLON),   INTENT(IN) :: PPRES  ! pressure
@@ -92,7 +94,7 @@ REAL, DIMENSION(KLON),   INTENT(OUT):: PEW    ! water saturation mixing ratio
 !
 !*       0.2   Declarations of local variables KLON
 !
-INTEGER :: JITER          ! iteration index
+INTEGER :: JITER, JI      ! iteration index
 REAL    :: ZEPS           ! R_d / R_v
 !
 REAL, DIMENSION(KLON)    :: ZEI           ! ice saturation mixing ratio
@@ -114,35 +116,39 @@ ZEPS        = XRD / XRV
 !
       !! Note that the definition of ZCPH is not the same as used in
       !! routine CONVECT_SATMIXRATIO
-     PCPH(:)   = XCPD + XCPV * PRW(:)
-     ZWORK1(:) = ( 1. + PRW(:) ) * XG * PZ(:)
-     PT(:)     = ( PTHL(:) + PRCO(:) * XLVTT + PRIO(:) * XLSTT - ZWORK1(:) )   &
-                 / PCPH(:)
-     PT(:)     = MAX(180., MIN( 330., PT(:) ) ) ! set overflow bounds in
+  DO JI=KIDIA,KFDIA
+     PCPH(JI)   = XCPD + XCPV * PRW(JI)
+     ZWORK1(JI) = ( 1. + PRW(JI) ) * XG * PZ(JI)
+     PT(JI)     = ( PTHL(JI) + PRCO(JI) * XLVTT + PRIO(JI) * XLSTT - ZWORK1(JI) )   &
+                 / PCPH(JI)
+     PT(JI)     = MAX(180., MIN( 330., PT(JI) ) ) ! set overflow bounds in
                                                     ! case that PTHL=0     
+  ENDDO
 !
 !
 !*       2.     Enter the iteration loop
 !               ------------------------
 !    
 DO JITER = 1,6
-     PEW(:) = EXP( XALPW - XBETAW / PT(:) - XGAMW * ALOG( PT(:) ) )
-     ZEI(:) = EXP( XALPI - XBETAI / PT(:) - XGAMI * ALOG( PT(:) ) )
-     PEW(:) = ZEPS * PEW(:) / ( PPRES(:) - PEW(:) )
-     ZEI(:) = ZEPS * ZEI(:) / ( PPRES(:) - ZEI(:) )    
+  DO JI=KIDIA,KFDIA
+     PEW(JI) = EXP( XALPW - XBETAW / PT(JI) - XGAMW * ALOG( PT(JI) ) )
+     ZEI(JI) = EXP( XALPI - XBETAI / PT(JI) - XGAMI * ALOG( PT(JI) ) )
+     PEW(JI) = ZEPS * PEW(JI) / ( PPRES(JI) - PEW(JI) )
+     ZEI(JI) = ZEPS * ZEI(JI) / ( PPRES(JI) - ZEI(JI) )    
 !
-     PLV(:)    = XLVTT + ( XCPV - XCL ) * ( PT(:) - XTT ) ! compute L_v
-     PLS(:)    = XLSTT + ( XCPV - XCI ) * ( PT(:) - XTT ) ! compute L_i
+     PLV(JI)    = XLVTT + ( XCPV - XCL ) * ( PT(JI) - XTT ) ! compute L_v
+     PLS(JI)    = XLSTT + ( XCPV - XCI ) * ( PT(JI) - XTT ) ! compute L_i
 !    
-     ZWORK2(:) = ( XTFRZ1 - PT(:) ) / ( XTFRZ1 - XTFRZ2 ) ! freezing interval
-     ZWORK2(:) = MAX( 0., MIN(1., ZWORK2(:) ) ) * REAL( KICE )
-     ZWORK3(:) = ( 1. - ZWORK2(:) ) * PEW(:) + ZWORK2(:) * ZEI(:)
-     PRC(:)    = MAX( 0., ( 1. - ZWORK2(:) ) * ( PRW(:) - ZWORK3(:) ) )
-     PRI(:)    = MAX( 0.,  ZWORK2(:) * ( PRW(:) - ZWORK3(:) ) )
-     ZT(:)     = ( PTHL(:) + PRC(:) * PLV(:) + PRI(:) * PLS(:) - ZWORK1(:) )   &
-                 / PCPH(:)
-     PT(:) = PT(:) + ( ZT(:) - PT(:) ) * 0.4  ! force convergence
-     PT(:) = MAX( 175., MIN( 330., PT(:) ) )
+     ZWORK2(JI) = ( XTFRZ1 - PT(JI) ) / ( XTFRZ1 - XTFRZ2 ) ! freezing interval
+     ZWORK2(JI) = MAX( 0., MIN(1., ZWORK2(JI) ) ) * REAL( KICE )
+     ZWORK3(JI) = ( 1. - ZWORK2(JI) ) * PEW(JI) + ZWORK2(JI) * ZEI(JI)
+     PRC(JI)    = MAX( 0., ( 1. - ZWORK2(JI) ) * ( PRW(JI) - ZWORK3(JI) ) )
+     PRI(JI)    = MAX( 0.,  ZWORK2(JI) * ( PRW(JI) - ZWORK3(JI) ) )
+     ZT(JI)     = ( PTHL(JI) + PRC(JI) * PLV(JI) + PRI(JI) * PLS(JI) - ZWORK1(JI) )   &
+                 / PCPH(JI)
+     PT(JI) = PT(JI) + ( ZT(JI) - PT(JI) ) * 0.4  ! force convergence
+     PT(JI) = MAX( 175., MIN( 330., PT(JI) ) )
+  END DO
 END DO
 !
 !
