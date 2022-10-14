@@ -182,24 +182,25 @@ LOGICAL, DIMENSION(KLON,KLEV) :: GWORK4    ! work array
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_SHAL',0,ZHOOK_HANDLE)
-ZTIMC(:,:) = 0.
-ZTHES2(:) = 0.
-ZWORK1(:) = 0.
-ZWORK2(:) = 0.
-ZWORK3(:) = 0.
-ZWORK4(:) = 0.
-ZWORK5(:) = 0.
-GWORK1(:) = .FALSE.
-GWORK3(:) = .FALSE.
-GWORK4(:,:) = .FALSE.
-ILCL(:)   = KLCL(:)
+ZTIMC(KIDIA:KFDIA,1:KLEV) = 0.
+ZTHES2(KIDIA:KFDIA) = 0.
+ZWORK1(KIDIA:KFDIA) = 0.
+ZWORK2(KIDIA:KFDIA) = 0.
+ZWORK3(KIDIA:KFDIA) = 0.
+ZWORK4(KIDIA:KFDIA) = 0.
+GWORK1(KIDIA:KFDIA) = .FALSE.
+GWORK3(KIDIA:KFDIA) = .FALSE.
+GWORK4(KIDIA:KFDIA,1:KLEV) = .FALSE.
+ILCL(KIDIA:KFDIA)   = KLCL(KIDIA:KFDIA)
 !
 ZCPORD    = XCPD / XRD
 ZRDOCP    = XRD / XCPD
 !
-ZADJ(:)   = 1.
-ZWORK5(:) = 1.
-WHERE( .NOT. OTRIG1(:) ) ZWORK5(:) = 0.
+ZADJ(KIDIA:KFDIA)   = 1.
+ZWORK5(KIDIA:KFDIA) = 1.
+DO JI=KIDIA,KFDIA
+  IF (.NOT. OTRIG1(JI)) ZWORK5 = 0
+ENDDO
 !
 !
 !*       0.3   Compute loop bounds
@@ -215,11 +216,11 @@ JKMAX=IKE
 !*       2.     Save initial mass flux values to be used in adjustment procedure
 !               ---------------------------------------------------------------
 !
-ZUMF(:,:)  = PUMF(:,:)
-ZUER(:,:)  = PUER(:,:)
-ZUDR(:,:)  = PUDR(:,:)
-ZOMG(:,:)  = 0.
-PWSUB(:,:) = 0.
+ZUMF(KIDIA:KFDIA,1:KLEV)  = PUMF(KIDIA:KFDIA,1:KLEV)
+ZUER(KIDIA:KFDIA,1:KLEV)  = PUER(KIDIA:KFDIA,1:KLEV)
+ZUDR(KIDIA:KFDIA,1:KLEV)  = PUDR(KIDIA:KFDIA,1:KLEV)
+ZOMG(KIDIA:KFDIA,1:KLEV)  = 0.
+PWSUB(KIDIA:KFDIA,1:KLEV) = 0.
 !
 !
 !*       3.     Compute limits on the closure adjustment factor so that the
@@ -227,8 +228,8 @@ PWSUB(:,:) = 0.
 !               than the mass contained in this layer initially.
 !               ---------------------------------------------------------------
 !
-ZADJMAX(:) = 1000.
-IWORK1(:) = ILCL(:)
+ZADJMAX(KIDIA:KFDIA) = 1000.
+IWORK1(KIDIA:KFDIA) = ILCL(KIDIA:KFDIA)
 !JKP = MINVAL( KDPL(:) )
 JKP=IKB
 DO JK = JKP, IKE
@@ -241,15 +242,17 @@ DO JK = JKP, IKE
 END DO
 !
 !
-GWORK1(:) = OTRIG1(:)  ! logical array to limit adjustment to not definitively
-                       ! adjusted columns
+GWORK1(KIDIA:KFDIA) = OTRIG1(KIDIA:KFDIA)  ! logical array to limit adjustment to not definitively
+                                           ! adjusted columns
 !
 DO JK = IKB, IKE
-  ZTHLC(:,JK) = PTHL(:,JK) ! initialize adjusted envir. values
-  PRWC(:,JK)  = PRW(:,JK)
-  PRCC(:,JK)  = MAX(0., PRC(:,JK))
-  PRIC(:,JK)  = MAX(0., PRI(:,JK))
-  PTHC(:,JK)  = PTH(:,JK)
+  DO JI=KIDIA, KFDIA
+    ZTHLC(JI,JK) = PTHL(JI,JK) ! initialize adjusted envir. values
+    PRWC(JI,JK)  = PRW(JI,JK)
+    PRCC(JI,JK)  = MAX(0., PRC(JI,JK))
+    PRIC(JI,JK)  = MAX(0., PRI(JI,JK))
+    PTHC(JI,JK)  = PTH(JI,JK)
+  ENDDO
 END DO
 !
 !
@@ -257,14 +260,19 @@ END DO
 DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
                  ! removed within the advective time interval TIMEC
 !
-     ZTIMEC(:) = PTIMEC(:)
-     GWORK4(:,:)   = SPREAD( GWORK1(:), DIM=2, NCOPIES=IKS )
-     WHERE( GWORK4(:,:) ) PWSUB(:,:) = 0.
-     ZOMG(:,:)=0.
+     ZTIMEC(KIDIA:KFDIA) = PTIMEC(KIDIA:KFDIA)
+     GWORK4(KIDIA:KFDIA,1:KLEV)   = SPREAD( GWORK1(:), DIM=2, NCOPIES=IKS )
+     DO JK = IKB, IKE
+       DO JI=KIDIA, KFDIA
+       IF(GWORK4(JI,JK))PWSUB(JI,JK) = 0.
+       ENDDO
+     END DO
+     ZOMG(KIDIA:KFDIA,1:KLEV)=0.
 !
      DO JK = IKB + 1, JKMAX
            JKP = MAX( IKB + 1, JK - 1 )
-           WHERE ( GWORK1(:) .AND. JK <= KCTL(:) )
+           DO JI=KIDIA,KFDIA
+             IF(GWORK1(JI) .AND. JK <= KCTL(JI)) THEN
 !
 !
 !*       4.     Determine vertical velocity at top and bottom of each layer
@@ -272,9 +280,9 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !               ---------------------------------------------------------------
               ! we compute here Domega/Dp = - g rho Dw/Dz = 1/Dt
 !
-             ZWORK1(:)   = - ( PUER(:,JKP) - PUDR(:,JKP) ) / PLMASS(:,JKP)
+               ZWORK1(JI)   = - ( PUER(JI,JKP) - PUDR(JI,JKP) ) / PLMASS(JI,JKP)
 !
-             PWSUB(:,JK) = PWSUB(:,JKP) - PDPRES(:,JK-1) * ZWORK1(:)
+               PWSUB(JI,JK) = PWSUB(JI,JKP) - PDPRES(JI,JK-1) * ZWORK1(JI)
               ! we use PDPRES(JK-1) and not JKP in order to have zero subsidence
               ! at the first layer
 !
@@ -283,23 +291,28 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !               mass conservation reasons one must split full time step PTIMEC)
 !               ---------------------------------------------------------------
 !
-             ZWORK1(:) = XSTABT * PDPRES(:,JKP) / ( ABS( PWSUB(:,JK) ) + 1.E-10 )
+               ZWORK1(JI) = XSTABT * PDPRES(JI,JKP) / ( ABS( PWSUB(JI,JK) ) + 1.E-10 )
               ! the factor XSTABT is used for stability reasons
-             ZTIMEC(:) = MIN( ZTIMEC(:), ZWORK1(:) )
+               ZTIMEC(JI) = MIN( ZTIMEC(JI), ZWORK1(JI) )
 !
               ! transform vertical velocity in mass flux units
-             ZOMG(:,JK) = PWSUB(:,JK) * PDXDY / XG
-         END WHERE
+               ZOMG(JI,JK) = PWSUB(JI,JK) * PDXDY / XG
+             ENDIF
+           ENDDO
      END DO
 !
 !
-     WHERE( GWORK4(:,:) )
-           ZTHLC(:,:) = PTHL(:,:) ! reinitialize adjusted envir. values
-           PRWC(:,:)  = PRW(:,:)  ! when iteration criterium not attained
-           PRCC(:,:)  = MAX(0., PRC(:,:))
-           PRIC(:,:)  = MAX(0., PRI(:,:))
-           PTHC(:,:)  = PTH(:,:)
-     END WHERE
+     DO JK = IKB, IKE
+       DO JI=KIDIA, KFDIA
+         IF(GWORK4(JI,JK)) THEN
+           ZTHLC(JI,JK) = PTHL(JI,JK) ! reinitialize adjusted envir. values
+           PRWC(JI,JK)  = PRW(JI,JK)  ! when iteration criterium not attained
+           PRCC(JI,JK)  = MAX(0., PRC(JI,JK))
+           PRIC(JI,JK)  = MAX(0., PRI(JI,JK))
+           PTHC(JI,JK)  = PTH(JI,JK)
+         ENDIF
+       ENDDO
+     ENDDO
 !
 !
 !        6. Check for mass conservation, i.e. ZWORK1 > 1.E-2
@@ -312,45 +325,51 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
        ZWORK1(JI) = PUDR(JI,JK) * PDPRES(JI,JK) / ( PLMASS(JI,JK) + .1 )    &
                                                             - PWSUB(JI,JK)
     END DO
-    WHERE( GWORK1(:) .AND. ABS( ZWORK1(:) ) - .01 > 0. )
-        GWORK1(:) = .FALSE.
-        PTIMEC(:) = 1.E-1
-        ZWORK5(:) = 0.
-    END WHERE
+    DO JI = KIDIA, KFDIA
+      IF(GWORK1(JI) .AND. ABS( ZWORK1(JI) ) - .01 > 0. ) THEN
+        GWORK1(JI) = .FALSE.
+        PTIMEC(JI) = 1.E-1
+        ZWORK5(JI) = 0.
+      ENDIF
+    ENDDO
     DO JK = IKB, IKE
         PWSUB(:,JK) = PWSUB(:,JK) * ZWORK5(:)
     END DO
-    GWORK4(:,1:IKB) = .FALSE.
-    GWORK4(:,IKE:IKS)   = .FALSE.
+    GWORK4(KIDIA:KFDIA,1:IKB) = .FALSE.
+    GWORK4(KIDIA:KFDIA,IKE:IKS)   = .FALSE.
 !
-    ITSTEP(:) = INT( PTIMEC(:) / ZTIMEC(:) ) + 1
-    ZTIMEC(:) = PTIMEC(:) / REAL( ITSTEP(:) ) ! adjust  fractional time step
+    DO JI=KIDIA,KFDIA
+      ITSTEP(JI) = INT( PTIMEC(JI) / ZTIMEC(JI) ) + 1
+    ENDDO
+    DO JI=KIDIA,KFDIA
+      ZTIMEC(JI) = PTIMEC(JI) / REAL( ITSTEP(JI) ) ! adjust  fractional time step
+    ENDDO
                                            ! to be an integer multiple of PTIMEC
     ZTIMC(:,:)= SPREAD( ZTIMEC(:), DIM=2, NCOPIES=IKS )
-    ICOUNT(:) = 0
+    ICOUNT(KIDIA:KFDIA) = 0
 !
 !
 !
     KFTSTEPS = MAXVAL( ITSTEP(:) )
     DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop here
 !
-            ICOUNT(:) = ICOUNT(:) + 1
+            ICOUNT(KIDIA:KFDIA) = ICOUNT(KIDIA:KFDIA) + 1
 !
-            GWORK3(:) =  ITSTEP(:) >= ICOUNT(:) .AND. GWORK1(:)
+            GWORK3(KIDIA:KFDIA) =  ITSTEP(KIDIA:KFDIA) >= ICOUNT(KIDIA:KFDIA) .AND. GWORK1(KIDIA:KFDIA)
 !
 !
 !*       7.     Assign enthalpy and r_w values at the top and bottom of each
 !               layer based on the sign of w
 !               ------------------------------------------------------------
 !
-             ZTHMFIN(:,:)   = 0.
-             ZRWMFIN(:,:)   = 0.
-             ZRCMFIN(:,:)   = 0.
-             ZRIMFIN(:,:)   = 0.
-             ZTHMFOUT(:,:)  = 0.
-             ZRWMFOUT(:,:)  = 0.
-             ZRCMFOUT(:,:)  = 0.
-             ZRIMFOUT(:,:)  = 0.
+             ZTHMFIN(KIDIA:KFDIA,1:KLEV)   = 0.
+             ZRWMFIN(KIDIA:KFDIA,1:KLEV)   = 0.
+             ZRCMFIN(KIDIA:KFDIA,1:KLEV)   = 0.
+             ZRIMFIN(KIDIA:KFDIA,1:KLEV)   = 0.
+             ZTHMFOUT(KIDIA:KFDIA,1:KLEV)  = 0.
+             ZRWMFOUT(KIDIA:KFDIA,1:KLEV)  = 0.
+             ZRCMFOUT(KIDIA:KFDIA,1:KLEV)  = 0.
+             ZRIMFOUT(KIDIA:KFDIA,1:KLEV)  = 0.
 !
          DO JK = IKB + 1, JKMAX
            DO JI = KIDIA, KFDIA
@@ -388,7 +407,9 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
            END DO
          END DO
 !
-         WHERE ( GWORK4(:,:) )
+         DO JK = IKB, IKE
+           DO JI=KIDIA, KFDIA
+             IF(GWORK4(JI,JK)) THEN
 !
 !******************************************************************************
 !
@@ -397,23 +418,25 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !               -----------------------------------------------------------------
 !
 !
-           ZTHLC(:,:) = ZTHLC(:,:) + ZTIMC(:,:) / PLMASS(:,:) * (      &
-                          ZTHMFIN(:,:) + PUDR(:,:) * PUTHL(:,:)        &
-                      - ZTHMFOUT(:,:) - PUER(:,:) * PTHL(:,:)   )
-           PRWC(:,:)  = PRWC(:,:) + ZTIMC(:,:) / PLMASS(:,:) *  (      &
-                          ZRWMFIN(:,:) + PUDR(:,:) * PURW(:,:)          &
-                      - ZRWMFOUT(:,:) - PUER(:,:) * PRW(:,:)    )
-           PRCC(:,:)  = PRCC(:,:) + ZTIMC(:,:) / PLMASS(:,:) *  (      &
-               ZRCMFIN(:,:) + PUDR(:,:) * PURC(:,:) - ZRCMFOUT(:,:) -  &
-                         PUER(:,:) * MAX(0., PRC(:,:))    )
-           PRIC(:,:)  = PRIC(:,:) + ZTIMC(:,:) / PLMASS(:,:) *  (      &
-               ZRIMFIN(:,:) + PUDR(:,:) * PURI(:,:) - ZRIMFOUT(:,:) -  &
-                         PUER(:,:) * MAX(0., PRI(:,:))    )
+           ZTHLC(JI,JK) = ZTHLC(JI,JK) + ZTIMC(JI,JK) / PLMASS(JI,JK) * (      &
+                          ZTHMFIN(JI,JK) + PUDR(JI,JK) * PUTHL(JI,JK)        &
+                      - ZTHMFOUT(JI,JK) - PUER(JI,JK) * PTHL(JI,JK)   )
+           PRWC(JI,JK)  = PRWC(JI,JK) + ZTIMC(JI,JK) / PLMASS(JI,JK) *  (      &
+                          ZRWMFIN(JI,JK) + PUDR(JI,JK) * PURW(JI,JK)          &
+                      - ZRWMFOUT(JI,JK) - PUER(JI,JK) * PRW(JI,JK)    )
+           PRCC(JI,JK)  = PRCC(JI,JK) + ZTIMC(JI,JK) / PLMASS(JI,JK) *  (      &
+               ZRCMFIN(JI,JK) + PUDR(JI,JK) * PURC(JI,JK) - ZRCMFOUT(JI,JK) -  &
+                         PUER(JI,JK) * MAX(0., PRC(JI,JK))    )
+           PRIC(JI,JK)  = PRIC(JI,JK) + ZTIMC(JI,JK) / PLMASS(JI,JK) *  (      &
+               ZRIMFIN(JI,JK) + PUDR(JI,JK) * PURI(JI,JK) - ZRIMFOUT(JI,JK) -  &
+                         PUER(JI,JK) * MAX(0., PRI(JI,JK))    )
 !
 !
 !******************************************************************************
 !
-         END WHERE
+             ENDIF
+           ENDDO
+         ENDDO
 !
     END DO ! Exit the fractional time step loop
 !
@@ -450,32 +473,32 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
                                      ILCL, KDPL, KPBL )
 !
 !
-       ZTLCL(:)  = MAX( 230., MIN( 335., ZTLCL(:) ) )  ! set some overflow bounds
-       ZTELCL(:) = MAX( 230., MIN( 335., ZTELCL(:) ) )
-       ZTHLCL(:) = MAX( 230., MIN( 345., ZTHLCL(:) ) )
-       ZRVLCL(:) = MAX(   0., MIN(   1., ZRVLCL(:) ) )
+       ZTLCL(KIDIA:KFDIA)  = MAX( 230., MIN( 335., ZTLCL(KIDIA:KFDIA) ) )  ! set some overflow bounds
+       ZTELCL(KIDIA:KFDIA) = MAX( 230., MIN( 335., ZTELCL(KIDIA:KFDIA) ) )
+       ZTHLCL(KIDIA:KFDIA) = MAX( 230., MIN( 345., ZTHLCL(KIDIA:KFDIA) ) )
+       ZRVLCL(KIDIA:KFDIA) = MAX(   0., MIN(   1., ZRVLCL(KIDIA:KFDIA) ) )
 !
 !
 !*         12.    Compute adjusted CAPE
 !                 ---------------------
 !
-       ZCAPE(:)  = 0.
-       ZPI(:)    = ZTHLCL(:) / ZTLCL(:)
-       ZPI(:)    = MAX( 0.95, MIN( 1.5, ZPI(:) ) )
-       ZWORK1(:) = XP00 / ZPI(:) ** ZCPORD ! pressure at LCL
+       ZCAPE(KIDIA:KFDIA)  = 0.
+       ZPI(KIDIA:KFDIA)    = ZTHLCL(KIDIA:KFDIA) / ZTLCL(KIDIA:KFDIA)
+       ZPI(KIDIA:KFDIA)    = MAX( 0.95, MIN( 1.5, ZPI(KIDIA:KFDIA) ) )
+       ZWORK1(KIDIA:KFDIA) = XP00 / ZPI(KIDIA:KFDIA) ** ZCPORD ! pressure at LCL
 !
        CALL CONVECT_SATMIXRATIO( KLON, ZWORK1, ZTELCL, ZWORK3, ZLV, ZLS, ZCPH )
-       ZWORK3(:) = MIN(   .1, MAX(   0., ZWORK3(:) ) )
+       ZWORK3(KIDIA:KFDIA) = MIN(   .1, MAX(   0., ZWORK3(KIDIA:KFDIA) ) )
 !
                 ! compute theta_e updraft undilute
-       ZTHEUL(:) = ZTLCL(:) * ZPI(:) ** ( 1. - 0.28 * ZRVLCL(:) )            &
-                                  * EXP( ( 3374.6525 / ZTLCL(:) - 2.5403 )   &
-                                  * ZRVLCL(:) * ( 1. + 0.81 * ZRVLCL(:) ) )
+       ZTHEUL(KIDIA:KFDIA) = ZTLCL(KIDIA:KFDIA) * ZPI(KIDIA:KFDIA) ** ( 1. - 0.28 * ZRVLCL(KIDIA:KFDIA) )            &
+                                  * EXP( ( 3374.6525 / ZTLCL(KIDIA:KFDIA) - 2.5403 )   &
+                                  * ZRVLCL(KIDIA:KFDIA) * ( 1. + 0.81 * ZRVLCL(KIDIA:KFDIA) ) )
 !
                 ! compute theta_e saturated environment at LCL
-       ZTHES1(:) = ZTELCL(:) * ZPI(:) ** ( 1. - 0.28 * ZWORK3(:) )           &
-                                  * EXP( ( 3374.6525 / ZTELCL(:) - 2.5403 )  &
-                                  * ZWORK3(:) * ( 1. + 0.81 * ZWORK3(:) ) )
+       ZTHES1(KIDIA:KFDIA) = ZTELCL(KIDIA:KFDIA) * ZPI(KIDIA:KFDIA) ** ( 1. - 0.28 * ZWORK3(KIDIA:KFDIA) )           &
+                                  * EXP( ( 3374.6525 / ZTELCL(KIDIA:KFDIA) - 2.5403 )  &
+                                  * ZWORK3(KIDIA:KFDIA) * ( 1. + 0.81 * ZWORK3(KIDIA:KFDIA) ) )
 !
       DO JK = IKB, JKMAX
         JKP = JK - 1
@@ -515,17 +538,26 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                  CAPE has been removed.
 !                  -------------------------------------------------
 !
-       WHERE ( GWORK1(:) )
-           ZWORK1(:) = MAX( PCAPE(:) - ZCAPE(:), 0.2 * PCAPE(:) )
-           ZWORK2(:) = ZCAPE(:) / ( PCAPE(:) + 1.E-8 )
+       DO JI=KIDIA,KFDIA
+         IF ( GWORK1(JI) ) THEN
+           ZWORK1(JI) = MAX( PCAPE(JI) - ZCAPE(JI), 0.2 * PCAPE(JI) )
+           ZWORK2(JI) = ZCAPE(JI) / ( PCAPE(JI) + 1.E-8 )
 !
-           GWORK1(:) = ZWORK2(:) > 0.2 .OR. ZCAPE(:) == 0. ! mask for adjustment
-       END WHERE
+           GWORK1(JI) = ZWORK2(JI) > 0.2 .OR. ZCAPE(JI) == 0. ! mask for adjustment
+         END IF
+       ENDDO
 !
-       WHERE ( ZCAPE(:) == 0. .AND. GWORK1(:) )  ZADJ(:) = ZADJ(:) * 0.5
-       WHERE ( ZCAPE(:) /= 0. .AND. GWORK1(:) )                              &
-               ZADJ(:) = ZADJ(:) * XSTABC * PCAPE(:) / ( ZWORK1(:) + 1.E-8 )
-       ZADJ(:) = MIN( ZADJ(:), ZADJMAX(:) )
+       DO JI=KIDIA,KFDIA
+         IF( ZCAPE(JI) == 0. .AND. GWORK1(JI) )  ZADJ(JI) = ZADJ(JI) * 0.5
+       ENDDO
+       DO JI=KIDIA,KFDIA
+         IF ( ZCAPE(JI) /= 0. .AND. GWORK1(JI) ) THEN
+               ZADJ(JI) = ZADJ(JI) * XSTABC * PCAPE(JI) / ( ZWORK1(JI) + 1.E-8 )
+         ENDIF
+       ENDDO
+       DO JI=KIDIA,KFDIA
+         ZADJ(JI) = MIN( ZADJ(JI), ZADJMAX(JI) )
+       ENDDO
 !
 !
 !*         13.     Adjust mass flux by the factor ZADJ to converge to
@@ -545,7 +577,9 @@ END DO  ! end of big adjustment iteration loop
 !
         ! skip adj. total water array  to water vapor
 DO JK = IKB, IKE
-   PRWC(:,JK) = MAX( 0., PRWC(:,JK) - PRCC(:,JK) - PRIC(:,JK) )
+  DO JI=KIDIA,KFDIA
+    PRWC(JI,JK) = MAX( 0., PRWC(JI,JK) - PRCC(JI,JK) - PRIC(JI,JK) )
+  END DO
 END DO
 !
 !
