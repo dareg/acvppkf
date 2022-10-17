@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_SATMIXRATIO( KLON,                          &
+      SUBROUTINE CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA,            &
                                       PPRES, PT, PEW, PLV, PLS, PCPH )      
       USE PARKIND1, ONLY : JPRB
       USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -61,6 +61,8 @@ IMPLICIT NONE
 !
 !
 INTEGER,                INTENT(IN) :: KLON    ! horizontal loop index
+INTEGER,                INTENT(IN) :: KIDIA   ! value of the first point in x
+INTEGER,                INTENT(IN) :: KFDIA   ! value of the last point in x
 REAL, DIMENSION(KLON),  INTENT(IN) :: PPRES   ! pressure
 REAL, DIMENSION(KLON),  INTENT(IN) :: PT      ! temperature   
 !
@@ -81,14 +83,14 @@ REAL    :: ZEPS           ! R_d / R_v
     IF (LHOOK) CALL DR_HOOK('CONVECT_SATMIXRATIO',0,ZHOOK_HANDLE)
     ZEPS      = XRD / XRV
 !
-    ZT(:)     = MIN( 400., MAX( PT(:), 10. ) ) ! overflow bound
-    PEW(:)    = EXP( XALPW - XBETAW / ZT(:) - XGAMW * ALOG( ZT(:) ) )
-    PEW(:)    = ZEPS * PEW(:) / ( PPRES(:) - PEW(:) )
+    ZT(KIDIA:KFDIA)     = MIN( 400., MAX( PT(KIDIA:KFDIA), 10. ) ) ! overflow bound
+    PEW(KIDIA:KFDIA)    = EXP( XALPW - XBETAW / ZT(KIDIA:KFDIA) - XGAMW * ALOG( ZT(KIDIA:KFDIA) ) )
+    PEW(KIDIA:KFDIA)    = ZEPS * PEW(KIDIA:KFDIA) / ( PPRES(KIDIA:KFDIA) - PEW(KIDIA:KFDIA) )
 !
-    PLV(:)    = XLVTT + ( XCPV - XCL ) * ( ZT(:) - XTT ) ! compute L_v
-    PLS(:)    = XLSTT + ( XCPV - XCI ) * ( ZT(:) - XTT ) ! compute L_i
+    PLV(KIDIA:KFDIA)    = XLVTT + ( XCPV - XCL ) * ( ZT(KIDIA:KFDIA) - XTT ) ! compute L_v
+    PLS(KIDIA:KFDIA)    = XLSTT + ( XCPV - XCI ) * ( ZT(KIDIA:KFDIA) - XTT ) ! compute L_i
 !    
-    PCPH(:)   = XCPD + XCPV * PEW(:)                     ! compute C_ph 
+    PCPH(KIDIA:KFDIA)   = XCPD + XCPV * PEW(KIDIA:KFDIA)                     ! compute C_ph 
 !
 IF (LHOOK) CALL DR_HOOK('CONVECT_SATMIXRATIO',1,ZHOOK_HANDLE)
 END SUBROUTINE CONVECT_SATMIXRATIO

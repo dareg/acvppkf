@@ -487,7 +487,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
        ZPI(KIDIA:KFDIA)    = MAX( 0.95, MIN( 1.5, ZPI(KIDIA:KFDIA) ) )
        ZWORK1(KIDIA:KFDIA) = XP00 / ZPI(KIDIA:KFDIA) ** ZCPORD ! pressure at LCL
 !
-       CALL CONVECT_SATMIXRATIO( KLON, ZWORK1, ZTELCL, ZWORK3, ZLV, ZLS, ZCPH )
+       CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZWORK1, ZTELCL, ZWORK3, ZLV, ZLS, ZCPH )
        ZWORK3(KIDIA:KFDIA) = MIN(   .1, MAX(   0., ZWORK3(KIDIA:KFDIA) ) )
 !
                 ! compute theta_e updraft undilute
@@ -515,7 +515,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
           ZWORK2(JI)  = PTHC(JI,JK) / ZPI(JI)
         END DO
 !
-        CALL CONVECT_SATMIXRATIO( KLON, PPRES(:,JK), ZWORK2, ZWORK3, ZLV, ZLS, ZCPH )
+        CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, PPRES(:,JK), ZWORK2, ZWORK3, ZLV, ZLS, ZCPH )
 !
 !
         DO JI = KIDIA, KFDIA

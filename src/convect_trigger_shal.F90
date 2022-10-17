@@ -253,7 +253,7 @@ DO JKK = IKB + 1, IKE - 2
 !               with MNH saturation formula
 !               ---------------------------------------------
 !
-     CALL CONVECT_SATMIXRATIO( KLON, ZPLCL, ZTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
+     CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPLCL, ZTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
      WHERE( GWORK1(:) )
         ZWORK2(:) = ZWORK1(:) / ZTLCL(:) * ( XBETAW / ZTLCL(:) - XGAMW ) ! dr_sat/dT
         ZWORK2(:) = ( ZWORK1(:) - ZRVLCL(:) ) /                              &
@@ -267,7 +267,7 @@ DO JKK = IKB + 1, IKE - 2
 !               and temperature to saturation values.
 !               ---------------------------------------------
 !
-     CALL CONVECT_SATMIXRATIO( KLON, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
+     CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
      WHERE( GWORK1(:) .AND. ZRVLCL(:) > ZWORK1(:) )
         ZWORK2(:) = ZWORK1(:) / ZTMIX(:) * ( XBETAW / ZTMIX(:) - XGAMW ) ! dr_sat/dT
         ZWORK2(:) = ( ZWORK1(:) - ZRVLCL(:) ) /                              &
