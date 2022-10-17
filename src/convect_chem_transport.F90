@@ -97,7 +97,7 @@ INTEGER :: JI             ! horizontal loop index
 INTEGER :: JK, JKP        ! vertical loop index
 INTEGER :: JN             ! chemical tracer loop index
 INTEGER :: JSTEP          ! fractional time loop index
-INTEGER :: JKLD, JKLP, JKMAX ! loop index for levels
+INTEGER :: JKLD, JKLP, JKMIN, JKMAX, JKMAX2 ! loop index for levels
 !
 REAL, DIMENSION(KLON,KLEV)     :: ZOMG ! compensat. subsidence (Pa/s)
 REAL, DIMENSION(KLON,KLEV,KCH) :: ZUCH1, ZDCH1 ! updraft/downdraft values
@@ -118,7 +118,13 @@ INCH1  = KCH
 IKB    = 1 + JCVEXB
 IKS    = KLEV
 IKE    = KLEV - JCVEXT
-JKMAX  = MAXVAL( KCTL(KIDIA:KFDIA) )
+JKMAX  = 0
+JKMIN  = 999999999
+DO JI=KIDIA, KFDIA
+  JKMIN = MIN(JKMIN, KDPL(JI))
+  JKMAX = MAX(JKMAX, KCTL(JI))
+ENDDO
+
 !
 !
 !*      2.      Updraft computations
@@ -140,7 +146,7 @@ END DO
 !*      2.2     Final updraft loop
 !               ------------------
 !
-DO JK = MINVAL( KDPL(:) ), JKMAX
+DO JK = JKMIN, JKMAX
 JKP = JK + 1
 !
     DO JN = 1, INCH1
@@ -182,7 +188,11 @@ END DO
 !*      3.2     Final downdraft loop
 !               --------------------
 !
-DO JK = MAXVAL( KLFS(:) ), IKB + 1, -1
+JKMAX2 = 0
+DO JI=KIDIA, KFDIA
+  JKMAX2 = MAX(JKMAX2, KLFS(JI))
+ENDDO
+DO JK = JKMAX2, IKB + 1, -1
 JKP = JK - 1
     DO JN = 1, INCH1
     DO JI = KIDIA, KFDIA

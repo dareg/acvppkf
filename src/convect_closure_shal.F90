@@ -350,7 +350,10 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !
 !
 !
-    KFTSTEPS = MAXVAL( ITSTEP(:) )
+    KFTSTEPS = 0
+    DO JI=KIDIA,KFDIA
+      KFTSTEPS = MAX(KFTSTEPS, ITSTEP(JI))
+    ENDDO
     DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop here
 !
             ICOUNT(KIDIA:KFDIA) = ICOUNT(KIDIA:KFDIA) + 1
