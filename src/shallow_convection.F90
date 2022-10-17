@@ -255,7 +255,7 @@ CALL CONVECT_TRIGGER_SHAL(  KLON, KLEV, KIDIA, KFDIA,                    &
                             PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
                             ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
-ICONV = COUNT(GTRIG1(:))
+ICONV = COUNT(GTRIG1(KIDIA:KFDIA))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < KLON/2) THEN

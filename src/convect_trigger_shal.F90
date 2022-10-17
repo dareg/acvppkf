@@ -121,24 +121,24 @@ INTEGER :: IKB, IKE                       ! horizontal + vertical loop bounds
 REAL    :: ZEPS, ZEPSA                         ! R_d / R_v, R_v / R_d
 REAL    :: ZCPORD, ZRDOCP                      ! C_pd / R_d, R_d / C_pd
 !
-REAL, DIMENSION(KLON) :: ZTHLCL, ZTLCL, ZRVLCL, & ! locals for PTHLCL,PTLCL
+REAL, DIMENSION(KFDIA) :: ZTHLCL, ZTLCL, ZRVLCL, & ! locals for PTHLCL,PTLCL
                                ZWLCL,  ZZLCL, ZTHVELCL  ! PRVLCL, ....
-INTEGER, DIMENSION(KLON) :: IDPL, IPBL, ILCL      ! locals for KDPL, ...
-REAL, DIMENSION(KLON) :: ZPLCL    ! pressure at LCL
-REAL, DIMENSION(KLON) :: ZZDPL    ! height of DPL
-REAL, DIMENSION(KLON) :: ZTHVLCL  ! theta_v at LCL = mixed layer value
-REAL, DIMENSION(KLON) :: ZTMIX    ! mixed layer temperature
-REAL, DIMENSION(KLON) :: ZEVMIX   ! mixed layer water vapor pressure
-REAL, DIMENSION(KLON) :: ZDPTHMIX, ZPRESMIX ! mixed layer depth and pressure
-REAL, DIMENSION(KLON) :: ZCAPE    ! convective available energy (m^2/s^2/g)
-REAL, DIMENSION(KLON) :: ZCAP     ! pseudo fro CAPE
-REAL, DIMENSION(KLON) :: ZTHEUL   ! updraft equiv. pot. temperature (K)
-REAL, DIMENSION(KLON) :: ZLV, ZCPH! specific heats of vaporisation, dry air
-REAL, DIMENSION(KLON) :: ZDP      ! pressure between LCL and model layer
-REAL, DIMENSION(KLON) :: ZTOP,ZTOPP     ! estimated cloud top (m)
-REAL, DIMENSION(KLON) :: ZWORK1, ZWORK2, ZWORK3    ! work arrays
-LOGICAL, DIMENSION(KLON) :: GTRIG, GTRIG2          ! local arrays for OTRIG
-LOGICAL, DIMENSION(KLON) :: GWORK1                 ! work array
+INTEGER, DIMENSION(KFDIA) :: IDPL, IPBL, ILCL      ! locals for KDPL, ...
+REAL, DIMENSION(KFDIA) :: ZPLCL    ! pressure at LCL
+REAL, DIMENSION(KFDIA) :: ZZDPL    ! height of DPL
+REAL, DIMENSION(KFDIA) :: ZTHVLCL  ! theta_v at LCL = mixed layer value
+REAL, DIMENSION(KFDIA) :: ZTMIX    ! mixed layer temperature
+REAL, DIMENSION(KFDIA) :: ZEVMIX   ! mixed layer water vapor pressure
+REAL, DIMENSION(KFDIA) :: ZDPTHMIX, ZPRESMIX ! mixed layer depth and pressure
+REAL, DIMENSION(KFDIA) :: ZCAPE    ! convective available energy (m^2/s^2/g)
+REAL, DIMENSION(KFDIA) :: ZCAP     ! pseudo fro CAPE
+REAL, DIMENSION(KFDIA) :: ZTHEUL   ! updraft equiv. pot. temperature (K)
+REAL, DIMENSION(KFDIA) :: ZLV, ZCPH! specific heats of vaporisation, dry air
+REAL, DIMENSION(KFDIA) :: ZDP      ! pressure between LCL and model layer
+REAL, DIMENSION(KFDIA) :: ZTOP,ZTOPP     ! estimated cloud top (m)
+REAL, DIMENSION(KFDIA) :: ZWORK1, ZWORK2, ZWORK3    ! work arrays
+LOGICAL, DIMENSION(KFDIA) :: GTRIG, GTRIG2          ! local arrays for OTRIG
+LOGICAL, DIMENSION(KFDIA) :: GWORK1                 ! work array
 !
 !
 !-------------------------------------------------------------------------------
@@ -159,20 +159,20 @@ ZEPS       = XRD / XRV
 ZEPSA      = XRV / XRD
 ZCPORD     = XCPD / XRD
 ZRDOCP     = XRD / XCPD
-OTRIG(:)   = .FALSE.
-IDPL(:)    = KDPL(:)
-IPBL(:)    = KPBL(:)
-ILCL(:)    = KLCL(:)
-PWLCL(:)   = 0.
-ZWLCL(:)   = 0.
-PTHLCL(:)  = 1.
-PTHVELCL(:)= 1.
-PTLCL(:)   = 1.
-PRVLCL(:)  = 0.
-PWLCL(:)   = 0.
-PZLCL(:)   = PZ(:,IKB)
-ZZDPL(:)   = PZ(:,IKB)
-GTRIG2(:)  = .TRUE.
+OTRIG(KIDIA:KFDIA)   = .FALSE.
+IDPL(KIDIA:KFDIA)    = KDPL(KIDIA:KFDIA)
+IPBL(KIDIA:KFDIA)    = KPBL(KIDIA:KFDIA)
+ILCL(KIDIA:KFDIA)    = KLCL(KIDIA:KFDIA)
+PWLCL(KIDIA:KFDIA)   = 0.
+ZWLCL(KIDIA:KFDIA)   = 0.
+PTHLCL(KIDIA:KFDIA)  = 1.
+PTHVELCL(KIDIA:KFDIA)= 1.
+PTLCL(KIDIA:KFDIA)   = 1.
+PRVLCL(KIDIA:KFDIA)  = 0.
+PWLCL(KIDIA:KFDIA)   = 0.
+PZLCL(KIDIA:KFDIA)   = PZ(KIDIA:KFDIA,IKB)
+ZZDPL(KIDIA:KFDIA)   = PZ(KIDIA:KFDIA,IKB)
+GTRIG2(KIDIA:KFDIA)  = .TRUE.
 !
 !
 !
@@ -186,17 +186,19 @@ JT = IKE - 2
 !
 DO JKK = IKB + 1, IKE - 2
 !
-     GWORK1(:) = ZZDPL(:) - PZ(:,IKB) < XZLCL
+     GWORK1(KIDIA:KFDIA) = ZZDPL(KIDIA:KFDIA) - PZ(KIDIA:KFDIA,IKB) < XZLCL
           ! we exit the trigger test when the center of the mixed layer is more
           ! than 1500 m  above soil level.
-     WHERE ( GWORK1(:) )
-        ZDPTHMIX(:) = 0.
-        ZPRESMIX(:) = 0.
-        ZTHLCL(:)   = 0.
-        ZRVLCL(:)   = 0.
-        ZZDPL(:)    = PZ(:,JKK)
-        IDPL(:)     = JKK
-     END WHERE
+     DO JI=KIDIA, KFDIA
+       IF ( GWORK1(JI) ) THEN
+          ZDPTHMIX(JI) = 0.
+          ZPRESMIX(JI) = 0.
+          ZTHLCL(JI)   = 0.
+          ZRVLCL(JI)   = 0.
+          ZZDPL(JI)    = PZ(JI,JKK)
+          IDPL(JI)     = JKK
+       END IF
+     ENDDO
 !
 !
 !*       3.     Construct a mixed layer of at least 50 hPa (XZPBL)
@@ -218,35 +220,37 @@ DO JKK = IKB + 1, IKE - 2
      END DO
 !
 !
-     WHERE ( GWORK1(:) )
+     DO JI=KIDIA, KFDIA
+     IF ( GWORK1(JI) ) THEN
 !
-        ZPRESMIX(:) = ZPRESMIX(:) / ZDPTHMIX(:)
-        ZTHLCL(:)   = ZTHLCL(:)   / ZDPTHMIX(:) + &
-      & (XATPERT * MIN(3.,PTKECLS(:))/XCPD +XBTPERT) * XDTPERT ! add small Temp Perturb.
-        ZRVLCL(:)   = ZRVLCL(:)   / ZDPTHMIX(:)
-        ZTHVLCL(:)  = ZTHLCL(:) * ( 1. + ZEPSA * ZRVLCL(:) )                 &
-                    / ( 1. + ZRVLCL(:) )
+        ZPRESMIX(JI) = ZPRESMIX(JI) / ZDPTHMIX(JI)
+        ZTHLCL(JI)   = ZTHLCL(JI)   / ZDPTHMIX(JI) + &
+      & (XATPERT * MIN(3.,PTKECLS(JI))/XCPD +XBTPERT) * XDTPERT ! add small Temp Perturb.
+        ZRVLCL(JI)   = ZRVLCL(JI)   / ZDPTHMIX(JI)
+        ZTHVLCL(JI)  = ZTHLCL(JI) * ( 1. + ZEPSA * ZRVLCL(JI) )                 &
+                    / ( 1. + ZRVLCL(JI) )
 !
 !*       4.1    Use an empirical direct solution ( Bolton formula )
 !               to determine temperature and pressure at LCL.
-!               Nota: the adiabatic saturation temperature is not
+!               NotaJI the adiabatic saturation temperature is not
 !                     equal to the dewpoint temperature
 !               ----------------------------------------------------
 !
 !
-        ZTMIX(:)  = ZTHLCL(:) * ( ZPRESMIX(:) / XP00 ) ** ZRDOCP
-        ZEVMIX(:) = ZRVLCL(:) * ZPRESMIX(:) / ( ZRVLCL(:) + ZEPS )
-        ZEVMIX(:) = MAX( 1.E-8, ZEVMIX(:) )
-        ZWORK1(:) = LOG( ZEVMIX(:) / 613.3 )
+        ZTMIX(JI)  = ZTHLCL(JI) * ( ZPRESMIX(JI) / XP00 ) ** ZRDOCP
+        ZEVMIX(JI) = ZRVLCL(JI) * ZPRESMIX(JI) / ( ZRVLCL(JI) + ZEPS )
+        ZEVMIX(JI) = MAX( 1.E-8, ZEVMIX(JI) )
+        ZWORK1(JI) = LOG( ZEVMIX(JI) / 613.3 )
               ! dewpoint temperature
-        ZWORK1(:) = ( 4780.8 - 32.19 * ZWORK1(:) ) / ( 17.502 - ZWORK1(:) )
+        ZWORK1(JI) = ( 4780.8 - 32.19 * ZWORK1(JI) ) / ( 17.502 - ZWORK1(JI) )
               ! adiabatic saturation temperature
-        ZTLCL(:)  = ZWORK1(:) - ( .212 + 1.571E-3 * ( ZWORK1(:) - XTT )      &
-                   - 4.36E-4 * ( ZTMIX(:) - XTT ) ) * ( ZTMIX(:) - ZWORK1(:) )
-        ZTLCL(:)  = MIN( ZTLCL(:), ZTMIX(:) )
-        ZPLCL(:)  = XP00 * ( ZTLCL(:) / ZTHLCL(:) ) ** ZCPORD
+        ZTLCL(JI)  = ZWORK1(JI) - ( .212 + 1.571E-3 * ( ZWORK1(JI) - XTT )      &
+                   - 4.36E-4 * ( ZTMIX(JI) - XTT ) ) * ( ZTMIX(JI) - ZWORK1(JI) )
+        ZTLCL(JI)  = MIN( ZTLCL(JI), ZTMIX(JI) )
+        ZPLCL(JI)  = XP00 * ( ZTLCL(JI) / ZTHLCL(JI) ) ** ZCPORD
 !
-     END WHERE
+     END IF
+     ENDDO
 !
 !
 !*       4.2    Correct ZTLCL in order to be completely consistent
@@ -254,13 +258,15 @@ DO JKK = IKB + 1, IKE - 2
 !               ---------------------------------------------
 !
      CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPLCL, ZTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
-     WHERE( GWORK1(:) )
-        ZWORK2(:) = ZWORK1(:) / ZTLCL(:) * ( XBETAW / ZTLCL(:) - XGAMW ) ! dr_sat/dT
-        ZWORK2(:) = ( ZWORK1(:) - ZRVLCL(:) ) /                              &
-                        ( 1. + ZLV(:) / ZCPH(:) * ZWORK2(:) )
-        ZTLCL(:)  = ZTLCL(:) - ZLV(:) / ZCPH(:) * ZWORK2(:)
+     DO JI=KIDIA, KFDIA
+     IF( GWORK1(JI) ) THEN
+        ZWORK2(JI) = ZWORK1(JI) / ZTLCL(JI) * ( XBETAW / ZTLCL(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ( ZWORK1(JI) - ZRVLCL(JI) ) /                              &
+                        ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) )
+        ZTLCL(JI)  = ZTLCL(JI) - ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
 !
-     END WHERE
+     END IF
+     ENDDO
 !
 !
 !*       4.3    If ZRVLCL = PRVMIX is oversaturated set humidity
@@ -268,17 +274,19 @@ DO JKK = IKB + 1, IKE - 2
 !               ---------------------------------------------
 !
      CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
-     WHERE( GWORK1(:) .AND. ZRVLCL(:) > ZWORK1(:) )
-        ZWORK2(:) = ZWORK1(:) / ZTMIX(:) * ( XBETAW / ZTMIX(:) - XGAMW ) ! dr_sat/dT
-        ZWORK2(:) = ( ZWORK1(:) - ZRVLCL(:) ) /                              &
-                       ( 1. + ZLV(:) / ZCPH(:) * ZWORK2(:) )
-        ZTLCL(:)  = ZTMIX(:) - ZLV(:) / ZCPH(:) * ZWORK2(:)
-        ZRVLCL(:) = ZRVLCL(:) - ZWORK2(:)
-        ZPLCL(:)  = ZPRESMIX(:)
-        ZTHLCL(:) = ZTLCL(:) * ( XP00 / ZPLCL(:) ) ** ZRDOCP
-        ZTHVLCL(:)= ZTHLCL(:) * ( 1. + ZEPSA * ZRVLCL(:) )                   &
-                              / ( 1. + ZRVLCL(:) )
-     END WHERE
+     DO JI=KIDIA, KFDIA
+     IF( GWORK1(JI) .AND. ZRVLCL(JI) > ZWORK1(JI) ) THEN
+        ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( XBETAW / ZTMIX(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ( ZWORK1(JI) - ZRVLCL(JI) ) /                              &
+                       ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) )
+        ZTLCL(JI)  = ZTMIX(JI) - ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
+        ZRVLCL(JI) = ZRVLCL(JI) - ZWORK2(JI)
+        ZPLCL(JI)  = ZPRESMIX(JI)
+        ZTHLCL(JI) = ZTLCL(JI) * ( XP00 / ZPLCL(JI) ) ** ZRDOCP
+        ZTHVLCL(JI)= ZTHLCL(JI) * ( 1. + ZEPSA * ZRVLCL(JI) )                   &
+                              / ( 1. + ZRVLCL(JI) )
+     END IF
+     ENDDO
 !
 !
 !*        5.1   Determine  vertical loop index at the LCL and DPL
@@ -304,10 +312,12 @@ DO JKK = IKB + 1, IKE - 2
            ! The precise height is between the levels ILCL and ILCL-1.
         ZWORK2(JI) = PZ(JI,JKM) + ( PZ(JI,JK) - PZ(JI,JKM) ) * ZDP(JI)
     END DO
-    WHERE( GWORK1(:) )
-        ZTHVELCL(:) = ZWORK1(:)
-        ZZLCL(:)    = ZWORK2(:)
-    END WHERE
+    DO JI = KIDIA, KFDIA
+    IF( GWORK1(JI) ) THEN
+        ZTHVELCL(JI) = ZWORK1(JI)
+        ZZLCL(JI)    = ZWORK2(JI)
+    END IF
+    END DO
 !
 !
 !*       6.     Check to see if cloud is bouyant
@@ -342,7 +352,7 @@ DO JKK = IKB + 1, IKE - 2
 !      GTRIG(:)  = ZTHVLCL(:) - ZTHVELCL(:) + ZWORK1(:) > 0. .AND.       &
 !                  ZWLCL(:) > 0.
 !    END WHERE
-     ZWLCL(:) = XAW * MAX(0.,PW(:,IKB)) + XBW
+     ZWLCL(KIDIA:KFDIA) = XAW * MAX(0.,PW(KIDIA:KFDIA,IKB)) + XBW
 !
 !
 !*       6.3    Look for parcel that produces sufficient cloud depth.
@@ -350,16 +360,16 @@ DO JKK = IKB + 1, IKE - 2
 !               is smaller  than a given value (based on vertical velocity eq.)
 !               --------------------------------------------------------------
 !
-     ZTHEUL(:) = ZTLCL(:) * ( ZTHLCL(:) / ZTLCL(:) )                       &
-                                             ** ( 1. - 0.28 * ZRVLCL(:) )  &
-                          * EXP( ( 3374.6525 / ZTLCL(:) - 2.5403 ) *       &
-                               ZRVLCL(:) * ( 1. + 0.81 * ZRVLCL(:) ) )
+     ZTHEUL(KIDIA:KFDIA) = ZTLCL(KIDIA:KFDIA) * ( ZTHLCL(KIDIA:KFDIA) / ZTLCL(KIDIA:KFDIA) )                       &
+                                             ** ( 1. - 0.28 * ZRVLCL(KIDIA:KFDIA) )  &
+                          * EXP( ( 3374.6525 / ZTLCL(KIDIA:KFDIA) - 2.5403 ) *       &
+                               ZRVLCL(KIDIA:KFDIA) * ( 1. + 0.81 * ZRVLCL(KIDIA:KFDIA) ) )
 !
-     ZCAPE(:) = 0.
-     ZCAP(:)  = 0.
-     ZTOP(:)  = 0.
-     ZTOPP(:)  = 0.
-     ZWORK3(:)= 0.
+     ZCAPE(KIDIA:KFDIA) = 0.
+     ZCAP(KIDIA:KFDIA)  = 0.
+     ZTOP(KIDIA:KFDIA)  = 0.
+     ZTOPP(KIDIA:KFDIA)  = 0.
+     ZWORK3(KIDIA:KFDIA)= 0.
      JKM = IKB
      DO JL = JKM, JT
         JK = JL + 1
@@ -386,23 +396,24 @@ DO JKK = IKB + 1, IKE - 2
      END DO
 !
 !
-     ZWORK2(:) = ZTOP(:) - ZZLCL(:)
+     ZWORK2(KIDIA:KFDIA) = ZTOP(KIDIA:KFDIA) - ZZLCL(KIDIA:KFDIA)
    ! WHERE( ZWORK2(:)  .GE. XCDEPTH  .AND. ZWORK2(:) < XCDEPTH_D .AND. GTRIG2(:) &
-     WHERE( ZWORK2(:)  .GE. XCDEPTH  .AND. GTRIG2(:) &
-       .AND. ZCAPE(:) > 10. )
-        GTRIG2(:)   = .FALSE.
-        OTRIG(:)    = .TRUE.
-      ! OTRIG(:)    = GTRIG(:)     ! we  select the first departure level
-        PTHLCL(:)   = ZTHLCL(:)    ! that gives sufficient cloud depth
-        PRVLCL(:)   = ZRVLCL(:)
-        PTLCL(:)    = ZTLCL(:)
-        PWLCL(:)    = ZWLCL(:)
-        PZLCL(:)    = ZZLCL(:)
-        PTHVELCL(:) = ZTHVELCL(:)
-        KDPL(:)     = IDPL(:)
-        KPBL(:)     = IPBL(:)
-        KLCL(:)     = ILCL(:)
-     END WHERE
+     DO JI=KIDIA, KFDIA
+     IF( ZWORK2(JI) .GE. XCDEPTH .AND. GTRIG2(JI) .AND. ZCAPE(JI) > 10. )THEN
+        GTRIG2(JI)   = .FALSE.
+        OTRIG(JI)    = .TRUE.
+      ! OTRIG(JI)    = GTRIG(JI)     ! we  select the first departure level
+        PTHLCL(JI)   = ZTHLCL(JI)    ! that gives sufficient cloud depth
+        PRVLCL(JI)   = ZRVLCL(JI)
+        PTLCL(JI)    = ZTLCL(JI)
+        PWLCL(JI)    = ZWLCL(JI)
+        PZLCL(JI)    = ZZLCL(JI)
+        PTHVELCL(JI) = ZTHVELCL(JI)
+        KDPL(JI)     = IDPL(JI)
+        KPBL(JI)     = IPBL(JI)
+        KLCL(JI)     = ILCL(JI)
+     END IF
+     ENDDO
 !
 END DO
 !
