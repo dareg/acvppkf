@@ -337,7 +337,7 @@ DO JK = IKB + 1, IKE - 1
 !                -------------------------------------------------------
 !
 !
-    CALL CONVECT_MIXING_FUNCT ( KLON, ZMIXF, 1, ZE2, ZD2 )
+    CALL CONVECT_MIXING_FUNCT ( KLON, KIDIA, KFDIA, ZMIXF, 1, ZE2, ZD2 )
 !       Note: routine MIXING_FUNCT returns fractional entrainm/detrainm. rates
 !
   ZE2=MIN(ZD2,MAX(.3,ZE2))

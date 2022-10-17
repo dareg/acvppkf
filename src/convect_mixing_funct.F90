@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_MIXING_FUNCT( KLON,                &
+      SUBROUTINE CONVECT_MIXING_FUNCT( KLON, KIDIA, KFDIA,  &
                                        PMIXC, KMF, PER, PDR )
       USE PARKIND1, ONLY : JPRB
       USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -58,6 +58,8 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 INTEGER,               INTENT(IN) :: KLON   ! horizontal dimension
+INTEGER,               INTENT(IN) :: KIDIA  ! value of the first point in x
+INTEGER,               INTENT(IN) :: KFDIA  ! value of the last point in x
 INTEGER,               INTENT(IN) :: KMF    ! switch for dist. function
 REAL, DIMENSION(KLON), INTENT(IN) :: PMIXC  ! critical mixed fraction
 !
@@ -75,6 +77,7 @@ REAL    :: ZE45   = 0.01111                       ! constant
 !
 REAL, DIMENSION(KLON) :: ZX, ZY, ZW1, ZW2         ! work variables
 REAL    :: ZW11
+INTEGER :: JI
 !
 !
 !-------------------------------------------------------------------------------
@@ -86,33 +89,38 @@ REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_MIXING_FUNCT',0,ZHOOK_HANDLE)
 IF( KMF == 1 ) THEN
     ! ZX(:)  = ( PMIXC(:) - 0.5 ) / ZSIGMA
-      ZX(:)  = 6. * PMIXC(:) - 3.
-      ZW1(:) = 1. / ( 1.+ ZP * ABS ( ZX(:) ) )
-      ZY(:)  = EXP( -0.5 * ZX(:) * ZX(:) )
-      ZW2(:) = ZA1 * ZW1(:) + ZA2 * ZW1(:) * ZW1(:) +                   &
-               ZA3 * ZW1(:) * ZW1(:) * ZW1(:)
+      ZX(KIDIA:KFDIA)  = 6. * PMIXC(KIDIA:KFDIA) - 3.
+      ZW1(KIDIA:KFDIA) = 1. / ( 1.+ ZP * ABS ( ZX(KIDIA:KFDIA) ) )
+      ZY(KIDIA:KFDIA)  = EXP( -0.5 * ZX(KIDIA:KFDIA) * ZX(KIDIA:KFDIA) )
+      ZW2(KIDIA:KFDIA) = ZA1 * ZW1(KIDIA:KFDIA) + ZA2 * ZW1(KIDIA:KFDIA) * ZW1(KIDIA:KFDIA) +                   &
+               ZA3 * ZW1(KIDIA:KFDIA) * ZW1(KIDIA:KFDIA) * ZW1(KIDIA:KFDIA)
       ZW11   = ZA1 * ZT1 + ZA2 * ZT1 * ZT1 + ZA3 * ZT1 * ZT1 * ZT1
 ENDIF
 !
-WHERE ( KMF == 1 .AND. ZX(:) >= 0. )
-        PER(:) = ZSIGMA * ( 0.5 * ( ZSQRTP - ZE45 * ZW11                 &
-                 - ZY(:) * ZW2(:) ) + ZSIGMA * ( ZE45 - ZY(:) ) )        &
-                 - 0.5 * ZE45 * PMIXC(:) * PMIXC(:)
-        PDR(:) = ZSIGMA*( 0.5 * ( ZY(:) * ZW2(:) - ZE45 * ZW11   )       &
-                 + ZSIGMA * ( ZE45 - ZY(:) ) )                           &
-                 - ZE45 * ( 0.5 + 0.5 * PMIXC(:) * PMIXC(:) - PMIXC(:) )
-END WHERE
-WHERE ( KMF == 1 .AND. ZX(:) < 0. )
-        PER(:) = ZSIGMA*( 0.5 * ( ZY(:) * ZW2(:) - ZE45 * ZW11   )       &
-                 + ZSIGMA * ( ZE45 - ZY(:) ) )                           &
-                 - 0.5 * ZE45 * PMIXC(:) * PMIXC(:)
-        PDR(:) = ZSIGMA * ( 0.5 * ( ZSQRTP - ZE45 * ZW11 - ZY(:)         &
-                 * ZW2(:) ) + ZSIGMA * ( ZE45 - ZY(:) ) )                &
-                 - ZE45 * ( 0.5 + 0.5 * PMIXC(:) * PMIXC(:) - PMIXC(:) )
-END WHERE
+DO JI=KIDIA, KFDIA
+  IF ( KMF == 1 .AND. ZX(JI) >= 0. ) THEN
+          PER(JI) = ZSIGMA * ( 0.5 * ( ZSQRTP - ZE45 * ZW11                 &
+                   - ZY(JI) * ZW2(JI) ) + ZSIGMA * ( ZE45 - ZY(JI) ) )        &
+                   - 0.5 * ZE45 * PMIXC(JI) * PMIXC(JI)
+          PDR(JI) = ZSIGMA*( 0.5 * ( ZY(JI) * ZW2(JI) - ZE45 * ZW11   )       &
+                   + ZSIGMA * ( ZE45 - ZY(JI) ) )                           &
+                   - ZE45 * ( 0.5 + 0.5 * PMIXC(JI) * PMIXC(JI) - PMIXC(JI) )
+  END IF
+ENDDO
+DO JI=KIDIA, KFDIA
+IF ( KMF == 1 .AND. ZX(JI) < 0. ) THEN
+        PER(JI) = ZSIGMA*( 0.5 * ( ZY(JI) * ZW2(JI) - ZE45 * ZW11   )       &
+                 + ZSIGMA * ( ZE45 - ZY(JI) ) )                           &
+                 - 0.5 * ZE45 * PMIXC(JI) * PMIXC(JI)
+        PDR(JI) = ZSIGMA * ( 0.5 * ( ZSQRTP - ZE45 * ZW11 - ZY(JI)         &
+                 * ZW2(JI) ) + ZSIGMA * ( ZE45 - ZY(JI) ) )                &
+                 - ZE45 * ( 0.5 + 0.5 * PMIXC(JI) * PMIXC(JI) - PMIXC(JI) )
+  END IF
+ENDDO
+
 !
-      PER(:) = PER(:) * ZFE
-      PDR(:) = PDR(:) * ZFE
+      PER(KIDIA:KFDIA) = PER(KIDIA:KFDIA) * ZFE
+      PDR(KIDIA:KFDIA) = PDR(KIDIA:KFDIA) * ZFE
 !
 !
 !       2.     Use triangular function KMF=2
