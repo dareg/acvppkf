@@ -176,7 +176,11 @@ ZDCH1(:,:,:) = 0.
 !*      3.1     Initialization at the LFS
 !               -------------------------
 !
-ZWORK1(:,:) = SPREAD( PMIXF(:), DIM=2, NCOPIES=INCH1 )
+DO JI=1,KFDIA
+DO JK=1,INCH1
+ZWORK1(JI,JK) = PMIXF(JI)
+ENDDO
+ENDDO
 DO JI = KIDIA, KFDIA
     DO JN = 1, INCH1
      JK = KLFS(JI)
@@ -224,7 +228,11 @@ ENDDO                                    ! to be an integer multiple of PTIMEC
 DO JI=KIDIA,KFDIA
   IF(PTIMEC(JI) < 1.) ZTIMEC(JI) = 0
 ENDDO
-ZTIMC(:,:)= SPREAD( ZTIMEC(:), DIM=2, NCOPIES=IKS )
+DO JI=1,KFDIA
+DO JK=1,IKS
+  ZTIMC(JI,JK) = ZTIMEC(JI)
+ENDDO
+ENDDO
 !
 ZCH1MFIN(KIDIA:KFDIA,1:KLEV,1:KCH)   = 0.
 ZCH1MFOUT(KIDIA:KFDIA,1:KLEV,1:KCH)  = 0.
@@ -233,7 +241,11 @@ DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop
 !
       DO JK = IKB + 1, JKMAX
           JKP = MAX( IKB + 1, JK - 1 )
-          ZWORK3(:,:) = SPREAD( ZOMG(:,JK), DIM=2, NCOPIES=INCH1 )
+          DO JI=1,KFDIA
+          DO JN=1,INCH1
+            ZWORK3(JI,JN) = ZOMG(JI,JK)
+          ENDDO
+          ENDDO
           ZWORK1(:,:) = SIGN( 1., ZWORK3(:,:) )
           ZWORK2(:,:) = 0.5 * ( 1. + ZWORK1(:,:) )
           ZWORK1(:,:) = 0.5 * ( 1. - ZWORK1(:,:) )

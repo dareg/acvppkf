@@ -261,7 +261,11 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
                  ! removed within the advective time interval TIMEC
 !
      ZTIMEC(KIDIA:KFDIA) = PTIMEC(KIDIA:KFDIA)
-     GWORK4(KIDIA:KFDIA,1:KLEV)   = SPREAD( GWORK1(:), DIM=2, NCOPIES=IKS )
+     DO JI=1, KFDIA
+     DO JK=1, IKS
+       GWORK4(JI,JK) = GWORK1(JI)
+     ENDDO
+     ENDDO
      DO JK = IKB, IKE
        DO JI=KIDIA, KFDIA
        IF(GWORK4(JI,JK))PWSUB(JI,JK) = 0.
@@ -345,7 +349,11 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
       ZTIMEC(JI) = PTIMEC(JI) / REAL( ITSTEP(JI) ) ! adjust  fractional time step
     ENDDO
                                            ! to be an integer multiple of PTIMEC
-    ZTIMC(:,:)= SPREAD( ZTIMEC(:), DIM=2, NCOPIES=IKS )
+    DO JI=1, KFDIA
+    DO JK=1, IKS
+      ZTIMC(JI,JK) = ZTIMEC(JI)
+    ENDDO
+    ENDDO
     ICOUNT(KIDIA:KFDIA) = 0
 !
 !
