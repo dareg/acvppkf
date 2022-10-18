@@ -3,9 +3,9 @@ SUBROUTINE SHALLOW_CONVECTION_ALL( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTA
                                    PTTEN, PRVTEN, PRCTEN, PRITEN,       &
                                    KCLTOP, KCLBAS, PUMF, OCH1CONV, KCH1,&
                                    PCH1, PCH1TEN, IKB, IKE, IFTSTEPS,   &
-                                   ZRDOCP, ZTHT, ZSTHV, ZSTHES, ISDPL,  &
-                                   ISPBL, ISLCL, ZSTHLCL, ZSTLCL,       &
-                                   ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
+                                   PRDOCP, PTHT, PSTHV, PSTHES, ISDPL,  &
+                                   ISPBL, ISLCL, PSTHLCL, PSTLCL,       &
+                                   PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,  &
                                    GTRIG1)
 
 USE PARKIND1, ONLY : JPRB
@@ -50,17 +50,17 @@ REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tendency
 
 INTEGER, INTENT(IN)                           :: IKB, IKE ! vertical loop bounds
 INTEGER, INTENT(INOUT)                        :: IFTSTEPS ! only used for chemical tracers
-REAL   , INTENT(IN)                           :: ZRDOCP   ! R_d/C_p
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: ZTHT, ZSTHV, ZSTHES  ! grid scale theta, theta_v
+REAL   , INTENT(IN)                           :: PRDOCP   ! R_d/C_p
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PTHT, PSTHV, PSTHES  ! grid scale theta, theta_v
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISDPL   ! index for parcel departure level
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISPBL   ! index for source layer top
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISLCL   ! index for lifting condensation level
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHLCL ! updraft theta at LCL/L
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTLCL  ! updraft temp. at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSRVLCL ! updraft rv at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSWLCL  ! updraft w at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSZLCL  ! LCL height
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHVELCL! envir. theta_v at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTHLCL ! updraft theta at LCL/L
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTLCL  ! updraft temp. at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSRVLCL ! updraft rv at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSWLCL  ! updraft w at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSZLCL  ! LCL height
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)  ,      INTENT(IN)   :: GTRIG1  ! logical mask for convection
 !
 !
@@ -96,10 +96,10 @@ IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_ALL',0,ZHOOK_HANDLE)
 CALL SHALLOW_CONVECTION_COMPUTE(KLON, KLEV, KIDIA, KFDIA, KICE,        &
                                 OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
                                 PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
-                                IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT,      &
-                                ZSTHV, ZSTHES, ISDPL, ISPBL, ISLCL,    &
-                                ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL,      &
-                                ZSZLCL, ZSTHVELCL, GTRIG1, ZTIMEC,     &
+                                IKB, IKE, IFTSTEPS, PRDOCP, PTHT,      &
+                                PSTHV, PSTHES, ISDPL, ISPBL, ISLCL,    &
+                                PSTHLCL, PSTLCL, PSRVLCL, PSWLCL,      &
+                                PSZLCL, PSTHVELCL, GTRIG1, ZTIMEC,     &
                                 ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, ZRCC,   &
                                 ZRIC, ICTL, IMINCTL, ZPCH1TEN)
 DO JK = IKB, IKE

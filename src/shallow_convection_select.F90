@@ -3,10 +3,10 @@ SUBROUTINE SHALLOW_CONVECTION_SELECT( KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSE
                                       PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                       PRITEN, KCLTOP, KCLBAS, PUMF,     &
                                       OCH1CONV, KCH1, PCH1, PCH1TEN,    &
-                                      IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT, &
-                                      ZSTHV, ZSTHES, ISDPL, ISPBL,      &
-                                      ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,  &
-                                      ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
+                                      IKB, IKE, IFTSTEPS, PRDOCP, PTHT, &
+                                      PSTHV, PSTHES, ISDPL, ISPBL,      &
+                                      ISLCL, PSTHLCL, PSTLCL, PSRVLCL,  &
+                                      PSWLCL, PSZLCL, PSTHVELCL, GTRIG1)
 USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 
@@ -50,17 +50,17 @@ REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tendency
 
 INTEGER, INTENT(IN)                           :: IKB, IKE ! vertical loop bounds
 INTEGER, INTENT(INOUT)                        :: IFTSTEPS ! only used for chemical tracers
-REAL   , INTENT(IN)                           :: ZRDOCP   ! R_d/C_p
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: ZTHT, ZSTHV, ZSTHES  ! grid scale theta, theta_v
+REAL   , INTENT(IN)                           :: PRDOCP   ! R_d/C_p
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PTHT, PSTHV, PSTHES  ! grid scale theta, theta_v
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISDPL   ! index for parcel departure level
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISPBL   ! index for source layer top
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISLCL   ! index for lifting condensation level
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHLCL ! updraft theta at LCL/L
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTLCL  ! updraft temp. at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSRVLCL ! updraft rv at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSWLCL  ! updraft w at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSZLCL  ! LCL height
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: ZSTHVELCL! envir. theta_v at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTHLCL ! updraft theta at LCL/L
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTLCL  ! updraft temp. at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSRVLCL ! updraft rv at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSWLCL  ! updraft w at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSZLCL  ! LCL height
+REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for convection
 !
 !
@@ -135,12 +135,12 @@ DO JI = KIDIA, ICONV
     ZZ(JI,JK)     = PZZ(ISORT(JI),JK)
     ZPRES(JI,JK)  = PPABST(ISORT(JI),JK)
     ZTT(JI,JK)    = PTT(ISORT(JI),JK)
-    ZTH(JI,JK)    = ZTHT(ISORT(JI),JK)
-    ZTHES(JI,JK)  = ZSTHES(ISORT(JI),JK)
+    ZTH(JI,JK)    = PTHT(ISORT(JI),JK)
+    ZTHES(JI,JK)  = PSTHES(ISORT(JI),JK)
     ZRV(JI,JK)    = PRVT(ISORT(JI),JK)
     ZRC(JI,JK)    = PRCT(ISORT(JI),JK)
     ZRI(JI,JK)    = PRIT(ISORT(JI),JK)
-    ZTHV(JI,JK)   = ZSTHV(ISORT(JI),JK)
+    ZTHV(JI,JK)   = PSTHV(ISORT(JI),JK)
 END DO
 END DO
 
@@ -148,18 +148,18 @@ DO JI = KIDIA,ICONV
     IDPL(JI)      = ISDPL(ISORT(JI))
     IPBL(JI)      = ISPBL(ISORT(JI))
     ILCL(JI)      = ISLCL(ISORT(JI))
-    ZTHLCL(JI)    = ZSTHLCL(ISORT(JI))
-    ZTLCL(JI)     = ZSTLCL(ISORT(JI))
-    ZRVLCL(JI)    = ZSRVLCL(ISORT(JI))
-    ZWLCL(JI)     = ZSWLCL(ISORT(JI))
-    ZZLCL(JI)     = ZSZLCL(ISORT(JI))
-    ZTHVELCL(JI)  = ZSTHVELCL(ISORT(JI))
+    ZTHLCL(JI)    = PSTHLCL(ISORT(JI))
+    ZTLCL(JI)     = PSTLCL(ISORT(JI))
+    ZRVLCL(JI)    = PSRVLCL(ISORT(JI))
+    ZWLCL(JI)     = PSWLCL(ISORT(JI))
+    ZZLCL(JI)     = PSZLCL(ISORT(JI))
+    ZTHVELCL(JI)  = PSTHVELCL(ISORT(JI))
 END DO
 
 CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
                                 ZRC, ZRI, OCH1CONV, KCH1, PCH1, IKB,   &
-                                IKE, IFTSTEPS, ZRDOCP, ZTH, ZTHV,      &
+                                IKE, IFTSTEPS, PRDOCP, ZTH, ZTHV,      &
                                 ZTHES, IDPL, IPBL, ILCL, ZTHLCL, ZTLCL,&
                                 ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
                                 ZTIMEC, ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, &

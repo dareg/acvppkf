@@ -2,12 +2,12 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
                                    PCH1, IKB, IKE, IFTSTEPS,   &
-                                   ZRDOCP, ZTHT, ZSTHV, ZSTHES, ISDPL,  &
-                                   ISPBL, ISLCL, ZSTHLCL, ZSTLCL,       &
-                                   ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
-                                   GTRIG1, ZTIMEC, ZCH1, ZCH1C, ZUMF,   &
-                                   ZTHC, ZRVC, ZRCC, ZRIC, ICTL, IMINCTL, &
-                                   ZPCH1TEN)
+                                   PRDOCP, PTHT, PSTHV, PSTHES, ISDPL,  &
+                                   ISPBL, ISLCL, PSTHLCL, PSTLCL,       &
+                                   PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,  &
+                                   GTRIG1, PTIMEC, ZCH1, PCH1C, PUMF,   &
+                                   PTHC, PRVC, PRCC, PRIC, ICTL, IMINCTL, &
+                                   PPCH1TEN)
 
 USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -46,30 +46,30 @@ REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(IN)  :: PCH1     ! grid scale chemical s
 
 INTEGER, INTENT(IN)                          :: IKB, IKE ! vertical loop bounds
 INTEGER, INTENT(INOUT)                       :: IFTSTEPS ! only used for chemical tracers
-REAL   , INTENT(IN)                          :: ZRDOCP   ! R_d/C_p
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: ZTHT, ZSTHV, ZSTHES  ! grid scale theta, theta_v
+REAL   , INTENT(IN)                          :: PRDOCP   ! R_d/C_p
+REAL, DIMENSION(KLON,KLEV),      INTENT(IN)  :: PTHT, PSTHV, PSTHES  ! grid scale theta, theta_v
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)  :: ISDPL   ! index for parcel departure level
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)  :: ISPBL   ! index for source layer top
 INTEGER, DIMENSION(KLON)  ,      INTENT(IN)  :: ISLCL   ! index for lifting condensation level
-REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSTHLCL ! updraft theta at LCL/L
-REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSTLCL  ! updraft temp. at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSRVLCL ! updraft rv at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSWLCL  ! updraft w at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSZLCL  ! LCL height
-REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: ZSTHVELCL! envir. theta_v at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSTHLCL ! updraft theta at LCL/L
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSTLCL  ! updraft temp. at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSRVLCL ! updraft rv at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSWLCL  ! updraft w at LCL
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSZLCL  ! LCL height
+REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)  ,      INTENT(IN)  :: GTRIG1  ! logical mask for convection
-REAL, DIMENSION(KLON),           INTENT(OUT) :: ZTIMEC  ! advective time period
+REAL, DIMENSION(KLON),           INTENT(OUT) :: PTIMEC  ! advective time period
 REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: ZCH1    ! grid scale chemical specy (kg/kg)
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: ZCH1C   ! conv. adjust. chemical specy 1
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZUMF    ! updraft mass flux (kg/s)
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZTHC    ! conv. adj. grid scale theta
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRVC    ! conv. adj. grid scale r_w
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRCC    ! conv. adj. grid scale r_c
-REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: ZRIC    ! conv. adj. grid scale r_i
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: PCH1C   ! conv. adjust. chemical specy 1
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PUMF    ! updraft mass flux (kg/s)
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PTHC    ! conv. adj. grid scale theta
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PRVC    ! conv. adj. grid scale r_w
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PRCC    ! conv. adj. grid scale r_c
+REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PRIC    ! conv. adj. grid scale r_i
 INTEGER, DIMENSION(KLON),        INTENT(OUT) :: ICTL    ! index for cloud top level
 INTEGER, DIMENSION(KLON),        INTENT(OUT) :: IMINCTL ! min between index for cloud top level
                                                         ! and lifting condensation level
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: ZPCH1TEN
+REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: PPCH1TEN
 !
 !
 REAL, DIMENSION(KLON)              :: ZWORK2, ZWORK2B ! work array
@@ -152,10 +152,10 @@ END DO
 !                   -------------------------------------------------------------
 !
 CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV, KIDIA, KFDIA,                            &
-                           KICE, PPABST, ZDPRES, PZZ, ZTHL, ZSTHV, ZSTHES, ZRW, &
-                           ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,   &
+                           KICE, PPABST, ZDPRES, PZZ, ZTHL, PSTHV, PSTHES, ZRW, &
+                           PSTHLCL, PSTLCL, PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,   &
                            XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
-                           ZUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
+                           PUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
                            ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1                    )
 
 ZDMF(:,:) = 0.
@@ -172,21 +172,21 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !*           5.     Compute downdraft properties
 !                   ----------------------------
 !
-  ZTIMEC(:) = XCTIME_SHAL
-  IF ( OSETTADJ ) ZTIMEC(:) = PTADJS
+  PTIMEC(:) = XCTIME_SHAL
+  IF ( OSETTADJ ) PTIMEC(:) = PTADJS
 !
 !*           7.     Determine adjusted environmental values assuming
 !                   that all available buoyant energy must be removed
-!                   within an advective time step ZTIMEC.
+!                   within an advective time step PTIMEC.
 !                   ---------------------------------------------------
 !
   CALL CONVECT_CLOSURE_SHAL( KLON, KLEV, KIDIA, KFDIA,               &
                              PPABST, ZDPRES, PZZ, XA25, ZLMASS,    &
-                             ZTHL, ZTHT, ZRW, PRCT, PRIT, GTRIG2,    &
-                             ZTHC, ZRVC, ZRCC, ZRIC, ZWSUB,       &
+                             ZTHL, PTHT, ZRW, PRCT, PRIT, GTRIG2,    &
+                             PTHC, PRVC, PRCC, PRIC, ZWSUB,       &
                              ISLCL, ISDPL, ISPBL, ICTL,              &
-                             ZUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
-                             ZURC, ZURI, ZCAPE, ZTIMEC, IFTSTEPS  )
+                             PUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
+                             ZURC, ZURI, ZCAPE, PTIMEC, IFTSTEPS  )
 !
 !-------------------------------------------------------------------------------
 !
@@ -202,13 +202,13 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
           ! in the tables for the adjusted grid-scale values
 !
 DO JK = IKB, IKE
-   ZTHC(:,JK) = ( ZTHC(:,JK) - ZTHT(:,JK) ) / ZTIMEC(:)             &
-     * ( PPABST(:,JK) / XP00 ) ** ZRDOCP ! change theta in temperature
-   ZRVC(:,JK) = ( ZRVC(:,JK) - ZRW(:,JK) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK)) ) &
-                                        / ZTIMEC(:)
+   PTHC(:,JK) = ( PTHC(:,JK) - PTHT(:,JK) ) / PTIMEC(:)             &
+     * ( PPABST(:,JK) / XP00 ) ** PRDOCP ! change theta in temperature
+   PRVC(:,JK) = ( PRVC(:,JK) - ZRW(:,JK) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK)) ) &
+                                        / PTIMEC(:)
 
-   ZRCC(:,JK) = ( ZRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / ZTIMEC(:)
-   ZRIC(:,JK) = ( ZRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / ZTIMEC(:)
+   PRCC(:,JK) = ( PRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / PTIMEC(:)
+   PRIC(:,JK) = ( PRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / PTIMEC(:)
 END DO
 !
 !
@@ -224,18 +224,18 @@ IF (LLSMOOTH) THEN
      JK = ICTL(JI)
      JKM= MAX(2,ICTL(JI)-1)
      JKP= MAX(2,ICTL(JI)-2)
-     ZRVC(JI,JKM) = ZRVC(JI,JKM) + .5 * ZRVC(JI,JK)
-     ZRCC(JI,JKM) = ZRCC(JI,JKM) + .5 * ZRCC(JI,JK)
-     ZRIC(JI,JKM) = ZRIC(JI,JKM) + .5 * ZRIC(JI,JK)
-     ZTHC(JI,JKM) = ZTHC(JI,JKM) + .5 * ZTHC(JI,JK)
-     ZRVC(JI,JKP) = ZRVC(JI,JKP) + .3 * ZRVC(JI,JK)
-     ZRCC(JI,JKP) = ZRCC(JI,JKP) + .3 * ZRCC(JI,JK)
-     ZRIC(JI,JKP) = ZRIC(JI,JKP) + .3 * ZRIC(JI,JK)
-     ZTHC(JI,JKP) = ZTHC(JI,JKP) + .3 * ZTHC(JI,JK)
-     ZRVC(JI,JK)  = .2 * ZRVC(JI,JK)
-     ZRCC(JI,JK)  = .2 * ZRCC(JI,JK)
-     ZRIC(JI,JK)  = .2 * ZRIC(JI,JK)
-     ZTHC(JI,JK)  = .2 * ZTHC(JI,JK)
+     PRVC(JI,JKM) = PRVC(JI,JKM) + .5 * PRVC(JI,JK)
+     PRCC(JI,JKM) = PRCC(JI,JKM) + .5 * PRCC(JI,JK)
+     PRIC(JI,JKM) = PRIC(JI,JKM) + .5 * PRIC(JI,JK)
+     PTHC(JI,JKM) = PTHC(JI,JKM) + .5 * PTHC(JI,JK)
+     PRVC(JI,JKP) = PRVC(JI,JKP) + .3 * PRVC(JI,JK)
+     PRCC(JI,JKP) = PRCC(JI,JKP) + .3 * PRCC(JI,JK)
+     PRIC(JI,JKP) = PRIC(JI,JKP) + .3 * PRIC(JI,JK)
+     PTHC(JI,JKP) = PTHC(JI,JKP) + .3 * PTHC(JI,JK)
+     PRVC(JI,JK)  = .2 * PRVC(JI,JK)
+     PRCC(JI,JK)  = .2 * PRCC(JI,JK)
+     PRIC(JI,JK)  = .2 * PRIC(JI,JK)
+     PTHC(JI,JK)  = .2 * PTHC(JI,JK)
   END DO
 ENDIF
 !
@@ -249,12 +249,12 @@ DO JK = IKB+1, JKM
   JKP = JK + 1
   DO JI = KIDIA,KFDIA
     IF ( JK <= ICTL(JI) ) THEN
-    ZW1 =  ZRVC(JI,JK) + ZRCC(JI,JK) + ZRIC(JI,JK)
+    ZW1 =  PRVC(JI,JK) + PRCC(JI,JK) + PRIC(JI,JK)
     ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
                                 .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
-    ZW1 = ( XCPD + XCPV * ZRW(JI,JK) )* ZTHC(JI,JK)   - &
-          ( XLVTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRCC(JI,JK) - &
-          ( XLSTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * ZRIC(JI,JK)
+    ZW1 = ( XCPD + XCPV * ZRW(JI,JK) )* PTHC(JI,JK)   - &
+          ( XLVTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * PRCC(JI,JK) - &
+          ( XLSTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * PRIC(JI,JK)
     ZWORK2B(JI) = ZWORK2B(JI) + ZW1 *         & ! energy
                                 .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
     END IF
@@ -278,8 +278,8 @@ END DO
 DO JK = JKM, IKB+1, -1
 DO JI = KIDIA,KFDIA
   IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
-    ZRVC(JI,JK) = ZRVC(JI,JK) - ZWORK2(JI)                                ! moisture
-    ZTHC(JI,JK) = ZTHC(JI,JK) - ZWORK2B(JI) /  XCPD                       ! enthalpy
+    PRVC(JI,JK) = PRVC(JI,JK) - ZWORK2(JI)                                ! moisture
+    PTHC(JI,JK) = PTHC(JI,JK) - ZWORK2B(JI) /  XCPD                       ! enthalpy
   END IF
 END DO
 END DO
@@ -295,10 +295,10 @@ IF ( OCH1CONV ) THEN
     ENDIF
   END DO
   END DO
-  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, ZCH1C,&
+  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, PCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
-                               ZUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
-                               ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
+                               PUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
+                               PTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
                                IFTSTEPS )
 !
 !
@@ -316,8 +316,8 @@ IF ( OCH1CONV ) THEN
         JKP = JK + 1
         DO JI = KIDIA,KFDIA
           ZW1 = .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP))
-          ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
-          ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
+          ZWORK3(JI,JN) = ZWORK3(JI,JN) + (PCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
+          ZWORK2(JI)    = ZWORK2(JI)    + ABS(PCH1C(JI,JK,JN)) * ZW1
         END DO
       END DO
 !
@@ -326,10 +326,10 @@ IF ( OCH1CONV ) THEN
       DO JK = JKM, IKB+1, -1
         DO JI = KIDIA,KFDIA
           IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
-            ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
-                              ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
+            PCH1C(JI,JK,JN) = PCH1C(JI,JK,JN) -   &
+                              ZWORK3(JI,JN)*ABS(PCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
           END IF
-          ZPCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+          PPCH1TEN(JI,JK,JN) = (PCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / PTIMEC(JI)
         END DO
       END DO
     END IF
@@ -339,9 +339,9 @@ END IF
 DO JK = IKB, IKE
   DO JI=KIDIA, KFDIA
     IF (ICTL(JI) <= IKB+1) THEN
-      ZUMF(JI,JK) = 0
+      PUMF(JI,JK) = 0
     ELSE
-      ZUMF(JI,JK)  = ZUMF(JI,JK) / XA25 ! MASS FLUX PER UNIT AREA
+      PUMF(JI,JK)  = PUMF(JI,JK) / XA25 ! MASS FLUX PER UNIT AREA
     ENDIF
   ENDDO
 END DO
