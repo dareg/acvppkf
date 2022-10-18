@@ -112,8 +112,6 @@ REAL, DIMENSION(ICONV,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(ICONV,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
 !
 ! Chemical Tracers:
-REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1    ! grid scale chemical specy (kg/kg)
-REAL, DIMENSION(ICONV,KLEV,KCH1) :: ZCH1C   ! conv. adjust. chemical specy 1
 REAL, DIMENSION(KLON,KLEV,KCH1)  :: ZPCH1TEN
 !
 !-------------------------------------------------------------------------------
@@ -162,7 +160,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 IKE, IFTSTEPS, PRDOCP, ZTH, ZTHV,      &
                                 ZTHES, IDPL, IPBL, ILCL, ZTHLCL, ZTLCL,&
                                 ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
-                                ZTIMEC, ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, &
+                                ZTIMEC, ZUMF, ZTHC, ZRVC, &
                                 ZRCC, ZRIC, ICTL, IMINCTL, ZPCH1TEN)
 DO JK = IKB, IKE
 DO JI = KIDIA, ICONV

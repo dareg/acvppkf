@@ -5,7 +5,7 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,
                                    PRDOCP, PTHT, PSTHV, PSTHES, ISDPL,  &
                                    ISPBL, ISLCL, PSTHLCL, PSTLCL,       &
                                    PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,  &
-                                   GTRIG1, PTIMEC, ZCH1, PCH1C, PUMF,   &
+                                   GTRIG1, PTIMEC, PUMF,   &
                                    PTHC, PRVC, PRCC, PRIC, ICTL, IMINCTL, &
                                    PPCH1TEN)
 
@@ -59,8 +59,6 @@ REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSZLCL  ! LCL height
 REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)  ,      INTENT(IN)  :: GTRIG1  ! logical mask for convection
 REAL, DIMENSION(KLON),           INTENT(OUT) :: PTIMEC  ! advective time period
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: ZCH1    ! grid scale chemical specy (kg/kg)
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(OUT) :: PCH1C   ! conv. adjust. chemical specy 1
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PUMF    ! updraft mass flux (kg/s)
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PTHC    ! conv. adj. grid scale theta
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PRVC    ! conv. adj. grid scale r_w
@@ -116,6 +114,9 @@ REAL, DIMENSION(KLON)       :: ZLV, ZLS! latent heat of vaporis., sublim.
 !
 ! Chemical Tracers:
 REAL, DIMENSION(KLON,KCH1)     :: ZWORK3  ! conv. adjust. chemical specy 1
+REAL, DIMENSION(KLON,KLEV,KCH1):: ZCH1    ! grid scale chemical specy (kg/kg)
+REAL, DIMENSION(KLON,KLEV,KCH1):: ZCH1C   ! conv. adjust. chemical specy 1
+
 
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',0,ZHOOK_HANDLE)
@@ -295,7 +296,7 @@ IF ( OCH1CONV ) THEN
     ENDIF
   END DO
   END DO
-  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, PCH1C,&
+  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, ZCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                PUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
                                PTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
@@ -316,8 +317,8 @@ IF ( OCH1CONV ) THEN
         JKP = JK + 1
         DO JI = KIDIA,KFDIA
           ZW1 = .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP))
-          ZWORK3(JI,JN) = ZWORK3(JI,JN) + (PCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
-          ZWORK2(JI)    = ZWORK2(JI)    + ABS(PCH1C(JI,JK,JN)) * ZW1
+          ZWORK3(JI,JN) = ZWORK3(JI,JN) + (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN)) * ZW1
+          ZWORK2(JI)    = ZWORK2(JI)    + ABS(ZCH1C(JI,JK,JN)) * ZW1
         END DO
       END DO
 !
@@ -326,10 +327,10 @@ IF ( OCH1CONV ) THEN
       DO JK = JKM, IKB+1, -1
         DO JI = KIDIA,KFDIA
           IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
-            PCH1C(JI,JK,JN) = PCH1C(JI,JK,JN) -   &
-                              ZWORK3(JI,JN)*ABS(PCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
+            ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
+                              ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
           END IF
-          PPCH1TEN(JI,JK,JN) = (PCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / PTIMEC(JI)
+          PPCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / PTIMEC(JI)
         END DO
       END DO
     END IF

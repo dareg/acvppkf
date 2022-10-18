@@ -87,8 +87,6 @@ REAL, DIMENSION(KLON,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
 REAL, DIMENSION(KLON,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
 !
 ! Chemical Tracers:
-REAL, DIMENSION(KLON,KLEV,KCH1):: ZCH1    ! grid scale chemical specy (kg/kg)
-REAL, DIMENSION(KLON,KLEV,KCH1):: ZCH1C   ! conv. adjust. chemical specy 1
 REAL, DIMENSION(KLON,KLEV,KCH1):: ZPCH1TEN
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_ALL',0,ZHOOK_HANDLE)
@@ -100,7 +98,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(KLON, KLEV, KIDIA, KFDIA, KICE,        &
                                 PSTHV, PSTHES, ISDPL, ISPBL, ISLCL,    &
                                 PSTHLCL, PSTLCL, PSRVLCL, PSWLCL,      &
                                 PSZLCL, PSTHVELCL, GTRIG1, ZTIMEC,     &
-                                ZCH1, ZCH1C, ZUMF, ZTHC, ZRVC, ZRCC,   &
+                                ZUMF, ZTHC, ZRVC, ZRCC,   &
                                 ZRIC, ICTL, IMINCTL, ZPCH1TEN)
 DO JK = IKB, IKE
 DO JI = KIDIA,KFDIA
