@@ -172,29 +172,29 @@ IKE = KLEV - JCVEXT
 ZEPSA      = XRV / XRD
 ZRDOCP     = XRD / XCPD
 !
-PUMF(KIDIA:KFDIA,1:KLEV)  = 0.
-PUER(KIDIA:KFDIA,1:KLEV)  = 0.
-PUDR(KIDIA:KFDIA,1:KLEV)  = 0.
-PUTHL(KIDIA:KFDIA,1:KLEV) = 0.
-PUTHV(KIDIA:KFDIA,1:KLEV) = 0.
-PURW(KIDIA:KFDIA,1:KLEV)  = 0.
-PURC(KIDIA:KFDIA,1:KLEV)  = 0.
-PURI(KIDIA:KFDIA,1:KLEV)  = 0.
-ZUW1(KIDIA:KFDIA)    = PWLCL(KIDIA:KFDIA) * PWLCL(KIDIA:KFDIA)
-ZUW2(KIDIA:KFDIA)    = 0.
-ZE1(KIDIA:KFDIA)     = 0.
-ZD1(KIDIA:KFDIA)     = 0.
-PCAPE(KIDIA:KFDIA)   = 0.
-KCTL(KIDIA:KFDIA)    = IKB
-KETL(KIDIA:KFDIA)    = KLCL(KIDIA:KFDIA)
-GWORK2(KIDIA:KFDIA)  = .TRUE.
-ZPI(KIDIA:KFDIA)     = 1.
-ZWORK3(KIDIA:KFDIA)  = 0.
-ZWORK4(KIDIA:KFDIA)  = 0.
-ZWORK5(KIDIA:KFDIA)  = 0.
-ZWORK6(KIDIA:KFDIA)  = 0.
-GWORK1(KIDIA:KFDIA)  = .FALSE.
-GWORK4(KIDIA:KFDIA)  = .FALSE.
+PUMF(:,:)  = 0.
+PUER(:,:)  = 0.
+PUDR(:,:)  = 0.
+PUTHL(:,:) = 0.
+PUTHV(:,:) = 0.
+PURW(:,:)  = 0.
+PURC(:,:)  = 0.
+PURI(:,:)  = 0.
+ZUW1(:)    = PWLCL(:) * PWLCL(:)
+ZUW2(:)    = 0.
+ZE1(:)     = 0.
+ZD1(:)     = 0.
+PCAPE(:)   = 0.
+KCTL(:)    = IKB
+KETL(:)    = KLCL(:)
+GWORK2(:)  = .TRUE.
+ZPI(:)     = 1.
+ZWORK3(:)  = 0.
+ZWORK4(:)  = 0.
+ZWORK5(:)  = 0.
+ZWORK6(:)  = 0.
+GWORK1(:)  = .FALSE.
+GWORK4(:)  = .FALSE.
 !
 !
 !*       1.1    Compute undilute updraft theta_e for CAPE computations
@@ -234,7 +234,7 @@ END DO
 !               ------------------------------------
 !
 DO JK = IKB + 1, IKE - 1
-  ZWORK6(KIDIA:KFDIA) = 1.
+  ZWORK6(:) = 1.
   JKP = JK + 1
 !
   GWORK4(KIDIA:KFDIA) = JK >= KLCL(KIDIA:KFDIA) - 1
@@ -348,7 +348,7 @@ DO JK = IKB + 1, IKE - 1
   zwork1(KIDIA:KFDIA) = xentr * xg / xcrad * pumf(KIDIA:KFDIA,jk) * ( pz(KIDIA:KFDIA,jkp) - pz(KIDIA:KFDIA,jk) )
 ! ZWORK1(KIDIA:KFDIA) = XENTR * pumf(KIDIA:KFDIA,jk) * PDPRES(KIDIA:KFDIA,JKP) / XCRAD ! rate of env. inflow
 !*MOD
-  ZWORK2(KIDIA:KFDIA) = 0.
+  ZWORK2(:) = 0.
   DO JI=KIDIA, KFDIA
     IF( GWORK1(JI) ) ZWORK2(JI) = 1.
   ENDDO
@@ -452,7 +452,7 @@ KETL(KIDIA:KFDIA) = MIN( KETL(KIDIA:KFDIA), KCTL(KIDIA:KFDIA) )
 !                flux at this level
 !                -------------------------------------------------------
 !
-ZWORK1(KIDIA:KFDIA) = 0.
+ZWORK1(:) = 0.
 DO JI=KIDIA, KFDIA
   IF ( KETL(JI) == KCTL(JI) ) ZWORK1(JI) = 1.
 ENDDO
