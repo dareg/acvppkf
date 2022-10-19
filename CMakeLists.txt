@@ -38,7 +38,6 @@ set(SRC
 	src/posnam.F90
 	src/posname.F90
 	src/shallow_convection.F90
-	src/shallow_convection_all.F90
 	src/shallow_convection_compute.F90
 	src/shallow_convection_select.F90
 	src/util_modd_convpar_shal.F90

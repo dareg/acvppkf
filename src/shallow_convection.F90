@@ -269,15 +269,15 @@ ELSE IF (ICONV < KLON/2) THEN
                                   ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,  &
                                   ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
 ELSE
-  CALL SHALLOW_CONVECTION_ALL( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
-                               PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
-                               PTTEN, PRVTEN, PRCTEN, PRITEN,       &
-                               KCLTOP, KCLBAS, PUMF, OCH1CONV, KCH1,&
-                               PCH1, PCH1TEN, IKB, IKE, IFTSTEPS,   &
-                               ZRDOCP, ZTHT, ZSTHV, ZSTHES, ISDPL,  &
-                               ISPBL, ISLCL, ZSTHLCL, ZSTLCL,       &
-                               ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
-                               GTRIG1)
+  CALL SHALLOW_CONVECTION_COMPUTE(KLON, KLEV, KIDIA, KFDIA, KICE,        &
+                                  OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
+                                  PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
+                                  IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT,      &
+                                  ZSTHV, ZSTHES, ISDPL, ISPBL, ISLCL,    &
+                                  ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL,      &
+                                  ZSZLCL, ZSTHVELCL, GTRIG1, PUMF, PTTEN,&
+                                  PRVTEN, PRCTEN, PRITEN, KCLTOP, KCLBAS,&
+                                  PCH1TEN)
 ENDIF
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION
