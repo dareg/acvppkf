@@ -5,7 +5,7 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,
                                    PRDOCP, PTHT, PSTHV, PSTHES, ISDPL,  &
                                    ISPBL, ISLCL, PSTHLCL, PSTLCL,       &
                                    PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,  &
-                                   GTRIG1, PTIMEC, PUMF,   &
+                                   GTRIG1, PUMF,   &
                                    PTHC, PRVC, PRCC, PRIC, ICTL, IMINCTL, &
                                    PPCH1TEN)
 
@@ -58,7 +58,6 @@ REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSWLCL  ! updraft w at LCL
 REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSZLCL  ! LCL height
 REAL, DIMENSION(KLON)     ,      INTENT(IN)  :: PSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)  ,      INTENT(IN)  :: GTRIG1  ! logical mask for convection
-REAL, DIMENSION(KLON),           INTENT(OUT) :: PTIMEC  ! advective time period
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PUMF    ! updraft mass flux (kg/s)
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PTHC    ! conv. adj. grid scale theta
 REAL, DIMENSION(KLON,KLEV),      INTENT(OUT) :: PRVC    ! conv. adj. grid scale r_w
@@ -105,6 +104,7 @@ REAL, DIMENSION(KLON,KLEV)  :: ZDDR    ! downdraft detrainment (kg/s)
 !
 ! closure variables
 REAL, DIMENSION(KLON,KLEV)  :: ZLMASS  ! mass of model layer (kg)
+REAL, DIMENSION(KLON)       :: ZTIMEC  ! advective time period
 !
 REAL, DIMENSION(KLON,KLEV)  :: ZWSUB   ! envir. compensating subsidence (Pa/s)
 !
@@ -173,12 +173,12 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !*           5.     Compute downdraft properties
 !                   ----------------------------
 !
-  PTIMEC(:) = XCTIME_SHAL
-  IF ( OSETTADJ ) PTIMEC(:) = PTADJS
+  ZTIMEC(:) = XCTIME_SHAL
+  IF ( OSETTADJ ) ZTIMEC(:) = PTADJS
 !
 !*           7.     Determine adjusted environmental values assuming
 !                   that all available buoyant energy must be removed
-!                   within an advective time step PTIMEC.
+!                   within an advective time step ZTIMEC.
 !                   ---------------------------------------------------
 !
   CALL CONVECT_CLOSURE_SHAL( KLON, KLEV, KIDIA, KFDIA,               &
@@ -187,7 +187,7 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
                              PTHC, PRVC, PRCC, PRIC, ZWSUB,       &
                              ISLCL, ISDPL, ISPBL, ICTL,              &
                              PUMF, ZUER, ZUDR, ZUTHL, ZURW,       &
-                             ZURC, ZURI, ZCAPE, PTIMEC, IFTSTEPS  )
+                             ZURC, ZURI, ZCAPE, ZTIMEC, IFTSTEPS  )
 !
 !-------------------------------------------------------------------------------
 !
@@ -203,13 +203,13 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
           ! in the tables for the adjusted grid-scale values
 !
 DO JK = IKB, IKE
-   PTHC(:,JK) = ( PTHC(:,JK) - PTHT(:,JK) ) / PTIMEC(:)             &
+   PTHC(:,JK) = ( PTHC(:,JK) - PTHT(:,JK) ) / ZTIMEC(:)             &
      * ( PPABST(:,JK) / XP00 ) ** PRDOCP ! change theta in temperature
    PRVC(:,JK) = ( PRVC(:,JK) - ZRW(:,JK) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK)) ) &
-                                        / PTIMEC(:)
+                                        / ZTIMEC(:)
 
-   PRCC(:,JK) = ( PRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / PTIMEC(:)
-   PRIC(:,JK) = ( PRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / PTIMEC(:)
+   PRCC(:,JK) = ( PRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / ZTIMEC(:)
+   PRIC(:,JK) = ( PRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / ZTIMEC(:)
 END DO
 !
 !
@@ -299,7 +299,7 @@ IF ( OCH1CONV ) THEN
   CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, ZCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                PUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
-                               PTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
+                               ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
                                IFTSTEPS )
 !
 !
@@ -330,7 +330,8 @@ IF ( OCH1CONV ) THEN
             ZCH1C(JI,JK,JN) = ZCH1C(JI,JK,JN) -   &
                               ZWORK3(JI,JN)*ABS(ZCH1C(JI,JK,JN))/MAX(1.E-30,ZWORK2(JI))
           END IF
-          PPCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / PTIMEC(JI)
+          PPCH1TEN(JI,JK,JN) = (ZCH1C(JI,JK,JN)-ZCH1(JI,JK,JN) ) / ZTIMEC(JI)
+          IF(.NOT. GTRIG1(JI)) PPCH1TEN(JI,JK,JN) = 0.
         END DO
       END DO
     END IF
@@ -349,6 +350,23 @@ END DO
 
 DO JI=KIDIA, KFDIA
   IMINCTL(JI) = MIN(ISLCL(JI), ICTL(JI))
+ENDDO
+
+DO JK = IKB, IKE
+DO JI = KIDIA,KFDIA
+  IF(.NOT. GTRIG1(JI))THEN
+    PTHC(JI, JK) = 0.
+    PRVC(JI, JK) = 0.
+    PRCC(JI, JK) = 0.
+    PRIC(JI, JK) = 0.
+  ENDIF
+ENDDO
+ENDDO
+DO JI = KIDIA,KFDIA
+  IF(.NOT. GTRIG1(JI))THEN
+    ICTL(JI) = 0.
+    IMINCTL(JI) = 0.
+  ENDIF
 ENDDO
 
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',1,ZHOOK_HANDLE)

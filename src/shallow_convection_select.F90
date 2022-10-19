@@ -103,9 +103,6 @@ REAL, DIMENSION(ICONV)       :: ZWLCL   ! updraft w at LCL
 REAL, DIMENSION(ICONV)       :: ZZLCL   ! LCL height
 REAL, DIMENSION(ICONV)       :: ZTHVELCL! envir. theta_v at LCL
 !
-! closure variables
-REAL, DIMENSION(ICONV)       :: ZTIMEC  ! advective time period
-!
 REAL, DIMENSION(ICONV,KLEV)  :: ZTHC    ! conv. adj. grid scale theta
 REAL, DIMENSION(ICONV,KLEV)  :: ZRVC    ! conv. adj. grid scale r_w
 REAL, DIMENSION(ICONV,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
@@ -160,7 +157,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 IKE, IFTSTEPS, PRDOCP, ZTH, ZTHV,      &
                                 ZTHES, IDPL, IPBL, ILCL, ZTHLCL, ZTLCL,&
                                 ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
-                                ZTIMEC, ZUMF, ZTHC, ZRVC, &
+                                ZUMF, ZTHC, ZRVC, &
                                 ZRCC, ZRIC, ICTL, IMINCTL, ZPCH1TEN)
 DO JK = IKB, IKE
 DO JI = KIDIA, ICONV

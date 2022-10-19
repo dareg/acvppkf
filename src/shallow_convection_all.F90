@@ -63,31 +63,6 @@ REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSZLCL  ! LCL height
 REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)  ,      INTENT(IN)   :: GTRIG1  ! logical mask for convection
 !
-!
-INTEGER  :: JI                      ! horizontal loop index
-INTEGER  :: JN                      ! number of tracers
-INTEGER  :: JK, JKM                 ! vertical loop index
-!
-!
-!*       0.2   Declarations of local allocatable  variables :
-!
-INTEGER, DIMENSION(KLON)  :: ICTL    ! index for cloud top level
-INTEGER, DIMENSION(KLON)  :: IMINCTL ! min between index for cloud top level
-                                     ! and lifting condensation level
-!
-! updraft variables
-REAL, DIMENSION(KLON,KLEV)  :: ZUMF    ! updraft mass flux (kg/s)
-!
-! closure variables
-REAL, DIMENSION(KLON)       :: ZTIMEC  ! advective time period
-!
-REAL, DIMENSION(KLON,KLEV)  :: ZTHC    ! conv. adj. grid scale theta
-REAL, DIMENSION(KLON,KLEV)  :: ZRVC    ! conv. adj. grid scale r_w
-REAL, DIMENSION(KLON,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
-REAL, DIMENSION(KLON,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
-!
-! Chemical Tracers:
-REAL, DIMENSION(KLON,KLEV,KCH1):: ZPCH1TEN
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_ALL',0,ZHOOK_HANDLE)
 
@@ -97,46 +72,9 @@ CALL SHALLOW_CONVECTION_COMPUTE(KLON, KLEV, KIDIA, KFDIA, KICE,        &
                                 IKB, IKE, IFTSTEPS, PRDOCP, PTHT,      &
                                 PSTHV, PSTHES, ISDPL, ISPBL, ISLCL,    &
                                 PSTHLCL, PSTLCL, PSRVLCL, PSWLCL,      &
-                                PSZLCL, PSTHVELCL, GTRIG1, ZTIMEC,     &
-                                ZUMF, ZTHC, ZRVC, ZRCC,   &
-                                ZRIC, ICTL, IMINCTL, ZPCH1TEN)
-DO JK = IKB, IKE
-DO JI = KIDIA,KFDIA
-  IF(GTRIG1(JI))THEN
-    PTTEN(JI,JK)   = ZTHC(JI,JK)
-    PRVTEN(JI,JK)  = ZRVC(JI,JK)
-    PRCTEN(JI,JK)  = ZRCC(JI,JK)
-    PRITEN(JI,JK)  = ZRIC(JI,JK)
-  ENDIF
-END DO
-END DO
+                                PSZLCL, PSTHVELCL, GTRIG1, &
+                                PUMF, PTTEN, PRVTEN, PRCTEN,   &
+                                PRITEN, KCLTOP, KCLBAS, PCH1TEN)
 
-DO JI = KIDIA,KFDIA
-  IF(GTRIG1(JI))THEN
-    KCLTOP(JI) = ICTL(JI)
-    KCLBAS(JI) = IMINCTL(JI)
-  ENDIF
-END DO
-
-IF ( OCH1CONV ) THEN
-  JKM = IKE
-  DO JN = 1, KCH1
-    DO JK = IKB, IKE
-      DO JI = KIDIA,KFDIA
-        IF(GTRIG1(JI))THEN
-          PCH1TEN(JI,JK,JN) = ZPCH1TEN(JI,JK,JN)
-        ENDIF
-      END DO
-    END DO
-  END DO
-END IF
-
-DO JK = IKB, IKE
-DO JI = KIDIA, KFDIA
-  IF(GTRIG1(JI))THEN
-    PUMF(JI,JK) = ZUMF(JI,JK)
-  ENDIF
-END DO
-END DO
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_ALL',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION_ALL
