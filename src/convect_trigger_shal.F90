@@ -216,7 +216,6 @@ DO JKK = IKB + 1, IKE - 2
             ZRVLCL(JI)   = ZRVLCL(JI)   + MAX(0., PRV(JI,JK))   * ZWORK1(JI)
          END IF
        END DO
-       !IF ( MINVAL ( ZDPTHMIX(:) ) >= XZPBL ) EXIT
      END DO
 !
 !

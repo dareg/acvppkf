@@ -214,8 +214,6 @@ ZWORK1(KIDIA:KFDIA) = ( XCPD + PRVLCL(KIDIA:KFDIA) * XCPV ) * PTLCL(KIDIA:KFDIA)
 !*       2.     Set updraft properties between DPL and LCL
 !               ------------------------------------------
 !
-!JKP = MAXVAL( KLCL(:) )
-!JKM = MINVAL( KDPL(:) )
 JKP=IKE
 JKM=IKB
 
@@ -482,8 +480,6 @@ END DO
 !                -------------------------------------------------------
 !
 ZWORK1(:) = 0.
-!JK1 = MINVAL( KETL(:) )
-!JK2 = MAXVAL( KCTL(:) )
 JK1 = IKB
 JK2 = IKE
 
@@ -523,7 +519,6 @@ DO JI = KIDIA, KFDIA
      ZWORK2(JI) = PPRES(JI,JK) - PPRES(JI,JKP) + PDPRES(JI,JK)
 END DO
 !
-!JKP = MAXVAL( IWORK(:) )
 JKP=IKE
 DO JK = JKM, JKP
    DO JI = KIDIA, KFDIA

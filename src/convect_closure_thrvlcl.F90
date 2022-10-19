@@ -144,8 +144,6 @@ KLCL(KIDIA:KFDIA)     = IKB + 1
 !*       2.     Construct a mixed layer as in TRIGGER_FUNCT
 !               -------------------------------------------
 !
-     !JKMAX = MAXVAL( KPBL(:) )
-     !JKMIN = MINVAL( KDPL(:) )
      JKMAX=IKE
      JKMIN=IKB
      DO JK = IKB + 1, JKMAX
