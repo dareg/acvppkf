@@ -115,30 +115,30 @@ INTEGER, DIMENSION(KLON),  INTENT(INOUT):: KPBL    ! contains index of source la
 !
 !*       0.2   Declarations of local variables :
 !
-INTEGER :: JKK, JK, JKP, JKM, JKDL, JL, JKT, JT! vertical loop index
-INTEGER :: JI                                  ! horizontal loop index
-INTEGER :: IKB, IKE                       ! horizontal + vertical loop bounds
-REAL    :: ZEPS, ZEPSA                         ! R_d / R_v, R_v / R_d
-REAL    :: ZCPORD, ZRDOCP                      ! C_pd / R_d, R_d / C_pd
+INTEGER :: JKK, JK, JKM, JL, JT! vertical loop index
+INTEGER :: JI                  ! horizontal loop index
+INTEGER :: IKB, IKE            ! horizontal + vertical loop bounds
+REAL    :: ZEPS, ZEPSA         ! R_d / R_v, R_v / R_d
+REAL    :: ZCPORD, ZRDOCP      ! C_pd / R_d, R_d / C_pd
 !
-REAL, DIMENSION(KFDIA) :: ZTHLCL, ZTLCL, ZRVLCL, & ! locals for PTHLCL,PTLCL
+REAL, DIMENSION(KLON) :: ZTHLCL, ZTLCL, ZRVLCL, & ! locals for PTHLCL,PTLCL
                                ZWLCL,  ZZLCL, ZTHVELCL  ! PRVLCL, ....
-INTEGER, DIMENSION(KFDIA) :: IDPL, IPBL, ILCL      ! locals for KDPL, ...
-REAL, DIMENSION(KFDIA) :: ZPLCL    ! pressure at LCL
-REAL, DIMENSION(KFDIA) :: ZZDPL    ! height of DPL
-REAL, DIMENSION(KFDIA) :: ZTHVLCL  ! theta_v at LCL = mixed layer value
-REAL, DIMENSION(KFDIA) :: ZTMIX    ! mixed layer temperature
-REAL, DIMENSION(KFDIA) :: ZEVMIX   ! mixed layer water vapor pressure
-REAL, DIMENSION(KFDIA) :: ZDPTHMIX, ZPRESMIX ! mixed layer depth and pressure
-REAL, DIMENSION(KFDIA) :: ZCAPE    ! convective available energy (m^2/s^2/g)
-REAL, DIMENSION(KFDIA) :: ZCAP     ! pseudo fro CAPE
-REAL, DIMENSION(KFDIA) :: ZTHEUL   ! updraft equiv. pot. temperature (K)
-REAL, DIMENSION(KFDIA) :: ZLV, ZCPH! specific heats of vaporisation, dry air
-REAL, DIMENSION(KFDIA) :: ZDP      ! pressure between LCL and model layer
-REAL, DIMENSION(KFDIA) :: ZTOP,ZTOPP     ! estimated cloud top (m)
-REAL, DIMENSION(KFDIA) :: ZWORK1, ZWORK2, ZWORK3    ! work arrays
-LOGICAL, DIMENSION(KFDIA) :: GTRIG, GTRIG2          ! local arrays for OTRIG
-LOGICAL, DIMENSION(KFDIA) :: GWORK1                 ! work array
+INTEGER, DIMENSION(KLON) :: IDPL, IPBL, ILCL      ! locals for KDPL, ...
+REAL, DIMENSION(KLON) :: ZPLCL    ! pressure at LCL
+REAL, DIMENSION(KLON) :: ZZDPL    ! height of DPL
+REAL, DIMENSION(KLON) :: ZTHVLCL  ! theta_v at LCL = mixed layer value
+REAL, DIMENSION(KLON) :: ZTMIX    ! mixed layer temperature
+REAL, DIMENSION(KLON) :: ZEVMIX   ! mixed layer water vapor pressure
+REAL, DIMENSION(KLON) :: ZDPTHMIX, ZPRESMIX ! mixed layer depth and pressure
+REAL, DIMENSION(KLON) :: ZCAPE    ! convective available energy (m^2/s^2/g)
+REAL, DIMENSION(KLON) :: ZCAP     ! pseudo fro CAPE
+REAL, DIMENSION(KLON) :: ZTHEUL   ! updraft equiv. pot. temperature (K)
+REAL, DIMENSION(KLON) :: ZLV, ZCPH! specific heats of vaporisation, dry air
+REAL, DIMENSION(KLON) :: ZDP      ! pressure between LCL and model layer
+REAL, DIMENSION(KLON) :: ZTOP,ZTOPP     ! estimated cloud top (m)
+REAL, DIMENSION(KLON) :: ZWORK1, ZWORK2, ZWORK3    ! work arrays
+LOGICAL, DIMENSION(KLON) :: GTRIG2          ! local arrays for OTRIG
+LOGICAL, DIMENSION(KLON) :: GWORK1                 ! work array
 !
 !
 !-------------------------------------------------------------------------------

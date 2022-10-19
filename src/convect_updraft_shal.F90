@@ -151,7 +151,7 @@ REAL, DIMENSION(KLON)    :: ZTHEUL          ! theta_e for undilute ascent
 REAL, DIMENSION(KLON)    :: ZWORK1, ZWORK2, ZWORK3, ZWORK4, ZWORK5,   &
                             ZWORK6          ! work arrays
 INTEGER, DIMENSION(KLON) :: IWORK           ! wok array
-LOGICAL, DIMENSION(KLON) :: GWORK1, GWORK2, GWORK4, GWORK5
+LOGICAL, DIMENSION(KLON) :: GWORK1, GWORK2, GWORK4
                                             ! work arrays
 !
 !
