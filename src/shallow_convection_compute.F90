@@ -1,4 +1,4 @@
-SUBROUTINE SHALLOW_CONVECTION_COMPUTE( KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
+SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
                                    PCH1, IKB, IKE, IFTSTEPS,   &
@@ -13,13 +13,14 @@ USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 USE MODD_CST, ONLY : XCI, XCL, XCPD, XCPV, XG, XLSTT, XLVTT, XP00, XTT
 USE MODD_NSV, ONLY : NSV_LGBEG,NSV_LGEND
-USE MODD_CONVPAR_SHAL, ONLY : LLSMOOTH, XA25, XCTIME_SHAL
+USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 
 IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
 !
+TYPE(CONVPAR_SHAL),              INTENT(IN)  :: CVP_SHAL
 INTEGER,                         INTENT(IN)  :: KLON     ! horizontal dimension
 INTEGER,                         INTENT(IN)  :: KLEV     ! vertical dimension
 INTEGER,                         INTENT(IN)  :: KIDIA    ! value of the first point in x
@@ -152,10 +153,10 @@ END DO
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-CALL CONVECT_UPDRAFT_SHAL( KLON, KLEV, KIDIA, KFDIA,                            &
+CALL CONVECT_UPDRAFT_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,                  &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, PSTHV, PSTHES, ZRW, &
                            PSTHLCL, PSTLCL, PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,   &
-                           XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
+                           CVP_SHAL%XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
                            PUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
                            ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1                    )
 
@@ -164,7 +165,7 @@ ZDER(:,:) = 0.
 ZDDR(:,:) = 0.
 ILFS(:)   = IKB
 DO JK = IKB, IKE
-  ZLMASS(:,JK)  = XA25 * ZDPRES(:,JK) / XG  ! mass of model layer
+  ZLMASS(:,JK)  = CVP_SHAL%XA25 * ZDPRES(:,JK) / XG  ! mass of model layer
 END DO
 ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !
@@ -173,7 +174,7 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !*           5.     Compute downdraft properties
 !                   ----------------------------
 !
-  ZTIMEC(:) = XCTIME_SHAL
+  ZTIMEC(:) = CVP_SHAL%XCTIME_SHAL
   IF ( OSETTADJ ) ZTIMEC(:) = PTADJS
 !
 !*           7.     Determine adjusted environmental values assuming
@@ -181,8 +182,8 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !                   within an advective time step ZTIMEC.
 !                   ---------------------------------------------------
 !
-  CALL CONVECT_CLOSURE_SHAL( KLON, KLEV, KIDIA, KFDIA,               &
-                             PPABST, ZDPRES, PZZ, XA25, ZLMASS,    &
+  CALL CONVECT_CLOSURE_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,               &
+                             PPABST, ZDPRES, PZZ, ZLMASS,    &
                              ZTHL, PTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              PTHC, PRVC, PRCC, PRIC, ZWSUB,       &
                              ISLCL, ISDPL, ISPBL, ICTL,              &
@@ -203,13 +204,15 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
           ! in the tables for the adjusted grid-scale values
 !
 DO JK = IKB, IKE
-   PTHC(:,JK) = ( PTHC(:,JK) - PTHT(:,JK) ) / ZTIMEC(:)             &
-     * ( PPABST(:,JK) / XP00 ) ** PRDOCP ! change theta in temperature
-   PRVC(:,JK) = ( PRVC(:,JK) - ZRW(:,JK) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK)) ) &
-                                        / ZTIMEC(:)
+  DO JI = KIDIA,KFDIA
+   PTHC(JI,JK) = ( PTHC(JI,JK) - PTHT(JI,JK) ) / ZTIMEC(JI)             &
+     * ( PPABST(JI,JK) / XP00 ) ** PRDOCP ! change theta in temperature
+   PRVC(JI,JK) = ( PRVC(JI,JK) - ZRW(JI,JK) + MAX(0., PRCT(JI,JK)) + MAX(0., PRIT(JI,JK)) ) &
+                                        / ZTIMEC(JI)
 
-   PRCC(:,JK) = ( PRCC(:,JK) - MAX(0., PRCT(:,JK)) ) / ZTIMEC(:)
-   PRIC(:,JK) = ( PRIC(:,JK) - MAX(0., PRIT(:,JK)) ) / ZTIMEC(:)
+   PRCC(JI,JK) = ( PRCC(JI,JK) - MAX(0., PRCT(JI,JK)) ) / ZTIMEC(JI)
+   PRIC(JI,JK) = ( PRIC(JI,JK) - MAX(0., PRIT(JI,JK)) ) / ZTIMEC(JI)
+   ENDDO
 END DO
 !
 !
@@ -220,7 +223,7 @@ END DO
           ! (+ - - tendencies for moisture )
 !
 !
-IF (LLSMOOTH) THEN
+IF (CVP_SHAL%LLSMOOTH) THEN
   DO JI = KIDIA,KFDIA
      JK = ICTL(JI)
      JKM= MAX(2,ICTL(JI)-1)
@@ -299,7 +302,7 @@ IF ( OCH1CONV ) THEN
   CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, ZCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                PUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
-                               ZTIMEC, XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
+                               ZTIMEC, CVP_SHAL%XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
                                IFTSTEPS )
 !
 !
@@ -343,7 +346,7 @@ DO JK = IKB, IKE
     IF (ICTL(JI) <= IKB+1) THEN
       PUMF(JI,JK) = 0
     ELSE
-      PUMF(JI,JK)  = PUMF(JI,JK) / XA25 ! MASS FLUX PER UNIT AREA
+      PUMF(JI,JK)  = PUMF(JI,JK) / CVP_SHAL%XA25 ! MASS FLUX PER UNIT AREA
     ENDIF
   ENDDO
 END DO

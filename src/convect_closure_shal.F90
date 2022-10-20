@@ -1,6 +1,6 @@
 !     ######spl
-     SUBROUTINE CONVECT_CLOSURE_SHAL( KLON, KLEV, KIDIA, KFDIA,                   &
-                                      PPRES, PDPRES, PZ, PDXDY, PLMASS,           &
+     SUBROUTINE CONVECT_CLOSURE_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,         &
+                                      PPRES, PDPRES, PZ, PLMASS,           &
                                       PTHL, PTH, PRW, PRC, PRI, OTRIG1,           &
                                       PTHC, PRWC, PRCC, PRIC, PWSUB,              &
                                       KLCL, KDPL, KPBL, KCTL,                     &
@@ -77,7 +77,7 @@
 !              ------------
 !
 USE MODD_CST, ONLY : XCPD, XRD, XG, XP00, XCPV, XLVTT, XCL, XTT, XCI
-USE MODD_CONVPAR_SHAL, ONLY : XSTABT, XSTABC
+USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
 !
 !
@@ -85,6 +85,7 @@ IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
+TYPE(CONVPAR_SHAL),        INTENT(IN) :: CVP_SHAL
 INTEGER,                   INTENT(IN) :: KLON   ! horizontal dimension
 INTEGER,                   INTENT(IN) :: KLEV   ! vertical dimension
 INTEGER,                   INTENT(IN) :: KIDIA  ! value of the first point in x
@@ -94,7 +95,6 @@ INTEGER, DIMENSION(KLON),  INTENT(IN) :: KCTL   ! index for cloud top level
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KDPL   ! index for departure level
 INTEGER, DIMENSION(KLON),  INTENT(IN) :: KPBL   ! index for top of source layer
 REAL, DIMENSION(KLON),  INTENT(INOUT) :: PTIMEC ! convection time step
-REAL,                      INTENT(IN) :: PDXDY  ! grid area (m^2)
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTHL   ! grid scale enthalpy (J/kg)
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PTH    ! grid scale theta
 REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PRW    ! grid scale total water
@@ -232,9 +232,11 @@ IWORK1(KIDIA:KFDIA) = ILCL(KIDIA:KFDIA)
 JKP=IKB
 DO JK = JKP, IKE
   DO JI = KIDIA, KFDIA
-    IF( JK > KDPL(JI) .AND. JK <= IWORK1(JI) ) THEN
+    IF( JK > KDPL(JI))THEN
+            IF(JK <= IWORK1(JI) ) THEN
         ZWORK1(JI)  = PLMASS(JI,JK) / ( ( PUER(JI,JK) + 1.E-5 ) * PTIMEC(JI) )
         ZADJMAX(JI) = MIN( ZADJMAX(JI), ZWORK1(JI) )
+    END IF
     END IF
   END DO
 END DO
@@ -293,12 +295,12 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !               mass conservation reasons one must split full time step PTIMEC)
 !               ---------------------------------------------------------------
 !
-               ZWORK1(JI) = XSTABT * PDPRES(JI,JKP) / ( ABS( PWSUB(JI,JK) ) + 1.E-10 )
+               ZWORK1(JI) = CVP_SHAL%XSTABT * PDPRES(JI,JKP) / ( ABS( PWSUB(JI,JK) ) + 1.E-10 )
               ! the factor XSTABT is used for stability reasons
                ZTIMEC(JI) = MIN( ZTIMEC(JI), ZWORK1(JI) )
 !
               ! transform vertical velocity in mass flux units
-               ZOMG(JI,JK) = PWSUB(JI,JK) * PDXDY / XG
+               ZOMG(JI,JK) = PWSUB(JI,JK) * CVP_SHAL%XA25 / XG
              ENDIF
            ENDDO
      END DO
@@ -561,7 +563,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
        ENDDO
        DO JI=KIDIA,KFDIA
          IF ( ZCAPE(JI) /= 0. .AND. GWORK1(JI) ) THEN
-               ZADJ(JI) = ZADJ(JI) * XSTABC * PCAPE(JI) / ( ZWORK1(JI) + 1.E-8 )
+               ZADJ(JI) = ZADJ(JI) * CVP_SHAL%XSTABC * PCAPE(JI) / ( ZWORK1(JI) + 1.E-8 )
          ENDIF
        ENDDO
        DO JI=KIDIA,KFDIA

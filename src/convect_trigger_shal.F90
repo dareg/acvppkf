@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_TRIGGER_SHAL(  KLON, KLEV, KIDIA, KFDIA,            &
+      SUBROUTINE CONVECT_TRIGGER_SHAL(  CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,  &
                                         PPRES, PTH, PTHV, PTHES,             &
                                         PRV, PW, PZ, PTKECLS,                &
                                         PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, &
@@ -81,7 +81,7 @@
 !              ------------
 !
 USE MODD_CST, ONLY : XBETAW, XCPD, XG, XGAMW, XP00, XRD, XRV, XTT
-USE MODD_CONVPAR_SHAL, ONLY : XATPERT, XAW, XBTPERT, XBW, XCDEPTH, XDTPERT, XNHGAM, XZLCL, XZPBL
+USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
 !
 !
@@ -89,6 +89,7 @@ IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
+TYPE(CONVPAR_SHAL),        INTENT(IN) :: CVP_SHAL
 INTEGER, INTENT(IN)                   :: KLON      ! horizontal loop index
 INTEGER, INTENT(IN)                   :: KLEV      ! vertical loop index
 INTEGER, INTENT(IN)                   :: KIDIA     ! value of the first point in x
@@ -186,7 +187,7 @@ JT = IKE - 2
 !
 DO JKK = IKB + 1, IKE - 2
 !
-     GWORK1(KIDIA:KFDIA) = ZZDPL(KIDIA:KFDIA) - PZ(KIDIA:KFDIA,IKB) < XZLCL
+     GWORK1(KIDIA:KFDIA) = ZZDPL(KIDIA:KFDIA) - PZ(KIDIA:KFDIA,IKB) < CVP_SHAL%XZLCL
           ! we exit the trigger test when the center of the mixed layer is more
           ! than 1500 m  above soil level.
      DO JI=KIDIA, KFDIA
@@ -207,7 +208,7 @@ DO JKK = IKB + 1, IKE - 2
      DO JK = JKK, IKE - 1
        JKM = JK + 1
        DO JI = KIDIA, KFDIA
-         IF ( GWORK1(JI) .AND. ZDPTHMIX(JI) < XZPBL ) THEN
+         IF ( GWORK1(JI) .AND. ZDPTHMIX(JI) < CVP_SHAL%XZPBL ) THEN
             IPBL(JI)     = JK
             ZWORK1(JI)   = PPRES(JI,JK) - PPRES(JI,JKM)
             ZDPTHMIX(JI) = ZDPTHMIX(JI) + ZWORK1(JI)
@@ -224,7 +225,7 @@ DO JKK = IKB + 1, IKE - 2
 !
         ZPRESMIX(JI) = ZPRESMIX(JI) / ZDPTHMIX(JI)
         ZTHLCL(JI)   = ZTHLCL(JI)   / ZDPTHMIX(JI) + &
-      & (XATPERT * MIN(3.,PTKECLS(JI))/XCPD +XBTPERT) * XDTPERT ! add small Temp Perturb.
+      & (CVP_SHAL%XATPERT * MIN(3.,PTKECLS(JI))/XCPD +CVP_SHAL%XBTPERT) * CVP_SHAL%XDTPERT ! add small Temp Perturb.
         ZRVLCL(JI)   = ZRVLCL(JI)   / ZDPTHMIX(JI)
         ZTHVLCL(JI)  = ZTHLCL(JI) * ( 1. + ZEPSA * ZRVLCL(JI) )                 &
                     / ( 1. + ZRVLCL(JI) )
@@ -351,7 +352,7 @@ DO JKK = IKB + 1, IKE - 2
 !      GTRIG(:)  = ZTHVLCL(:) - ZTHVELCL(:) + ZWORK1(:) > 0. .AND.       &
 !                  ZWLCL(:) > 0.
 !    END WHERE
-     ZWLCL(KIDIA:KFDIA) = XAW * MAX(0.,PW(KIDIA:KFDIA,IKB)) + XBW
+     ZWLCL(KIDIA:KFDIA) = CVP_SHAL%XAW * MAX(0.,PW(KIDIA:KFDIA,IKB)) + CVP_SHAL%XBW
 !
 !
 !*       6.3    Look for parcel that produces sufficient cloud depth.
@@ -378,7 +379,7 @@ DO JKK = IKB + 1, IKE - 2
            IF ( JL < ILCL(JI) ) ZWORK1(JI) = 0.
            ZCAPE(JI)  = ZCAPE(JI) + XG * MAX( 1., ZWORK1(JI) )
            ZCAP(JI)   = ZCAP(JI) + ZWORK1(JI)
-           ZWORK2(JI) = XNHGAM * XG * ZCAP(JI) + 1.05 * ZWLCL(JI) * ZWLCL(JI)
+           ZWORK2(JI) = CVP_SHAL%XNHGAM * XG * ZCAP(JI) + 1.05 * ZWLCL(JI) * ZWLCL(JI)
                ! the factor 1.05 takes entrainment into account
            ZWORK2(JI) = SIGN( 1., ZWORK2(JI) )
            ZWORK3(JI) = ZWORK3(JI) + MIN(0., ZWORK2(JI) )
@@ -398,7 +399,7 @@ DO JKK = IKB + 1, IKE - 2
      ZWORK2(KIDIA:KFDIA) = ZTOP(KIDIA:KFDIA) - ZZLCL(KIDIA:KFDIA)
    ! WHERE( ZWORK2(:)  .GE. XCDEPTH  .AND. ZWORK2(:) < XCDEPTH_D .AND. GTRIG2(:) &
      DO JI=KIDIA, KFDIA
-     IF( ZWORK2(JI) .GE. XCDEPTH .AND. GTRIG2(JI) .AND. ZCAPE(JI) > 10. )THEN
+     IF( ZWORK2(JI) .GE. CVP_SHAL%XCDEPTH .AND. GTRIG2(JI) .AND. ZCAPE(JI) > 10. )THEN
         GTRIG2(JI)   = .FALSE.
         OTRIG(JI)    = .TRUE.
       ! OTRIG(JI)    = GTRIG(JI)     ! we  select the first departure level

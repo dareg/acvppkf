@@ -1,5 +1,5 @@
 !     ######spl
-    SUBROUTINE CONVECT_UPDRAFT_SHAL( KLON, KLEV, KIDIA, KFDIA,                       &
+    SUBROUTINE CONVECT_UPDRAFT_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,             &
                                      KICE, PPRES, PDPRES, PZ, PTHL, PTHV, PTHES, PRW,&
                                      PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, PTHVELCL,  &
                                      PMFLCL, OTRIG, KLCL, KDPL, KPBL,                &
@@ -78,7 +78,7 @@
 !              ------------
 !
 USE MODD_CST, ONLY : XCPD, XCPV, XG, XP00, XRD, XRV
-USE MODD_CONVPAR_SHAL, ONLY : XCDEPTH, XCDEPTH_D, XCRAD, XENTR, XNHGAM
+USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
 !
 !
@@ -86,6 +86,7 @@ IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
+TYPE(CONVPAR_SHAL),         INTENT(IN) :: CVP_SHAL
 INTEGER, INTENT(IN)                    :: KLON  ! horizontal dimension
 INTEGER, INTENT(IN)                    :: KLEV  ! vertical dimension
 INTEGER, INTENT(IN)                    :: KIDIA ! value of the first point in x
@@ -273,7 +274,7 @@ DO JK = IKB + 1, IKE - 1
       ZWORK4(JI) = PTHV(JI,JK) * ZWORK6(JI) +                   &
                    ( 1. - ZWORK6(JI) ) * PTHVELCL(JI)
       ZWORK5(JI) = 2. * ZUW1(JI) * PUER(JI,JK) / MAX( .1, PUMF(JI,JK) )
-      ZUW2(JI)   = ZUW1(JI) + ZWORK3(JI) * XNHGAM * XG *        &
+      ZUW2(JI)   = ZUW1(JI) + ZWORK3(JI) * CVP_SHAL%XNHGAM * XG *        &
                     ( ( PUTHV(JI,JK) + PUTHV(JI,JKP) ) /       &
                     ( ZWORK4(JI) + PTHV(JI,JKP) ) - 1. )       & ! buoyancy term
                   - ZWORK5(JI)                                  ! entrainment term
@@ -345,7 +346,7 @@ DO JK = IKB + 1, IKE - 1
 !
 ! ZWORK1(KIDIA:KFDIA) = XENTR * PMFLCL * PDPRES(KIDIA:KFDIA,JKP) / XCRAD ! rate of env. inflow
 !*MOD
-  zwork1(KIDIA:KFDIA) = xentr * xg / xcrad * pumf(KIDIA:KFDIA,jk) * ( pz(KIDIA:KFDIA,jkp) - pz(KIDIA:KFDIA,jk) )
+  zwork1(KIDIA:KFDIA) = CVP_SHAL%xentr * xg / CVP_SHAL%xcrad * pumf(KIDIA:KFDIA,jk) * ( pz(KIDIA:KFDIA,jkp) - pz(KIDIA:KFDIA,jk) )
 ! ZWORK1(KIDIA:KFDIA) = XENTR * pumf(KIDIA:KFDIA,jk) * PDPRES(KIDIA:KFDIA,JKP) / XCRAD ! rate of env. inflow
 !*MOD
   ZWORK2(:) = 0.
@@ -438,7 +439,7 @@ END DO
     DO JI = KIDIA, KFDIA
           JK  = KCTL(JI)
           ZWORK1(JI) = PZ(JI,JK) - PZLCL(JI)
-          OTRIG(JI) = ZWORK1(JI) >= XCDEPTH  .AND. ZWORK1(JI) < XCDEPTH_D        &
+          OTRIG(JI) = ZWORK1(JI) >= CVP_SHAL%XCDEPTH  .AND. ZWORK1(JI) < CVP_SHAL%XCDEPTH_D        &
                      .AND. PCAPE(JI) > 1.
     END DO
     DO JI = KIDIA, KFDIA
