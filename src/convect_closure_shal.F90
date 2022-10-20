@@ -1,5 +1,5 @@
 !     ######spl
-     SUBROUTINE CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,         &
+     SUBROUTINE CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,         &
                                       PPRES, PDPRES, PZ, PLMASS,           &
                                       PTHL, PTH, PRW, PRC, PRI, OTRIG1,           &
                                       PTHC, PRWC, PRCC, PRIC, PWSUB,              &
@@ -76,7 +76,7 @@
 !*       0.    DECLARATIONS
 !              ------------
 !
-USE MODD_CST, ONLY : XCPD, XRD, XG, XP00, XCPV, XLVTT, XCL, XTT, XCI
+USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
@@ -87,6 +87,7 @@ IMPLICIT NONE
 !
 TYPE(CONVPAR_SHAL),        INTENT(IN) :: CVP_SHAL
 TYPE(CONVPAREXT),          INTENT(IN) :: CVPEXT
+TYPE(CST_T),               INTENT(IN) :: CST
 INTEGER,                   INTENT(IN) :: KLON   ! horizontal dimension
 INTEGER,                   INTENT(IN) :: KLEV   ! vertical dimension
 INTEGER,                   INTENT(IN) :: KIDIA  ! value of the first point in x
@@ -194,8 +195,8 @@ GWORK3(KIDIA:KFDIA) = .FALSE.
 GWORK4(KIDIA:KFDIA,1:KLEV) = .FALSE.
 ILCL(KIDIA:KFDIA)   = KLCL(KIDIA:KFDIA)
 !
-ZCPORD    = XCPD / XRD
-ZRDOCP    = XRD / XCPD
+ZCPORD    = CST%XCPD / CST%XRD
+ZRDOCP    = CST%XRD / CST%XCPD
 !
 ZADJ(KIDIA:KFDIA)   = 1.
 ZWORK5(KIDIA:KFDIA) = 1.
@@ -301,7 +302,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
                ZTIMEC(JI) = MIN( ZTIMEC(JI), ZWORK1(JI) )
 !
               ! transform vertical velocity in mass flux units
-               ZOMG(JI,JK) = PWSUB(JI,JK) * CVP_SHAL%XA25 / XG
+               ZOMG(JI,JK) = PWSUB(JI,JK) * CVP_SHAL%XA25 / CST%XG
              ENDIF
            ENDDO
      END DO
@@ -459,14 +460,14 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
       DO JK = IKB + 1, JKMAX
          DO JI = KIDIA, KFDIA
          IF( GWORK1(JI) .AND. JK <= KCTL(JI) ) THEN
-           ZPI(JI)    = ( XP00 / PPRES(JI,JK) ) ** ZRDOCP
-           ZCPH(JI)   = XCPD + PRWC(JI,JK) * XCPV
+           ZPI(JI)    = ( CST%XP00 / PPRES(JI,JK) ) ** ZRDOCP
+           ZCPH(JI)   = CST%XCPD + PRWC(JI,JK) * CST%XCPV
            ZWORK2(JI) = PTH(JI,JK) / ZPI(JI)  ! first temperature estimate
-           ZLV(JI)    = XLVTT + ( XCPV - XCL ) * ( ZWORK2(JI) - XTT )
-           ZLS(JI)    = XLVTT + ( XCPV - XCI ) * ( ZWORK2(JI) - XTT )
+           ZLV(JI)    = CST%XLVTT + ( CST%XCPV - CST%XCL ) * ( ZWORK2(JI) - CST%XTT )
+           ZLS(JI)    = CST%XLVTT + ( CST%XCPV - CST%XCI ) * ( ZWORK2(JI) - CST%XTT )
              ! final linearized temperature
            ZWORK2(JI) = ( ZTHLC(JI,JK) + ZLV(JI) * PRCC(JI,JK) + ZLS(JI) * PRIC(JI,JK) &
-                       - (1. + PRWC(JI,JK) ) * XG * PZ(JI,JK) ) / ZCPH(JI)
+                       - (1. + PRWC(JI,JK) ) * CST%XG * PZ(JI,JK) ) / ZCPH(JI)
            ZWORK2(JI) = MAX( 180., MIN( 340., ZWORK2(JI) ) )
            PTHC(JI,JK)= ZWORK2(JI) * ZPI(JI) ! final adjusted envir. theta
          END IF
@@ -479,7 +480,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                           that in routine TRIGGER_FUNCT
 !                  ---------------------------------------------
 !
-      CALL CONVECT_CLOSURE_THRVLCL(  CVPEXT, KLON, KLEV, KIDIA, KFDIA,     &
+      CALL CONVECT_CLOSURE_THRVLCL(  CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,     &
                                      PPRES, PTHC, PRWC, PZ, GWORK1,        &
                                      ZTHLCL, ZRVLCL, ZZLCL, ZTLCL, ZTELCL, &
                                      ILCL, KDPL, KPBL )
@@ -497,9 +498,9 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
        ZCAPE(KIDIA:KFDIA)  = 0.
        ZPI(KIDIA:KFDIA)    = ZTHLCL(KIDIA:KFDIA) / ZTLCL(KIDIA:KFDIA)
        ZPI(KIDIA:KFDIA)    = MAX( 0.95, MIN( 1.5, ZPI(KIDIA:KFDIA) ) )
-       ZWORK1(KIDIA:KFDIA) = XP00 / ZPI(KIDIA:KFDIA) ** ZCPORD ! pressure at LCL
+       ZWORK1(KIDIA:KFDIA) = CST%XP00 / ZPI(KIDIA:KFDIA) ** ZCPORD ! pressure at LCL
 !
-       CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZWORK1, ZTELCL, ZWORK3, ZLV, ZLS, ZCPH )
+       CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, ZWORK1, ZTELCL, ZWORK3, ZLV, ZLS, ZCPH )
        ZWORK3(KIDIA:KFDIA) = MIN(   .1, MAX(   0., ZWORK3(KIDIA:KFDIA) ) )
 !
                 ! compute theta_e updraft undilute
@@ -523,11 +524,11 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !
           GWORK3(JI)  = JK >= ILCL(JI) .AND. JK <= KCTL(JI) .AND. GWORK1(JI)
 !
-          ZPI(JI)     = ( XP00 / PPRES(JI,JK) ) ** ZRDOCP
+          ZPI(JI)     = ( CST%XP00 / PPRES(JI,JK) ) ** ZRDOCP
           ZWORK2(JI)  = PTHC(JI,JK) / ZPI(JI)
         END DO
 !
-        CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, PPRES(:,JK), ZWORK2, ZWORK3, ZLV, ZLS, ZCPH )
+        CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, PPRES(:,JK), ZWORK2, ZWORK3, ZLV, ZLS, ZCPH )
 !
 !
         DO JI = KIDIA, KFDIA
@@ -539,7 +540,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
               ZWORK3(JI)  = PZ(JI,JK) - PZ(JI,JKP) * ZWORK4(JI) -                &
                            ( 1. - ZWORK4(JI) ) * ZZLCL(JI)    ! level thickness
               ZWORK1(JI)  = ( 2. * ZTHEUL(JI) ) / ( ZTHES1(JI) + ZTHES2(JI) ) - 1.
-              ZCAPE(JI)   = ZCAPE(JI) + XG * ZWORK3(JI) * MAX( 0., ZWORK1(JI) )
+              ZCAPE(JI)   = ZCAPE(JI) + CST%XG * ZWORK3(JI) * MAX( 0., ZWORK1(JI) )
               ZTHES1(JI)  = ZTHES2(JI)
           END IF
         END DO

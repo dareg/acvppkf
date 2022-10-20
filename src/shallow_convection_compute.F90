@@ -1,4 +1,4 @@
-SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
+SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
                                    PCH1, IKB, IKE, IFTSTEPS,   &
@@ -11,10 +11,10 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA
 
 USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
-USE MODD_CST, ONLY : XCI, XCL, XCPD, XCPV, XG, XLSTT, XLVTT, XP00, XTT
 USE MODD_NSV, ONLY : NSV_LGBEG,NSV_LGEND
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY: CONVPAREXT
+USE MODD_CST, ONLY: CST_T
 
 IMPLICIT NONE
 !
@@ -23,6 +23,7 @@ IMPLICIT NONE
 !
 TYPE(CONVPAR_SHAL),              INTENT(IN)  :: CVP_SHAL
 TYPE(CONVPAREXT),                INTENT(IN)  :: CVPEXT
+TYPE(CST_T),                     INTENT(IN)  :: CST
 INTEGER,                         INTENT(IN)  :: KLON     ! horizontal dimension
 INTEGER,                         INTENT(IN)  :: KLEV     ! vertical dimension
 INTEGER,                         INTENT(IN)  :: KIDIA    ! value of the first point in x
@@ -140,10 +141,10 @@ END DO
 !
 DO JK = IKB, IKE, 1
   ZRW(:,JK)  = MAX(0., PRVT(:,JK)) + MAX(0., PRCT(:,JK)) + MAX(0., PRIT(:,JK))
-  ZCPH(:)    = XCPD + XCPV * ZRW(:,JK)
-  ZLV(:)     = XLVTT + ( XCPV - XCL ) * ( PTT(:,JK) - XTT ) ! compute L_v
-  ZLS(:)     = XLSTT + ( XCPV - XCI ) * ( PTT(:,JK) - XTT ) ! compute L_i
-  ZTHL(:,JK) = ZCPH(:) * PTT(:,JK) + ( 1. + ZRW(:,JK) ) * XG * PZZ(:,JK) &
+  ZCPH(:)    = CST%XCPD + CST%XCPV * ZRW(:,JK)
+  ZLV(:)     = CST%XLVTT + ( CST%XCPV - CST%XCL ) * ( PTT(:,JK) - CST%XTT ) ! compute L_v
+  ZLS(:)     = CST%XLSTT + ( CST%XCPV - CST%XCI ) * ( PTT(:,JK) - CST%XTT ) ! compute L_i
+  ZTHL(:,JK) = ZCPH(:) * PTT(:,JK) + ( 1. + ZRW(:,JK) ) * CST%XG * PZZ(:,JK) &
                - ZLV(:) * MAX(0., PRCT(:,JK)) - ZLS(:) * MAX(0., PRIT(:,JK))
 END DO
 !
@@ -155,10 +156,10 @@ END DO
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-CALL CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,                  &
+CALL CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,         &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, PSTHV, PSTHES, ZRW, &
                            PSTHLCL, PSTLCL, PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,   &
-                           CVP_SHAL%XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
+                           CVP_SHAL%XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,      &
                            PUMF, ZUER, ZUDR, ZUTHL, ZUTHV, ZURW,            &
                            ZURC, ZURI, ZCAPE, ICTL, IETL, GTRIG1                    )
 
@@ -167,7 +168,7 @@ ZDER(:,:) = 0.
 ZDDR(:,:) = 0.
 ILFS(:)   = IKB
 DO JK = IKB, IKE
-  ZLMASS(:,JK)  = CVP_SHAL%XA25 * ZDPRES(:,JK) / XG  ! mass of model layer
+  ZLMASS(:,JK)  = CVP_SHAL%XA25 * ZDPRES(:,JK) / CST%XG  ! mass of model layer
 END DO
 ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !
@@ -184,7 +185,7 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !                   within an advective time step ZTIMEC.
 !                   ---------------------------------------------------
 !
-  CALL CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA, &
+  CALL CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA, &
                              PPABST, ZDPRES, PZZ, ZLMASS,    &
                              ZTHL, PTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              PTHC, PRVC, PRCC, PRIC, ZWSUB,       &
@@ -208,7 +209,7 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 DO JK = IKB, IKE
   DO JI = KIDIA,KFDIA
    PTHC(JI,JK) = ( PTHC(JI,JK) - PTHT(JI,JK) ) / ZTIMEC(JI)             &
-     * ( PPABST(JI,JK) / XP00 ) ** PRDOCP ! change theta in temperature
+     * ( PPABST(JI,JK) / CST%XP00 ) ** PRDOCP ! change theta in temperature
    PRVC(JI,JK) = ( PRVC(JI,JK) - ZRW(JI,JK) + MAX(0., PRCT(JI,JK)) + MAX(0., PRIT(JI,JK)) ) &
                                         / ZTIMEC(JI)
 
@@ -257,12 +258,12 @@ DO JK = IKB+1, JKM
     IF ( JK <= ICTL(JI) ) THEN
     ZW1 =  PRVC(JI,JK) + PRCC(JI,JK) + PRIC(JI,JK)
     ZWORK2(JI) = ZWORK2(JI) +  ZW1 *          & ! moisture
-                                .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
-    ZW1 = ( XCPD + XCPV * ZRW(JI,JK) )* PTHC(JI,JK)   - &
-          ( XLVTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * PRCC(JI,JK) - &
-          ( XLSTT + ( XCPV - XCL ) * ( PTT(JI,JK) - XTT ) ) * PRIC(JI,JK)
+                                .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / CST%XG
+    ZW1 = ( CST%XCPD + CST%XCPV * ZRW(JI,JK) )* PTHC(JI,JK)   - &
+          ( CST%XLVTT + ( CST%XCPV - CST%XCL ) * ( PTT(JI,JK) - CST%XTT ) ) * PRCC(JI,JK) - &
+          ( CST%XLSTT + ( CST%XCPV - CST%XCL ) * ( PTT(JI,JK) - CST%XTT ) ) * PRIC(JI,JK)
     ZWORK2B(JI) = ZWORK2B(JI) + ZW1 *         & ! energy
-                                .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / XG
+                                .5 * (PPABST(JI,JK-1) - PPABST(JI,JKP)) / CST%XG
     END IF
   END DO
 END DO
@@ -272,7 +273,7 @@ END DO
 DO JI = KIDIA,KFDIA
   IF ( ICTL(JI) > IKB+1 ) THEN
     JKP = ICTL(JI)
-    ZW1 = XG / ( PPABST(JI,IKB) - PPABST(JI,JKP) - &
+    ZW1 = CST%XG / ( PPABST(JI,IKB) - PPABST(JI,JKP) - &
               .5 * (ZDPRES(JI,IKB+1) - ZDPRES(JI,JKP+1)) )
     ZWORK2(JI) =  ZWORK2(JI) * ZW1
     ZWORK2B(JI) = ZWORK2B(JI)* ZW1
@@ -285,7 +286,7 @@ DO JK = JKM, IKB+1, -1
 DO JI = KIDIA,KFDIA
   IF ( ICTL(JI) > IKB+1 .AND. JK <= ICTL(JI) ) THEN
     PRVC(JI,JK) = PRVC(JI,JK) - ZWORK2(JI)                                ! moisture
-    PTHC(JI,JK) = PTHC(JI,JK) - ZWORK2B(JI) /  XCPD                       ! enthalpy
+    PTHC(JI,JK) = PTHC(JI,JK) - ZWORK2B(JI) /  CST%XCPD                       ! enthalpy
   END IF
 END DO
 END DO

@@ -1,4 +1,4 @@
-SUBROUTINE SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
+SUBROUTINE SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
                                       PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                       PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                       PRITEN, KCLTOP, KCLBAS, PUMF,     &
@@ -11,6 +11,7 @@ USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 USE MODD_CONVPAR_SHAL, ONLY: CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY: CONVPAREXT
+USE MODD_CST, ONLY: CST_T
 
 IMPLICIT NONE
 !
@@ -19,6 +20,7 @@ IMPLICIT NONE
 !
 TYPE(CONVPAR_SHAL),              INTENT(IN)   :: CVP_SHAL
 TYPE(CONVPAREXT),                INTENT(IN)   :: CVPEXT
+TYPE(CST_T),                     INTENT(IN)   :: CST
 INTEGER,                         INTENT(IN)   :: KLON     ! horizontal dimension
 INTEGER,                         INTENT(IN)   :: ICONV    ! number of convective columns 
 INTEGER,                         INTENT(IN)   :: KLEV     ! vertical dimension
@@ -155,7 +157,7 @@ DO JI = KIDIA,ICONV
     ZTHVELCL(JI)  = PSTHVELCL(ISORT(JI))
 END DO
 
-CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, ICONV, KLEV, KIDIA, ICONV, KICE,       &
+CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ICONV, KLEV, KIDIA, ICONV, KICE,       &
                                 OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
                                 ZRC, ZRI, OCH1CONV, KCH1, PCH1, IKB,   &
                                 IKE, IFTSTEPS, PRDOCP, ZTH, ZTHV,      &

@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CLOSURE_THRVLCL( CVPEXT, KLON, KLEV, KIDIA, KFDIA,          &
+      SUBROUTINE CONVECT_CLOSURE_THRVLCL( CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,          &
                                           PPRES, PTH, PRV, PZ, OWORK1,        &
                                          PTHLCL, PRVLCL, PZLCL, PTLCL, PTELCL,&
                                           KLCL, KDPL, KPBL )
@@ -67,8 +67,9 @@
 !*       0.    DECLARATIONS
 !              ------------
 !
-USE MODD_CST, ONLY : XRD, XRV, XCPD, XP00, XTT, XBETAW, XGAMW
+USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
+USE MODD_CST, ONLY: CST_T
 !
 !
 IMPLICIT NONE
@@ -76,6 +77,7 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 TYPE(CONVPAREXT),           INTENT(IN) :: CVPEXT
+TYPE(CST_T),                INTENT(IN) :: CST
 INTEGER,                    INTENT(IN) :: KLON  ! horizontal dimension
 INTEGER,                    INTENT(IN) :: KLEV  ! vertical dimension
 INTEGER,                    INTENT(IN) :: KIDIA ! value of the first point in x
@@ -126,9 +128,9 @@ IKE = KLEV - CVPEXT%JCVEXT
 !*       1.     Initialize local variables
 !               --------------------------
 !
-ZEPS      = XRD / XRV
-ZCPORD    = XCPD / XRD
-ZRDOCP    = XRD / XCPD
+ZEPS      = CST%XRD / CST%XRV
+ZCPORD    = CST%XCPD / CST%XRD
+ZRDOCP    = CST%XRD / CST%XCPD
 !
 ZDPTHMIX(KIDIA:KFDIA) = 0.
 ZPRESMIX(KIDIA:KFDIA) = 0.
@@ -177,17 +179,17 @@ DO JI=KIDIA,KFDIA
 !               --------------------------------------------------
 !
 !
-        ZTMIX(JI)  = PTHLCL(JI) * ( ZPRESMIX(JI) / XP00 ) ** ZRDOCP
+        ZTMIX(JI)  = PTHLCL(JI) * ( ZPRESMIX(JI) / CST%XP00 ) ** ZRDOCP
         ZEVMIX(JI) = PRVLCL(JI) * ZPRESMIX(JI) / ( PRVLCL(JI) + ZEPS )
         ZEVMIX(JI) = MAX( 1.E-8, ZEVMIX(JI) )
         ZWORK1(JI) = ALOG( ZEVMIX(JI) / 613.3 )
               ! dewpoint temperature
         ZWORK1(JI) = ( 4780.8 - 32.19 * ZWORK1(JI) ) / ( 17.502 - ZWORK1(JI) ) 
               ! adiabatic saturation temperature
-        PTLCL(JI)  = ZWORK1(JI) - ( .212 + 1.571E-3 * ( ZWORK1(JI) - XTT )      &
-                  - 4.36E-4 * ( ZTMIX(JI) - XTT ) ) * ( ZTMIX(JI) - ZWORK1(JI) )
+        PTLCL(JI)  = ZWORK1(JI) - ( .212 + 1.571E-3 * ( ZWORK1(JI) - CST%XTT )      &
+                  - 4.36E-4 * ( ZTMIX(JI) - CST%XTT ) ) * ( ZTMIX(JI) - ZWORK1(JI) )
         PTLCL(JI)  = MIN( PTLCL(JI), ZTMIX(JI) )
-        ZPLCL(JI)  = XP00 * ( PTLCL(JI) / PTHLCL(JI) ) ** ZCPORD
+        ZPLCL(JI)  = CST%XP00 * ( PTLCL(JI) / PTHLCL(JI) ) ** ZCPORD
 !
   END IF
 ENDDO
@@ -199,10 +201,10 @@ ENDDO
 !               with MNH saturation formula
 !               --------------------------------------------------
 !
-     CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPLCL, PTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
+     CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, ZPLCL, PTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
      DO JI=KIDIA,KFDIA
        IF( OWORK1(JI) ) THEN
-        ZWORK2(JI) = ZWORK1(JI) / PTLCL(JI) * ( XBETAW / PTLCL(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ZWORK1(JI) / PTLCL(JI) * ( CST%XBETAW / PTLCL(JI) - CST%XGAMW ) ! dr_sat/dT
         ZWORK2(JI) = ( ZWORK1(JI) - PRVLCL(JI) ) /                              &
                         ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) ) 
         PTLCL(JI)  = PTLCL(JI) - ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
@@ -214,16 +216,16 @@ ENDDO
 !               to saturation values.
 !               -------------------------------------------------------
 !
-    CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
+    CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
     DO JI=KIDIA,KFDIA
     IF( OWORK1(JI) .AND. PRVLCL(JI) > ZWORK1(JI) ) THEN
-        ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( XBETAW / ZTMIX(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( CST%XBETAW / ZTMIX(JI) - CST%XGAMW ) ! dr_sat/dT
         ZWORK2(JI) = ( ZWORK1(JI) - PRVLCL(JI) ) /                              &
                         ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) )
         PTLCL(JI)  = ZTMIX(JI) + ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
         PRVLCL(JI) = PRVLCL(JI) - ZWORK2(JI)
         ZPLCL(JI)  = ZPRESMIX(JI)
-        PTHLCL(JI) = PTLCL(JI) * ( XP00 / ZPLCL(JI) ) ** ZRDOCP
+        PTHLCL(JI) = PTLCL(JI) * ( CST%XP00 / ZPLCL(JI) ) ** ZRDOCP
       END IF
     ENDDO
 !
@@ -249,8 +251,8 @@ ENDDO
         JKM  = JK - 1
         ZDP(JI)     = ALOG( ZPLCL(JI) / PPRES(JI,JKM) ) /                     &
                       ALOG( PPRES(JI,JK) / PPRES(JI,JKM) )
-        ZWORK1(JI)  = PTH(JI,JK)  * ( PPRES(JI,JK) / XP00 ) ** ZRDOCP
-        ZWORK2(JI)  = PTH(JI,JKM) * ( PPRES(JI,JKM) / XP00 ) ** ZRDOCP
+        ZWORK1(JI)  = PTH(JI,JK)  * ( PPRES(JI,JK) / CST%XP00 ) ** ZRDOCP
+        ZWORK2(JI)  = PTH(JI,JKM) * ( PPRES(JI,JKM) / CST%XP00 ) ** ZRDOCP
         ZWORK1(JI)  = ZWORK2(JI) + ( ZWORK1(JI) - ZWORK2(JI) ) * ZDP(JI) 
            ! we compute the precise value of the LCL
            ! The precise height is between the levels KLCL and KLCL-1.

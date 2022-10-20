@@ -1,5 +1,5 @@
 !     ######spl
-    SUBROUTINE CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,             &
+    SUBROUTINE CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,             &
                                      KICE, PPRES, PDPRES, PZ, PTHL, PTHV, PTHES, PRW,&
                                      PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, PTHVELCL,  &
                                      PMFLCL, OTRIG, KLCL, KDPL, KPBL,                &
@@ -77,7 +77,7 @@
 !*       0.    DECLARATIONS
 !              ------------
 !
-USE MODD_CST, ONLY : XCPD, XCPV, XG, XP00, XRD, XRV
+USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
@@ -88,6 +88,7 @@ IMPLICIT NONE
 !
 TYPE(CONVPAR_SHAL),         INTENT(IN) :: CVP_SHAL
 TYPE(CONVPAREXT),           INTENT(IN) :: CVPEXT
+TYPE(CST_T),                INTENT(IN) :: CST
 INTEGER, INTENT(IN)                    :: KLON  ! horizontal dimension
 INTEGER, INTENT(IN)                    :: KLEV  ! vertical dimension
 INTEGER, INTENT(IN)                    :: KIDIA ! value of the first point in x
@@ -171,8 +172,8 @@ IKE = KLEV - CVPEXT%JCVEXT
 !*       1.     Initialize updraft properties and local variables
 !               -------------------------------------------------
 !
-ZEPSA      = XRV / XRD
-ZRDOCP     = XRD / XCPD
+ZEPSA      = CST%XRV / CST%XRD
+ZRDOCP     = CST%XRD / CST%XCPD
 !
 PUMF(:,:)  = 0.
 PUER(:,:)  = 0.
@@ -209,8 +210,8 @@ ZTHEUL(KIDIA:KFDIA) = PTLCL(KIDIA:KFDIA) * ( PTHLCL(KIDIA:KFDIA) / PTLCL(KIDIA:K
                                    PRVLCL(KIDIA:KFDIA) * ( 1. + 0.81 * PRVLCL(KIDIA:KFDIA) ) )
 !
 !
-ZWORK1(KIDIA:KFDIA) = ( XCPD + PRVLCL(KIDIA:KFDIA) * XCPV ) * PTLCL(KIDIA:KFDIA)                            &
-            + ( 1. + PRVLCL(KIDIA:KFDIA) ) * XG * PZLCL(KIDIA:KFDIA)
+ZWORK1(KIDIA:KFDIA) = ( CST%XCPD + PRVLCL(KIDIA:KFDIA) * CST%XCPV ) * PTLCL(KIDIA:KFDIA)                            &
+            + ( 1. + PRVLCL(KIDIA:KFDIA) ) * CST%XG * PZLCL(KIDIA:KFDIA)
 !
 !
 !*       2.     Set updraft properties between DPL and LCL
@@ -253,12 +254,12 @@ DO JK = IKB + 1, IKE - 1
 !
     ZWORK1(KIDIA:KFDIA) = PURC(KIDIA:KFDIA,JK)
     ZWORK2(KIDIA:KFDIA) = PURI(KIDIA:KFDIA,JK)
-    CALL CONVECT_CONDENS( KLON, KIDIA, KFDIA, KICE, PPRES(KIDIA:KFDIA,JKP), PUTHL(KIDIA:KFDIA,JK), PURW(KIDIA:KFDIA,JK),&
+    CALL CONVECT_CONDENS( CST, KLON, KIDIA, KFDIA, KICE, PPRES(KIDIA:KFDIA,JKP), PUTHL(KIDIA:KFDIA,JK), PURW(KIDIA:KFDIA,JK),&
                           ZWORK1, ZWORK2, PZ(KIDIA:KFDIA,JKP), ZUT, ZURV,             &
                           PURC(KIDIA:KFDIA,JKP), PURI(KIDIA:KFDIA,JKP), ZLV, ZLS, ZCPH )
 !
 !
-  ZPI(KIDIA:KFDIA) = ( XP00 / PPRES(KIDIA:KFDIA,JKP) ) ** ZRDOCP
+  ZPI(KIDIA:KFDIA) = ( CST%XP00 / PPRES(KIDIA:KFDIA,JKP) ) ** ZRDOCP
   DO JI=KIDIA, KFDIA
     IF ( GWORK1(JI) ) THEN
 !
@@ -275,7 +276,7 @@ DO JK = IKB + 1, IKE - 1
       ZWORK4(JI) = PTHV(JI,JK) * ZWORK6(JI) +                   &
                    ( 1. - ZWORK6(JI) ) * PTHVELCL(JI)
       ZWORK5(JI) = 2. * ZUW1(JI) * PUER(JI,JK) / MAX( .1, PUMF(JI,JK) )
-      ZUW2(JI)   = ZUW1(JI) + ZWORK3(JI) * CVP_SHAL%XNHGAM * XG *        &
+      ZUW2(JI)   = ZUW1(JI) + ZWORK3(JI) * CVP_SHAL%XNHGAM * CST%XG *        &
                     ( ( PUTHV(JI,JK) + PUTHV(JI,JKP) ) /       &
                     ( ZWORK4(JI) + PTHV(JI,JKP) ) - 1. )       & ! buoyancy term
                   - ZWORK5(JI)                                  ! entrainment term
@@ -320,7 +321,7 @@ DO JK = IKB + 1, IKE - 1
     ZWORK2(KIDIA:KFDIA) = ZMIXF(KIDIA:KFDIA) * PRW(KIDIA:KFDIA,JKP)                                      &
                      + ( 1. - ZMIXF(KIDIA:KFDIA) ) * PURW(KIDIA:KFDIA,JKP)  ! mixed r_w
 !
-    CALL CONVECT_CONDENS( KLON, KIDIA, KFDIA, KICE, PPRES(KIDIA:KFDIA,JKP), ZWORK1, ZWORK2,        &
+    CALL CONVECT_CONDENS( CST, KLON, KIDIA, KFDIA, KICE, PPRES(KIDIA:KFDIA,JKP), ZWORK1, ZWORK2,        &
                           PURC(KIDIA:KFDIA,JKP), PURI(KIDIA:KFDIA,JKP), PZ(KIDIA:KFDIA,JKP), ZUT,        &
                           ZWORK3, ZWORK4, ZWORK5, ZLV, ZLS, ZCPH )
 !        put in enthalpy and r_w and get T r_c, r_i (ZUT, ZWORK4-5)
@@ -347,7 +348,7 @@ DO JK = IKB + 1, IKE - 1
 !
 ! ZWORK1(KIDIA:KFDIA) = XENTR * PMFLCL * PDPRES(KIDIA:KFDIA,JKP) / XCRAD ! rate of env. inflow
 !*MOD
-  zwork1(KIDIA:KFDIA) = CVP_SHAL%xentr * xg / CVP_SHAL%xcrad * pumf(KIDIA:KFDIA,jk) * ( pz(KIDIA:KFDIA,jkp) - pz(KIDIA:KFDIA,jk) )
+  zwork1(KIDIA:KFDIA) = CVP_SHAL%xentr * CST%xg / CVP_SHAL%xcrad * pumf(KIDIA:KFDIA,jk) * ( pz(KIDIA:KFDIA,jkp) - pz(KIDIA:KFDIA,jk) )
 ! ZWORK1(KIDIA:KFDIA) = XENTR * pumf(KIDIA:KFDIA,jk) * PDPRES(KIDIA:KFDIA,JKP) / XCRAD ! rate of env. inflow
 !*MOD
   ZWORK2(:) = 0.
@@ -408,7 +409,7 @@ DO JK = IKB + 1, IKE - 1
                               ! ( this is only done for model level just above LCL
 !
       ZWORK1(JI) = ( 2. * ZTHEUL(JI) ) / ( ZWORK2(JI) + PTHES(JI,JKP) ) - 1.
-      PCAPE(JI)  = PCAPE(JI) + XG * ZWORK3(JI) * MAX( 0., ZWORK1(JI) )
+      PCAPE(JI)  = PCAPE(JI) + CST%XG * ZWORK3(JI) * MAX( 0., ZWORK1(JI) )
 !
 !
 !*         10.   Compute final values of updraft mass flux, enthalpy, r_w

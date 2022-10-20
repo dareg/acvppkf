@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CONDENS( KLON, KIDIA, KFDIA,                     &
+      SUBROUTINE CONVECT_CONDENS( CST, KLON, KIDIA, KFDIA,                &
                                   KICE, PPRES, PTHL, PRW, PRCO, PRIO, PZ, &
                                   PT, PEW, PRC, PRI, PLV, PLS, PCPH   )
       USE PARKIND1, ONLY : JPRB
@@ -63,7 +63,7 @@
 !*       0.    DECLARATIONS
 !              ------------
 !
-USE MODD_CST, ONLY : XALPI, XALPW, XBETAI, XBETAW, XCI, XCL, XCPD, XCPV, XG, XGAMI, XGAMW, XLSTT, XLVTT, XRD, XRV, XTT
+USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAR, ONLY : XTFRZ1, XTFRZ2
 !
 !
@@ -71,6 +71,7 @@ IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
+TYPE(CST_T), INTENT(IN)            :: CST
 INTEGER, INTENT(IN)                :: KLON    ! horizontal loop index
 INTEGER, INTENT(IN)                :: KIDIA   ! value of the first point in x
 INTEGER, INTENT(IN)                :: KFDIA   ! value of the last point in x
@@ -108,7 +109,7 @@ REAL, DIMENSION(KLON)    :: ZWORK1, ZWORK2, ZWORK3, ZT ! work arrays
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CONDENS',0,ZHOOK_HANDLE)
-ZEPS        = XRD / XRV
+ZEPS        = CST%XRD / CST%XRV
 !
 !
     ! Make a first temperature estimate, based e.g. on values of
@@ -117,9 +118,9 @@ ZEPS        = XRD / XRV
       !! Note that the definition of ZCPH is not the same as used in
       !! routine CONVECT_SATMIXRATIO
   DO JI=KIDIA,KFDIA
-     PCPH(JI)   = XCPD + XCPV * PRW(JI)
-     ZWORK1(JI) = ( 1. + PRW(JI) ) * XG * PZ(JI)
-     PT(JI)     = ( PTHL(JI) + PRCO(JI) * XLVTT + PRIO(JI) * XLSTT - ZWORK1(JI) )   &
+     PCPH(JI)   = CST%XCPD + CST%XCPV * PRW(JI)
+     ZWORK1(JI) = ( 1. + PRW(JI) ) * CST%XG * PZ(JI)
+     PT(JI)     = ( PTHL(JI) + PRCO(JI) * CST%XLVTT + PRIO(JI) * CST%XLSTT - ZWORK1(JI) )   &
                  / PCPH(JI)
      PT(JI)     = MAX(180., MIN( 330., PT(JI) ) ) ! set overflow bounds in
                                                     ! case that PTHL=0     
@@ -131,13 +132,13 @@ ZEPS        = XRD / XRV
 !    
 DO JITER = 1,6
   DO JI=KIDIA,KFDIA
-     PEW(JI) = EXP( XALPW - XBETAW / PT(JI) - XGAMW * ALOG( PT(JI) ) )
-     ZEI(JI) = EXP( XALPI - XBETAI / PT(JI) - XGAMI * ALOG( PT(JI) ) )
+     PEW(JI) = EXP( CST%XALPW - CST%XBETAW / PT(JI) - CST%XGAMW * ALOG( PT(JI) ) )
+     ZEI(JI) = EXP( CST%XALPI - CST%XBETAI / PT(JI) - CST%XGAMI * ALOG( PT(JI) ) )
      PEW(JI) = ZEPS * PEW(JI) / ( PPRES(JI) - PEW(JI) )
      ZEI(JI) = ZEPS * ZEI(JI) / ( PPRES(JI) - ZEI(JI) )    
 !
-     PLV(JI)    = XLVTT + ( XCPV - XCL ) * ( PT(JI) - XTT ) ! compute L_v
-     PLS(JI)    = XLSTT + ( XCPV - XCI ) * ( PT(JI) - XTT ) ! compute L_i
+     PLV(JI)    = CST%XLVTT + ( CST%XCPV - CST%XCL ) * ( PT(JI) - CST%XTT ) ! compute L_v
+     PLS(JI)    = CST%XLSTT + ( CST%XCPV - CST%XCI ) * ( PT(JI) - CST%XTT ) ! compute L_i
 !    
      ZWORK2(JI) = ( XTFRZ1 - PT(JI) ) / ( XTFRZ1 - XTFRZ2 ) ! freezing interval
      ZWORK2(JI) = MAX( 0., MIN(1., ZWORK2(JI) ) ) * REAL( KICE )

@@ -1,5 +1,5 @@
 !     ######spl
-    SUBROUTINE SHALLOW_CONVECTION( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA, KBDIA, KTDIA,        &
+    SUBROUTINE SHALLOW_CONVECTION( CVP_SHAL, CST, KLON, KLEV, KIDIA, KFDIA, KBDIA, KTDIA,        &
                                    KICE, OSETTADJ, PTADJS,               &
                                    PPABST, PZZ, PTKECLS,                          &
                                    PTT, PRVT, PRCT, PRIT, PWT,                    &
@@ -94,7 +94,7 @@
 !*       0.    DECLARATIONS
 !              ------------
 !
-USE MODD_CST, ONLY : XALPW, XBETAW, XCPD, XGAMW, XP00, XRD, XRV
+USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 USE MODD_CONVPAR_SHAL, ONLY: CONVPAR_SHAL
 !
@@ -105,6 +105,7 @@ IMPLICIT NONE
 !
 !
 TYPE(CONVPAR_SHAL),         INTENT(IN) :: CVP_SHAL
+TYPE(CST_T),                INTENT(IN) :: CST
 INTEGER,                    INTENT(IN) :: KLON     ! horizontal dimension
 INTEGER,                    INTENT(IN) :: KLEV     ! vertical dimension
 INTEGER,                    INTENT(IN) :: KIDIA    ! value of the first point in x
@@ -210,9 +211,9 @@ END IF
 !*       1.     Initialize  local variables
 !               ----------------------------
 !
-ZEPS   = XRD / XRV
-ZEPSA  = XRV / XRD
-ZRDOCP = XRD / XCPD
+ZEPS   = CST%XRD / CST%XRV
+ZEPSA  = CST%XRV / CST%XRD
+ZRDOCP = CST%XRD / CST%XCPD
 !
 !-------------------------------------------------------------------------------
 !
@@ -225,7 +226,7 @@ ZSTHES(:,:)= 400.
 DO JK = IKB, IKE
 DO JI = KIDIA, KFDIA
   IF ( PPABST(JI,JK) > 40.E2 ) THEN
-    ZTHT(JI,JK)  = PTT(JI,JK) * ( XP00 / PPABST(JI,JK) ) ** ZRDOCP
+    ZTHT(JI,JK)  = PTT(JI,JK) * ( CST%XP00 / PPABST(JI,JK) ) ** ZRDOCP
     ZSTHV(JI,JK) = ZTHT(JI,JK) * ( 1. + ZEPSA * PRVT(JI,JK) ) /              &
                    ( 1. + PRVT(JI,JK) + PRCT(JI,JK) + PRIT(JI,JK) )
 !
@@ -233,7 +234,7 @@ DO JI = KIDIA, KFDIA
         ! it is used to compute CAPE for undilute parcel ascent
         ! For economical reasons we do not use routine CONVECT_SATMIXRATIO here
 !
-    ZES = EXP( XALPW - XBETAW / PTT(JI,JK) - XGAMW * LOG( PTT(JI,JK) ) )
+    ZES = EXP( CST%XALPW - CST%XBETAW / PTT(JI,JK) - CST%XGAMW * LOG( PTT(JI,JK) ) )
     ZES = MIN( 1., ZEPS * ZES / ( PPABST(JI,JK) - ZES ) )
     ZSTHES(JI,JK) = PTT(JI,JK) * ( ZTHT(JI,JK) / PTT(JI,JK) ) **             &
               ( 1. - 0.28 * ZES ) * EXP( ( 3374.6525 / PTT(JI,JK) - 2.5403 ) &
@@ -254,7 +255,7 @@ ISLCL(:) = MAX( IKB, 2 )   ! initialize DPL PBL and LCL
 ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
-CALL CONVECT_TRIGGER_SHAL(  CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,  &
+CALL CONVECT_TRIGGER_SHAL(  CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,  &
                             PPABST, ZTHT, ZSTHV, ZSTHES,                 &
                             PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
@@ -263,7 +264,7 @@ ICONV = COUNT(GTRIG1(KIDIA:KFDIA))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < KLON/2) THEN
-  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
+  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
                                   PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                   PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                   PRITEN, KCLTOP, KCLBAS, PUMF,     &
@@ -273,7 +274,7 @@ ELSE IF (ICONV < KLON/2) THEN
                                   ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,  &
                                   ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
 ELSE
-  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA, KICE,        &
+  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA, KICE,        &
                                   OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
                                   PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
                                   IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT,      &

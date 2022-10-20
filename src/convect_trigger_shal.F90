@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_TRIGGER_SHAL(  CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,  &
+      SUBROUTINE CONVECT_TRIGGER_SHAL(  CVP_SHAL, CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,  &
                                         PPRES, PTH, PTHV, PTHES,             &
                                         PRV, PW, PZ, PTKECLS,                &
                                         PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, &
@@ -80,7 +80,7 @@
 !*       0.    DECLARATIONS
 !              ------------
 !
-USE MODD_CST, ONLY : XBETAW, XCPD, XG, XGAMW, XP00, XRD, XRV, XTT
+USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
@@ -91,6 +91,7 @@ IMPLICIT NONE
 !
 TYPE(CONVPAR_SHAL),        INTENT(IN) :: CVP_SHAL
 TYPE(CONVPAREXT),          INTENT(IN) :: CVPEXT
+TYPE(CST_T),               INTENT(IN) :: CST
 INTEGER, INTENT(IN)                   :: KLON      ! horizontal loop index
 INTEGER, INTENT(IN)                   :: KLEV      ! vertical loop index
 INTEGER, INTENT(IN)                   :: KIDIA     ! value of the first point in x
@@ -157,10 +158,10 @@ IKE = KLEV - CVPEXT%JCVEXT
 !*       1.     Initialize local variables
 !               --------------------------
 !
-ZEPS       = XRD / XRV
-ZEPSA      = XRV / XRD
-ZCPORD     = XCPD / XRD
-ZRDOCP     = XRD / XCPD
+ZEPS       = CST%XRD / CST%XRV
+ZEPSA      = CST%XRV / CST%XRD
+ZCPORD     = CST%XCPD / CST%XRD
+ZRDOCP     = CST%XRD / CST%XCPD
 OTRIG(:)   = .FALSE.
 IDPL(:)    = KDPL(:)
 IPBL(:)    = KPBL(:)
@@ -226,7 +227,7 @@ DO JKK = IKB + 1, IKE - 2
 !
         ZPRESMIX(JI) = ZPRESMIX(JI) / ZDPTHMIX(JI)
         ZTHLCL(JI)   = ZTHLCL(JI)   / ZDPTHMIX(JI) + &
-      & (CVP_SHAL%XATPERT * MIN(3.,PTKECLS(JI))/XCPD +CVP_SHAL%XBTPERT) * CVP_SHAL%XDTPERT ! add small Temp Perturb.
+      & (CVP_SHAL%XATPERT * MIN(3.,PTKECLS(JI))/CST%XCPD +CVP_SHAL%XBTPERT) * CVP_SHAL%XDTPERT ! add small Temp Perturb.
         ZRVLCL(JI)   = ZRVLCL(JI)   / ZDPTHMIX(JI)
         ZTHVLCL(JI)  = ZTHLCL(JI) * ( 1. + ZEPSA * ZRVLCL(JI) )                 &
                     / ( 1. + ZRVLCL(JI) )
@@ -238,17 +239,17 @@ DO JKK = IKB + 1, IKE - 2
 !               ----------------------------------------------------
 !
 !
-        ZTMIX(JI)  = ZTHLCL(JI) * ( ZPRESMIX(JI) / XP00 ) ** ZRDOCP
+        ZTMIX(JI)  = ZTHLCL(JI) * ( ZPRESMIX(JI) / CST%XP00 ) ** ZRDOCP
         ZEVMIX(JI) = ZRVLCL(JI) * ZPRESMIX(JI) / ( ZRVLCL(JI) + ZEPS )
         ZEVMIX(JI) = MAX( 1.E-8, ZEVMIX(JI) )
         ZWORK1(JI) = LOG( ZEVMIX(JI) / 613.3 )
               ! dewpoint temperature
         ZWORK1(JI) = ( 4780.8 - 32.19 * ZWORK1(JI) ) / ( 17.502 - ZWORK1(JI) )
               ! adiabatic saturation temperature
-        ZTLCL(JI)  = ZWORK1(JI) - ( .212 + 1.571E-3 * ( ZWORK1(JI) - XTT )      &
-                   - 4.36E-4 * ( ZTMIX(JI) - XTT ) ) * ( ZTMIX(JI) - ZWORK1(JI) )
+        ZTLCL(JI)  = ZWORK1(JI) - ( .212 + 1.571E-3 * ( ZWORK1(JI) - CST%XTT )      &
+                   - 4.36E-4 * ( ZTMIX(JI) - CST%XTT ) ) * ( ZTMIX(JI) - ZWORK1(JI) )
         ZTLCL(JI)  = MIN( ZTLCL(JI), ZTMIX(JI) )
-        ZPLCL(JI)  = XP00 * ( ZTLCL(JI) / ZTHLCL(JI) ) ** ZCPORD
+        ZPLCL(JI)  = CST%XP00 * ( ZTLCL(JI) / ZTHLCL(JI) ) ** ZCPORD
 !
      END IF
      ENDDO
@@ -258,10 +259,10 @@ DO JKK = IKB + 1, IKE - 2
 !               with MNH saturation formula
 !               ---------------------------------------------
 !
-     CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPLCL, ZTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
+     CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, ZPLCL, ZTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
      DO JI=KIDIA, KFDIA
      IF( GWORK1(JI) ) THEN
-        ZWORK2(JI) = ZWORK1(JI) / ZTLCL(JI) * ( XBETAW / ZTLCL(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ZWORK1(JI) / ZTLCL(JI) * ( CST%XBETAW / ZTLCL(JI) - CST%XGAMW ) ! dr_sat/dT
         ZWORK2(JI) = ( ZWORK1(JI) - ZRVLCL(JI) ) /                              &
                         ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) )
         ZTLCL(JI)  = ZTLCL(JI) - ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
@@ -274,16 +275,16 @@ DO JKK = IKB + 1, IKE - 2
 !               and temperature to saturation values.
 !               ---------------------------------------------
 !
-     CALL CONVECT_SATMIXRATIO( KLON, KIDIA, KFDIA, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
+     CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
      DO JI=KIDIA, KFDIA
      IF( GWORK1(JI) .AND. ZRVLCL(JI) > ZWORK1(JI) ) THEN
-        ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( XBETAW / ZTMIX(JI) - XGAMW ) ! dr_sat/dT
+        ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( CST%XBETAW / ZTMIX(JI) - CST%XGAMW ) ! dr_sat/dT
         ZWORK2(JI) = ( ZWORK1(JI) - ZRVLCL(JI) ) /                              &
                        ( 1. + ZLV(JI) / ZCPH(JI) * ZWORK2(JI) )
         ZTLCL(JI)  = ZTMIX(JI) - ZLV(JI) / ZCPH(JI) * ZWORK2(JI)
         ZRVLCL(JI) = ZRVLCL(JI) - ZWORK2(JI)
         ZPLCL(JI)  = ZPRESMIX(JI)
-        ZTHLCL(JI) = ZTLCL(JI) * ( XP00 / ZPLCL(JI) ) ** ZRDOCP
+        ZTHLCL(JI) = ZTLCL(JI) * ( CST%XP00 / ZPLCL(JI) ) ** ZRDOCP
         ZTHVLCL(JI)= ZTHLCL(JI) * ( 1. + ZEPSA * ZRVLCL(JI) )                   &
                               / ( 1. + ZRVLCL(JI) )
      END IF
@@ -378,9 +379,9 @@ DO JKK = IKB + 1, IKE - 2
            ZWORK1(JI) = ( 2. * ZTHEUL(JI) /                                &
             ( PTHES(JI,JK) + PTHES(JI,JL) ) - 1. ) * ( PZ(JI,JK) - PZ(JI,JL) )
            IF ( JL < ILCL(JI) ) ZWORK1(JI) = 0.
-           ZCAPE(JI)  = ZCAPE(JI) + XG * MAX( 1., ZWORK1(JI) )
+           ZCAPE(JI)  = ZCAPE(JI) + CST%XG * MAX( 1., ZWORK1(JI) )
            ZCAP(JI)   = ZCAP(JI) + ZWORK1(JI)
-           ZWORK2(JI) = CVP_SHAL%XNHGAM * XG * ZCAP(JI) + 1.05 * ZWLCL(JI) * ZWLCL(JI)
+           ZWORK2(JI) = CVP_SHAL%XNHGAM * CST%XG * ZCAP(JI) + 1.05 * ZWLCL(JI) * ZWLCL(JI)
                ! the factor 1.05 takes entrainment into account
            ZWORK2(JI) = SIGN( 1., ZWORK2(JI) )
            ZWORK3(JI) = ZWORK3(JI) + MIN(0., ZWORK2(JI) )
