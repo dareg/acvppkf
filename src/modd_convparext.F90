@@ -4,9 +4,11 @@
 !
 IMPLICIT NONE
 !
-INTEGER, SAVE :: JCVEXB ! start vertical computations at
+TYPE CONVPAREXT
+INTEGER :: JCVEXB ! start vertical computations at
                         ! 1 + JCVEXB = 1 + ( KBDIA - 1 )
-INTEGER, SAVE :: JCVEXT ! limit vertical computations to
+INTEGER :: JCVEXT ! limit vertical computations to
                         ! KLEV - JCVEXT = KLEV - ( KTDIA - 1 )
+END TYPE CONVPAREXT
 !
 END MODULE MODD_CONVPAREXT

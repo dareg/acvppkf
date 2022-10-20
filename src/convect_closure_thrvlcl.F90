@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CLOSURE_THRVLCL( KLON, KLEV, KIDIA, KFDIA,          &
+      SUBROUTINE CONVECT_CLOSURE_THRVLCL( CVPEXT, KLON, KLEV, KIDIA, KFDIA,          &
                                           PPRES, PTH, PRV, PZ, OWORK1,        &
                                          PTHLCL, PRVLCL, PZLCL, PTLCL, PTELCL,&
                                           KLCL, KDPL, KPBL )
@@ -68,13 +68,14 @@
 !              ------------
 !
 USE MODD_CST, ONLY : XRD, XRV, XCPD, XP00, XTT, XBETAW, XGAMW
-USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
+USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
 !
 IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
+TYPE(CONVPAREXT),           INTENT(IN) :: CVPEXT
 INTEGER,                    INTENT(IN) :: KLON  ! horizontal dimension
 INTEGER,                    INTENT(IN) :: KLEV  ! vertical dimension
 INTEGER,                    INTENT(IN) :: KIDIA ! value of the first point in x
@@ -118,8 +119,8 @@ REAL, DIMENSION(KLON) :: ZWORK1, ZWORK2     ! work arrays
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_THRVLCL',0,ZHOOK_HANDLE)
-IKB = 1 + JCVEXB 
-IKE = KLEV - JCVEXT 
+IKB = 1 + CVPEXT%JCVEXB 
+IKE = KLEV - CVPEXT%JCVEXT 
 !
 !
 !*       1.     Initialize local variables

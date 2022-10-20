@@ -1,4 +1,4 @@
-SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
+SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA, KICE, OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
                                    PCH1, IKB, IKE, IFTSTEPS,   &
@@ -14,6 +14,7 @@ USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 USE MODD_CST, ONLY : XCI, XCL, XCPD, XCPV, XG, XLSTT, XLVTT, XP00, XTT
 USE MODD_NSV, ONLY : NSV_LGBEG,NSV_LGEND
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
+USE MODD_CONVPAREXT, ONLY: CONVPAREXT
 
 IMPLICIT NONE
 !
@@ -21,6 +22,7 @@ IMPLICIT NONE
 !
 !
 TYPE(CONVPAR_SHAL),              INTENT(IN)  :: CVP_SHAL
+TYPE(CONVPAREXT),                INTENT(IN)  :: CVPEXT
 INTEGER,                         INTENT(IN)  :: KLON     ! horizontal dimension
 INTEGER,                         INTENT(IN)  :: KLEV     ! vertical dimension
 INTEGER,                         INTENT(IN)  :: KIDIA    ! value of the first point in x
@@ -153,7 +155,7 @@ END DO
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-CALL CONVECT_UPDRAFT_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,                  &
+CALL CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,                  &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, PSTHV, PSTHES, ZRW, &
                            PSTHLCL, PSTLCL, PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,   &
                            CVP_SHAL%XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,                &
@@ -182,7 +184,7 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !                   within an advective time step ZTIMEC.
 !                   ---------------------------------------------------
 !
-  CALL CONVECT_CLOSURE_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,               &
+  CALL CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA, &
                              PPABST, ZDPRES, PZZ, ZLMASS,    &
                              ZTHL, PTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              PTHC, PRVC, PRCC, PRIC, ZWSUB,       &
@@ -299,7 +301,7 @@ IF ( OCH1CONV ) THEN
     ENDIF
   END DO
   END DO
-  CALL CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, ZCH1C,&
+  CALL CONVECT_CHEM_TRANSPORT( CVPEXT, KLON, KLEV, KIDIA, KFDIA, KCH1, ZCH1, ZCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                PUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
                                ZTIMEC, CVP_SHAL%XA25, ZDMF(:,1), ZLMASS, ZWSUB, &

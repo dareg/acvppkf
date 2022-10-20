@@ -1,5 +1,5 @@
 !     ######spl
-    SUBROUTINE CONVECT_UPDRAFT_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,             &
+    SUBROUTINE CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,             &
                                      KICE, PPRES, PDPRES, PZ, PTHL, PTHV, PTHES, PRW,&
                                      PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, PTHVELCL,  &
                                      PMFLCL, OTRIG, KLCL, KDPL, KPBL,                &
@@ -79,7 +79,7 @@
 !
 USE MODD_CST, ONLY : XCPD, XCPV, XG, XP00, XRD, XRV
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
-USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
+USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
 !
 IMPLICIT NONE
@@ -87,6 +87,7 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 TYPE(CONVPAR_SHAL),         INTENT(IN) :: CVP_SHAL
+TYPE(CONVPAREXT),           INTENT(IN) :: CVPEXT
 INTEGER, INTENT(IN)                    :: KLON  ! horizontal dimension
 INTEGER, INTENT(IN)                    :: KLEV  ! vertical dimension
 INTEGER, INTENT(IN)                    :: KIDIA ! value of the first point in x
@@ -163,8 +164,8 @@ LOGICAL, DIMENSION(KLON) :: GWORK1, GWORK2, GWORK4
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_UPDRAFT_SHAL',0,ZHOOK_HANDLE)
-IKB = 1 + JCVEXB
-IKE = KLEV - JCVEXT
+IKB = 1 + CVPEXT%JCVEXB
+IKE = KLEV - CVPEXT%JCVEXT
 !
 !
 !*       1.     Initialize updraft properties and local variables

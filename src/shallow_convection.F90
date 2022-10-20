@@ -95,7 +95,7 @@
 !              ------------
 !
 USE MODD_CST, ONLY : XALPW, XBETAW, XCPD, XGAMW, XP00, XRD, XRV
-USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
+USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 USE MODD_CONVPAR_SHAL, ONLY: CONVPAR_SHAL
 !
 !
@@ -175,6 +175,8 @@ REAL, DIMENSION(KLON)     :: ZSTHVELCL! envir. theta_v at LCL
 LOGICAL, DIMENSION(KLON)    :: GTRIG1  ! logical mask for convection
 REAL                        :: ZES     ! saturation vapor mixng ratio
 !
+TYPE(CONVPAREXT) :: CVPEXT
+!
 !-------------------------------------------------------------------------------
 !
 !
@@ -183,10 +185,10 @@ REAL                        :: ZES     ! saturation vapor mixng ratio
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',0,ZHOOK_HANDLE)
-JCVEXB = MAX( 0, KBDIA - 1 )
-IKB = 1 + JCVEXB
-JCVEXT = MAX( 0, KTDIA - 1)
-IKE = KLEV - JCVEXT
+CVPEXT%JCVEXB = MAX( 0, KBDIA - 1 )
+IKB = 1 + CVPEXT%JCVEXB
+CVPEXT%JCVEXT = MAX( 0, KTDIA - 1)
+IKE = KLEV - CVPEXT%JCVEXT
 !
 !*       0.7    Reset convective tendencies to zero if convective
 !               counter becomes negative
@@ -252,7 +254,7 @@ ISLCL(:) = MAX( IKB, 2 )   ! initialize DPL PBL and LCL
 ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
-CALL CONVECT_TRIGGER_SHAL(  CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,                    &
+CALL CONVECT_TRIGGER_SHAL(  CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,  &
                             PPABST, ZTHT, ZSTHV, ZSTHES,                 &
                             PRVT, PWT, PZZ, PTKECLS,             &
                             ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
@@ -261,7 +263,7 @@ ICONV = COUNT(GTRIG1(KIDIA:KFDIA))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < KLON/2) THEN
-  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
+  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
                                   PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                   PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                   PRITEN, KCLTOP, KCLBAS, PUMF,     &
@@ -271,7 +273,7 @@ ELSE IF (ICONV < KLON/2) THEN
                                   ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,  &
                                   ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
 ELSE
-  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, KLON, KLEV, KIDIA, KFDIA, KICE,        &
+  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA, KICE,        &
                                   OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
                                   PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
                                   IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT,      &

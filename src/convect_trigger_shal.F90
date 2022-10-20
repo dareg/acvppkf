@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_TRIGGER_SHAL(  CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,  &
+      SUBROUTINE CONVECT_TRIGGER_SHAL(  CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,  &
                                         PPRES, PTH, PTHV, PTHES,             &
                                         PRV, PW, PZ, PTKECLS,                &
                                         PTHLCL, PTLCL, PRVLCL, PWLCL, PZLCL, &
@@ -82,7 +82,7 @@
 !
 USE MODD_CST, ONLY : XBETAW, XCPD, XG, XGAMW, XP00, XRD, XRV, XTT
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
-USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
+USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
 !
 IMPLICIT NONE
@@ -90,6 +90,7 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 TYPE(CONVPAR_SHAL),        INTENT(IN) :: CVP_SHAL
+TYPE(CONVPAREXT),          INTENT(IN) :: CVPEXT
 INTEGER, INTENT(IN)                   :: KLON      ! horizontal loop index
 INTEGER, INTENT(IN)                   :: KLEV      ! vertical loop index
 INTEGER, INTENT(IN)                   :: KIDIA     ! value of the first point in x
@@ -149,8 +150,8 @@ LOGICAL, DIMENSION(KLON) :: GWORK1                 ! work array
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_TRIGGER_SHAL',0,ZHOOK_HANDLE)
-IKB = 1 + JCVEXB
-IKE = KLEV - JCVEXT
+IKB = 1 + CVPEXT%JCVEXB
+IKE = KLEV - CVPEXT%JCVEXT
 !
 !
 !*       1.     Initialize local variables

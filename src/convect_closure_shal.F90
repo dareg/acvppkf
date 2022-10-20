@@ -1,5 +1,5 @@
 !     ######spl
-     SUBROUTINE CONVECT_CLOSURE_SHAL( CVP_SHAL, KLON, KLEV, KIDIA, KFDIA,         &
+     SUBROUTINE CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, KLON, KLEV, KIDIA, KFDIA,         &
                                       PPRES, PDPRES, PZ, PLMASS,           &
                                       PTHL, PTH, PRW, PRC, PRI, OTRIG1,           &
                                       PTHC, PRWC, PRCC, PRIC, PWSUB,              &
@@ -78,7 +78,7 @@
 !
 USE MODD_CST, ONLY : XCPD, XRD, XG, XP00, XCPV, XLVTT, XCL, XTT, XCI
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
-USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
+USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
 !
 IMPLICIT NONE
@@ -86,6 +86,7 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 TYPE(CONVPAR_SHAL),        INTENT(IN) :: CVP_SHAL
+TYPE(CONVPAREXT),          INTENT(IN) :: CVPEXT
 INTEGER,                   INTENT(IN) :: KLON   ! horizontal dimension
 INTEGER,                   INTENT(IN) :: KLEV   ! vertical dimension
 INTEGER,                   INTENT(IN) :: KIDIA  ! value of the first point in x
@@ -206,9 +207,9 @@ ENDDO
 !*       0.3   Compute loop bounds
 !              -------------------
 !
-IKB    = 1 + JCVEXB
+IKB    = 1 + CVPEXT%JCVEXB
 IKS    = KLEV
-IKE    = KLEV - JCVEXT
+IKE    = KLEV - CVPEXT%JCVEXT
 JKMAX=IKE
 !
 !
@@ -478,7 +479,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                           that in routine TRIGGER_FUNCT
 !                  ---------------------------------------------
 !
-      CALL CONVECT_CLOSURE_THRVLCL(  KLON, KLEV, KIDIA, KFDIA,             &
+      CALL CONVECT_CLOSURE_THRVLCL(  CVPEXT, KLON, KLEV, KIDIA, KFDIA,     &
                                      PPRES, PTHC, PRWC, PZ, GWORK1,        &
                                      ZTHLCL, ZRVLCL, ZZLCL, ZTLCL, ZTELCL, &
                                      ILCL, KDPL, KPBL )
@@ -575,7 +576,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                  specified degree of stabilization
 !                 ----------------------------------------------------
 !
-       CALL CONVECT_CLOSURE_ADJUST_SHAL( KLON, KLEV, KIDIA, KFDIA, ZADJ,       &
+       CALL CONVECT_CLOSURE_ADJUST_SHAL( CVPEXT, KLON, KLEV, KIDIA, KFDIA, ZADJ,&
                                          PUMF, ZUMF, PUER, ZUER, PUDR, ZUDR    )
 !
 !

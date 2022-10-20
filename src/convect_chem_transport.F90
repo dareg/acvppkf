@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CHEM_TRANSPORT( KLON, KLEV, KIDIA, KFDIA, KCH, PCH1, PCH1C, &
+      SUBROUTINE CONVECT_CHEM_TRANSPORT( CVPEXT, KLON, KLEV, KIDIA, KFDIA, KCH, PCH1, PCH1C, &
                                          KDPL, KPBL, KLCL, KCTL, KLFS, KDBL, &
                                          PUMF, PUER, PUDR, PDMF, PDER, PDDR, &
                                          PTIMEC, PDXDY, PMIXF, PLMASS, PWSUB,&
@@ -50,13 +50,14 @@
 !              ------------
 !
 USE MODD_CST, ONLY : XG
-USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
+USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 USE MODD_NSV,  ONLY : NSV_LGBEG,NSV_LGEND
 !
 IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
+TYPE(CONVPAREXT),       INTENT(IN) :: CVPEXT
 INTEGER,                INTENT(IN) :: KLON     ! horizontal dimension
 INTEGER,                INTENT(IN) :: KLEV     ! vertical dimension
 INTEGER,                INTENT(IN) :: KIDIA    ! value of the first point in x
@@ -115,9 +116,9 @@ REAL, DIMENSION(KLON,KCH)      :: ZWORK1, ZWORK2, ZWORK3
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CHEM_TRANSPORT',0,ZHOOK_HANDLE)
 INCH1  = KCH
-IKB    = 1 + JCVEXB
+IKB    = 1 + CVPEXT%JCVEXB
 IKS    = KLEV
-IKE    = KLEV - JCVEXT
+IKE    = KLEV - CVPEXT%JCVEXT
 JKMAX  = 0
 JKMIN  = 999999999
 DO JI=KIDIA, KFDIA

@@ -1,5 +1,5 @@
 !     ######spl
-     SUBROUTINE CONVECT_CLOSURE_ADJUST_SHAL( KLON, KLEV, KIDIA, KFDIA, PADJ,        &
+     SUBROUTINE CONVECT_CLOSURE_ADJUST_SHAL( CVPEXT, KLON, KLEV, KIDIA, KFDIA, PADJ,        &
                                              PUMF, PZUMF, PUER, PZUER, PUDR, PZUDR  )
      USE PARKIND1, ONLY : JPRB
      USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -52,13 +52,14 @@
 !*       0.    DECLARATIONS
 !              ------------
 !
-USE MODD_CONVPAREXT, ONLY : JCVEXB, JCVEXT
+USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 !
 IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
 !
+TYPE(CONVPAREXT),           INTENT(IN) :: CVPEXT
 INTEGER,                    INTENT(IN) :: KLON     ! horizontal dimension
 INTEGER,                    INTENT(IN) :: KLEV     ! vertical dimension
 INTEGER,                    INTENT(IN) :: KIDIA    ! value of the first point in x
@@ -87,8 +88,8 @@ INTEGER :: JK, JI                   ! vertical loop index
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_ADJUST_SHAL',0,ZHOOK_HANDLE)
-IKB  = 1 + JCVEXB
-IKE  = KLEV - JCVEXT
+IKB  = 1 + CVPEXT%JCVEXB
+IKE  = KLEV - CVPEXT%JCVEXT
 !
 !
 !*       1.     Adjust mass flux by the factor PADJ to converge to
