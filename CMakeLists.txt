@@ -31,6 +31,7 @@ set(SRC
 	src/modd_convpar_shal.F90
 	src/modd_convparext.F90
 	src/modd_cst.F90
+	src/modd_dimphyexn.F90
 	src/modd_nsv.F90
 	src/modd_parameters.F90
 	src/model_physics_mf_mod.F90
