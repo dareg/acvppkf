@@ -1,6 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA,       &
-                                      PPRES, PT, PEW, PLV, PLS, PCPH )      
+      SUBROUTINE CONVECT_SATMIXRATIO(CST, D, PPRES, PT, PEW, PLV, PLS, PCPH)
       USE PARKIND1, ONLY : JPRB
       USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 !     ################################################################
@@ -53,6 +52,7 @@
 !              ------------
 !
 USE MODD_CST, ONLY : CST_T
+USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 !
 !
 IMPLICIT NONE
@@ -61,20 +61,18 @@ IMPLICIT NONE
 !
 !
 TYPE(CST_T),            INTENT(IN) :: CST
-INTEGER,                INTENT(IN) :: KLON    ! horizontal loop index
-INTEGER,                INTENT(IN) :: KIDIA   ! value of the first point in x
-INTEGER,                INTENT(IN) :: KFDIA   ! value of the last point in x
-REAL, DIMENSION(KLON),  INTENT(IN) :: PPRES   ! pressure
-REAL, DIMENSION(KLON),  INTENT(IN) :: PT      ! temperature   
+TYPE(DIMPHYEX_T),       INTENT(IN) :: D
+REAL, DIMENSION(D%NIT),  INTENT(IN) :: PPRES   ! pressure
+REAL, DIMENSION(D%NIT),  INTENT(IN) :: PT      ! temperature   
 !
-REAL, DIMENSION(KLON),  INTENT(OUT):: PEW     ! vapor saturation mixing ratio
-REAL, DIMENSION(KLON),  INTENT(OUT):: PLV     ! latent heat L_v    
-REAL, DIMENSION(KLON),  INTENT(OUT):: PLS     ! latent heat L_s  
-REAL, DIMENSION(KLON),  INTENT(OUT):: PCPH    ! specific heat C_ph   
+REAL, DIMENSION(D%NIT),  INTENT(OUT):: PEW     ! vapor saturation mixing ratio
+REAL, DIMENSION(D%NIT),  INTENT(OUT):: PLV     ! latent heat L_v    
+REAL, DIMENSION(D%NIT),  INTENT(OUT):: PLS     ! latent heat L_s  
+REAL, DIMENSION(D%NIT),  INTENT(OUT):: PCPH    ! specific heat C_ph   
 !
 !*       0.2   Declarations of local variables :
 !
-REAL, DIMENSION(KLON)              :: ZT      ! temperature   
+REAL, DIMENSION(D%NIT)              :: ZT      ! temperature   
 REAL    :: ZEPS           ! R_d / R_v
 !
 !
@@ -84,14 +82,14 @@ REAL    :: ZEPS           ! R_d / R_v
     IF (LHOOK) CALL DR_HOOK('CONVECT_SATMIXRATIO',0,ZHOOK_HANDLE)
     ZEPS      = CST%XRD / CST%XRV
 !
-    ZT(KIDIA:KFDIA)     = MIN( 400., MAX( PT(KIDIA:KFDIA), 10. ) ) ! overflow bound
-    PEW(KIDIA:KFDIA)    = EXP( CST%XALPW - CST%XBETAW / ZT(KIDIA:KFDIA) - CST%XGAMW * ALOG( ZT(KIDIA:KFDIA) ) )
-    PEW(KIDIA:KFDIA)    = ZEPS * PEW(KIDIA:KFDIA) / ( PPRES(KIDIA:KFDIA) - PEW(KIDIA:KFDIA) )
+    ZT(D%NIB:D%NIE)     = MIN( 400., MAX( PT(D%NIB:D%NIE), 10. ) ) ! overflow bound
+    PEW(D%NIB:D%NIE)    = EXP( CST%XALPW - CST%XBETAW / ZT(D%NIB:D%NIE) - CST%XGAMW * ALOG( ZT(D%NIB:D%NIE) ) )
+    PEW(D%NIB:D%NIE)    = ZEPS * PEW(D%NIB:D%NIE) / ( PPRES(D%NIB:D%NIE) - PEW(D%NIB:D%NIE) )
 !
-    PLV(KIDIA:KFDIA)    = CST%XLVTT + ( CST%XCPV - CST%XCL ) * ( ZT(KIDIA:KFDIA) - CST%XTT ) ! compute L_v
-    PLS(KIDIA:KFDIA)    = CST%XLSTT + ( CST%XCPV - CST%XCI ) * ( ZT(KIDIA:KFDIA) - CST%XTT ) ! compute L_i
+    PLV(D%NIB:D%NIE)    = CST%XLVTT + ( CST%XCPV - CST%XCL ) * ( ZT(D%NIB:D%NIE) - CST%XTT ) ! compute L_v
+    PLS(D%NIB:D%NIE)    = CST%XLSTT + ( CST%XCPV - CST%XCI ) * ( ZT(D%NIB:D%NIE) - CST%XTT ) ! compute L_i
 !    
-    PCPH(KIDIA:KFDIA)   = CST%XCPD + CST%XCPV * PEW(KIDIA:KFDIA)                     ! compute C_ph 
+    PCPH(D%NIB:D%NIE)   = CST%XCPD + CST%XCPV * PEW(D%NIB:D%NIE)                     ! compute C_ph 
 !
 IF (LHOOK) CALL DR_HOOK('CONVECT_SATMIXRATIO',1,ZHOOK_HANDLE)
 END SUBROUTINE CONVECT_SATMIXRATIO

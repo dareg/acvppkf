@@ -199,7 +199,7 @@ ENDDO
 !               with MNH saturation formula
 !               --------------------------------------------------
 !
-     CALL CONVECT_SATMIXRATIO( CST, D%NIT, D%NIB, D%NIE, ZPLCL, PTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
+     CALL CONVECT_SATMIXRATIO( CST, D, ZPLCL, PTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
      DO JI=D%NIB,D%NIE
        IF( OWORK1(JI) ) THEN
         ZWORK2(JI) = ZWORK1(JI) / PTLCL(JI) * ( CST%XBETAW / PTLCL(JI) - CST%XGAMW ) ! dr_sat/dT
@@ -214,7 +214,7 @@ ENDDO
 !               to saturation values.
 !               -------------------------------------------------------
 !
-    CALL CONVECT_SATMIXRATIO( CST, D%NIT, D%NIB, D%NIE, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
+    CALL CONVECT_SATMIXRATIO( CST, D, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
     DO JI=D%NIB,D%NIE
     IF( OWORK1(JI) .AND. PRVLCL(JI) > ZWORK1(JI) ) THEN
         ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( CST%XBETAW / ZTMIX(JI) - CST%XGAMW ) ! dr_sat/dT
