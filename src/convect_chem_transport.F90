@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CHEM_TRANSPORT( CVPEXT, KLON, KLEV, KIDIA, KFDIA, KCH, PCH1, PCH1C, &
+      SUBROUTINE CONVECT_CHEM_TRANSPORT( CVPEXT, D, KCH, PCH1, PCH1C, &
                                          KDPL, KPBL, KLCL, KCTL, KLFS, KDBL, &
                                          PUMF, PUER, PUDR, PDMF, PDER, PDDR, &
                                          PTIMEC, PDXDY, PMIXF, PLMASS, PWSUB,&
@@ -52,40 +52,38 @@
 USE MODD_CST, ONLY : XG
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 USE MODD_NSV,  ONLY : NSV_LGBEG,NSV_LGEND
+USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 !
 IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
 TYPE(CONVPAREXT),       INTENT(IN) :: CVPEXT
-INTEGER,                INTENT(IN) :: KLON     ! horizontal dimension
-INTEGER,                INTENT(IN) :: KLEV     ! vertical dimension
-INTEGER,                INTENT(IN) :: KIDIA    ! value of the first point in x
-INTEGER,                INTENT(IN) :: KFDIA    ! value of the last point in x
+TYPE(DIMPHYEX_T),       INTENT(IN) :: D
 INTEGER,                INTENT(IN) :: KCH      ! number of passive tracers
 !
-REAL,DIMENSION(KLON,KLEV,KCH),INTENT(IN) :: PCH1 ! grid scale tracer concentr.
-REAL,DIMENSION(KLON,KLEV,KCH),INTENT(OUT):: PCH1C! conv adjusted tracer concntr.
+REAL,DIMENSION(D%NIT,D%NKT,KCH),INTENT(IN) :: PCH1 ! grid scale tracer concentr.
+REAL,DIMENSION(D%NIT,D%NKT,KCH),INTENT(OUT):: PCH1C! conv adjusted tracer concntr.
 !
-INTEGER, DIMENSION(KLON), INTENT(IN) :: KDPL   ! index for departure level
-INTEGER, DIMENSION(KLON), INTENT(IN) :: KPBL   ! index for top of source layer
-INTEGER, DIMENSION(KLON), INTENT(IN) :: KLCL   ! index lifting condens. level
-INTEGER, DIMENSION(KLON), INTENT(IN) :: KCTL   ! index for cloud top level
-INTEGER, DIMENSION(KLON), INTENT(IN) :: KLFS   ! index for level of free sink
-INTEGER, DIMENSION(KLON), INTENT(IN) :: KDBL   ! index for downdraft base level
+INTEGER, DIMENSION(D%NIT), INTENT(IN) :: KDPL   ! index for departure level
+INTEGER, DIMENSION(D%NIT), INTENT(IN) :: KPBL   ! index for top of source layer
+INTEGER, DIMENSION(D%NIT), INTENT(IN) :: KLCL   ! index lifting condens. level
+INTEGER, DIMENSION(D%NIT), INTENT(IN) :: KCTL   ! index for cloud top level
+INTEGER, DIMENSION(D%NIT), INTENT(IN) :: KLFS   ! index for level of free sink
+INTEGER, DIMENSION(D%NIT), INTENT(IN) :: KDBL   ! index for downdraft base level
 !
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PUMF ! updraft mass flux (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PUER ! updraft entrainment (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PUDR ! updraft detrainment (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PDMF ! downdraft mass flux (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PDER ! downdraft entrainment (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PDDR ! downdraft detrainment (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PUMF ! updraft mass flux (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PUER ! updraft entrainment (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PUDR ! updraft detrainment (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PDMF ! downdraft mass flux (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PDER ! downdraft entrainment (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PDDR ! downdraft detrainment (kg/s)
 !
-REAL, DIMENSION(KLON),     INTENT(IN) :: PTIMEC! convection time step
+REAL, DIMENSION(D%NIT),     INTENT(IN) :: PTIMEC! convection time step
 REAL,                      INTENT(IN) :: PDXDY ! grid area (m^2)
-REAL, DIMENSION(KLON),     INTENT(IN) :: PMIXF ! mixed fraction at LFS
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PLMASS! mass of model layer (kg)
-REAL, DIMENSION(KLON,KLEV),INTENT(IN) :: PWSUB ! envir. compensating subsidence(Pa/s)
+REAL, DIMENSION(D%NIT),     INTENT(IN) :: PMIXF ! mixed fraction at LFS
+REAL, DIMENSION(D%NIT,D%NKT),INTENT(IN) :: PLMASS! mass of model layer (kg)
+REAL, DIMENSION(D%NIT,D%NKT),INTENT(IN) :: PWSUB ! envir. compensating subsidence(Pa/s)
 INTEGER,                INTENT(IN) :: KFTSTEPS  ! maximum fractional time steps
 !
 !
@@ -100,13 +98,13 @@ INTEGER :: JN             ! chemical tracer loop index
 INTEGER :: JSTEP          ! fractional time loop index
 INTEGER :: JKLD, JKLP, JKMIN, JKMAX, JKMAX2 ! loop index for levels
 !
-REAL, DIMENSION(KLON,KLEV)     :: ZOMG ! compensat. subsidence (Pa/s)
-REAL, DIMENSION(KLON,KLEV,KCH) :: ZUCH1, ZDCH1 ! updraft/downdraft values
-REAL, DIMENSION(KLON)          :: ZTIMEC  ! fractional convective time step
-REAL, DIMENSION(KLON,KLEV)     :: ZTIMC! 2D work array for ZTIMEC
-REAL, DIMENSION(KLON,KLEV,KCH) :: ZCH1MFIN, ZCH1MFOUT
+REAL, DIMENSION(D%NIT,D%NKT)     :: ZOMG ! compensat. subsidence (Pa/s)
+REAL, DIMENSION(D%NIT,D%NKT,KCH) :: ZUCH1, ZDCH1 ! updraft/downdraft values
+REAL, DIMENSION(D%NIT)          :: ZTIMEC  ! fractional convective time step
+REAL, DIMENSION(D%NIT,D%NKT)     :: ZTIMC! 2D work array for ZTIMEC
+REAL, DIMENSION(D%NIT,D%NKT,KCH) :: ZCH1MFIN, ZCH1MFOUT
                                    ! work arrays for environm. compensat. mass
-REAL, DIMENSION(KLON,KCH)      :: ZWORK1, ZWORK2, ZWORK3
+REAL, DIMENSION(D%NIT,KCH)      :: ZWORK1, ZWORK2, ZWORK3
 !
 !-------------------------------------------------------------------------------
 !
@@ -117,11 +115,11 @@ REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CHEM_TRANSPORT',0,ZHOOK_HANDLE)
 INCH1  = KCH
 IKB    = 1 + CVPEXT%JCVEXB
-IKS    = KLEV
-IKE    = KLEV - CVPEXT%JCVEXT
+IKS    = D%NKT
+IKE    = D%NKT - CVPEXT%JCVEXT
 JKMAX  = 0
 JKMIN  = 999999999
-DO JI=KIDIA, KFDIA
+DO JI=D%NIB, D%NIE
   JKMIN = MIN(JKMIN, KDPL(JI))
   JKMAX = MAX(JKMAX, KCTL(JI))
 ENDDO
@@ -136,7 +134,7 @@ ZUCH1(:,:,:) = 0.
 !*      2.1     Initialization  at LCL
 !               ----------------------------------
 !
-DO JI = KIDIA, KFDIA
+DO JI = D%NIB, D%NIE
     DO JN = 1, INCH1
       JKLD = KDPL(JI)
       JKLP = KPBL(JI)
@@ -151,7 +149,7 @@ DO JK = JKMIN, JKMAX
 JKP = JK + 1
 !
     DO JN = 1, INCH1
-     DO JI = KIDIA, KFDIA
+     DO JI = D%NIB, D%NIE
        IF ( KDPL(JI) <= JK .AND. MIN(KLCL(JI), KCTL(JI)) > JK )                             &
             ZUCH1(JI,JK,JN) = ZWORK1(JI,JN)
 !
@@ -177,12 +175,12 @@ ZDCH1(:,:,:) = 0.
 !*      3.1     Initialization at the LFS
 !               -------------------------
 !
-DO JI=1,KFDIA
+DO JI=1,D%NIE
 DO JK=1,INCH1
 ZWORK1(JI,JK) = PMIXF(JI)
 ENDDO
 ENDDO
-DO JI = KIDIA, KFDIA
+DO JI = D%NIB, D%NIE
     DO JN = 1, INCH1
      JK = KLFS(JI)
      ZDCH1(JI,JK,JN) = ZWORK1(JI,JN) * PCH1(JI,JK,JN) +                          &
@@ -194,13 +192,13 @@ END DO
 !               --------------------
 !
 JKMAX2 = 0
-DO JI=KIDIA, KFDIA
+DO JI=D%NIB, D%NIE
   JKMAX2 = MAX(JKMAX2, KLFS(JI))
 ENDDO
 DO JK = JKMAX2, IKB + 1, -1
 JKP = JK - 1
     DO JN = 1, INCH1
-    DO JI = KIDIA, KFDIA
+    DO JI = D%NIB, D%NIE
       IF ( JK <= KLFS(JI) .AND. JKP >= KDBL(JI) ) THEN
        ZDCH1(JI,JKP,JN) = ( ZDCH1(JI,JK,JN) * PDMF(JI,JK) -              &
                             PCH1(JI,JK,JN) *  PDER(JI,JKP) ) /           &
@@ -214,35 +212,35 @@ END DO
 !*      4.      Final closure (environmental) computations
 !               ------------------------------------------
 !
-PCH1C(KIDIA:KFDIA,IKB:IKE,1:KCH) = PCH1(KIDIA:KFDIA,IKB:IKE,1:KCH) ! initialize adjusted envir. values
+PCH1C(D%NIB:D%NIE,IKB:IKE,1:KCH) = PCH1(D%NIB:D%NIE,IKB:IKE,1:KCH) ! initialize adjusted envir. values
 !
 DO JK = IKB, IKE
-  DO JI=KIDIA,KFDIA
+  DO JI=D%NIB,D%NIE
     ZOMG(JI,JK) = PWSUB(JI,JK) * PDXDY / XG ! environmental subsidence
   ENDDO
 END DO
 !
-DO JI=KIDIA,KFDIA
+DO JI=D%NIB,D%NIE
   ZTIMEC(JI) = PTIMEC(JI) / REAL( KFTSTEPS ) ! adjust  fractional time step
 ENDDO                                    ! to be an integer multiple of PTIMEC
 
-DO JI=KIDIA,KFDIA
+DO JI=D%NIB,D%NIE
   IF(PTIMEC(JI) < 1.) ZTIMEC(JI) = 0
 ENDDO
-DO JI=1,KFDIA
+DO JI=1,D%NIE
 DO JK=1,IKS
   ZTIMC(JI,JK) = ZTIMEC(JI)
 ENDDO
 ENDDO
 !
-ZCH1MFIN(KIDIA:KFDIA,1:KLEV,1:KCH)   = 0.
-ZCH1MFOUT(KIDIA:KFDIA,1:KLEV,1:KCH)  = 0.
+ZCH1MFIN(D%NIB:D%NIE,1:D%NKT,1:KCH)   = 0.
+ZCH1MFOUT(D%NIB:D%NIE,1:D%NKT,1:KCH)  = 0.
 !
 DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop
 !
       DO JK = IKB + 1, JKMAX
           JKP = MAX( IKB + 1, JK - 1 )
-          DO JI=1,KFDIA
+          DO JI=1,D%NIE
           DO JN=1,INCH1
             ZWORK3(JI,JN) = ZOMG(JI,JK)
           ENDDO
@@ -258,7 +256,7 @@ DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop
 !
       DO JN = 1, INCH1
        DO JK = IKB + 1, JKMAX
-         DO JI=KIDIA,KFDIA
+         DO JI=D%NIB,D%NIE
            PCH1C(JI,JK,JN) = PCH1C(JI,JK,JN) + ZTIMC(JI,JK) / PLMASS(JI,JK) *  (    &
                         ZCH1MFIN(JI,JK,JN) + PUDR(JI,JK) * ZUCH1(JI,JK,JN) +       &
                         PDDR(JI,JK) * ZDCH1(JI,JK,JN) - ZCH1MFOUT(JI,JK,JN) -      &

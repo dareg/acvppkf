@@ -300,7 +300,7 @@ IF ( OCH1CONV ) THEN
     ENDIF
   END DO
   END DO
-  CALL CONVECT_CHEM_TRANSPORT( CVPEXT, D%NIT, D%NKT, D%NIB, D%NIE, KCH1, ZCH1, ZCH1C,&
+  CALL CONVECT_CHEM_TRANSPORT( CVPEXT, D, KCH1, ZCH1, ZCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                PUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
                                ZTIMEC, CVP_SHAL%XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
