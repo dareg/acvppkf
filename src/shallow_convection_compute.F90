@@ -183,7 +183,7 @@ ZLMASS(:,IKB) = ZLMASS(:,IKB+1)
 !                   within an advective time step ZTIMEC.
 !                   ---------------------------------------------------
 !
-  CALL CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, CST, D%NIT, D%NKT, D%NIB, D%NIE, &
+  CALL CONVECT_CLOSURE_SHAL( CVP_SHAL, CVPEXT, CST, D, &
                              PPABST, ZDPRES, PZZ, ZLMASS,    &
                              ZTHL, PTHT, ZRW, PRCT, PRIT, GTRIG2,    &
                              PTHC, PRVC, PRCC, PRIC, ZWSUB,       &
