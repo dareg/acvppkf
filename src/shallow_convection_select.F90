@@ -115,6 +115,8 @@ REAL, DIMENSION(ICONV,D%NKT)  :: ZRIC    ! conv. adj. grid scale r_i
 ! Chemical Tracers:
 REAL, DIMENSION(D%NIT,D%NKT,KCH1)  :: ZPCH1TEN
 !
+TYPE(DIMPHYEX_T) :: ZD
+!
 !-------------------------------------------------------------------------------
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
@@ -155,7 +157,10 @@ DO JI = D%NIB,ICONV
     ZTHVELCL(JI)  = PSTHVELCL(ISORT(JI))
 END DO
 
-CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ICONV, D%NKT, D%NIB, ICONV, KICE,       &
+ZD=D
+ZD%NIT=ICONV
+ZD%NIE=ICONV
+CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ZD, KICE,       &
                                 OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
                                 ZRC, ZRI, OCH1CONV, KCH1, PCH1, IKB,   &
                                 IKE, IFTSTEPS, PRDOCP, ZTH, ZTHV,      &

@@ -271,7 +271,7 @@ ELSE IF (ICONV < D%NIT/2) THEN
                                   ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,  &
                                   ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
 ELSE
-  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D%NIT, D%NKT, D%NIB, D%NIE, KICE,        &
+  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, KICE,        &
                                   OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
                                   PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
                                   IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT,      &
