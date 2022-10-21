@@ -261,7 +261,7 @@ ICONV = COUNT(GTRIG1(D%NIB:D%NIE))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < D%NIT/2) THEN
-  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D%NIT, ICONV, D%NKT, D%NIB, D%NIE, KICE, OSETTADJ,&
+  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D, ICONV, KICE, OSETTADJ,&
                                   PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                   PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                   PRITEN, KCLTOP, KCLBAS, PUMF,     &

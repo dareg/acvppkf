@@ -1,4 +1,4 @@
-SUBROUTINE SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, KLON, ICONV, KLEV, KIDIA, KFDIA, KICE, OSETTADJ,&
+SUBROUTINE SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D, ICONV, KICE, OSETTADJ,&
                                       PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                       PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                       PRITEN, KCLTOP, KCLBAS, PUMF,     &
@@ -12,6 +12,7 @@ USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 USE MODD_CONVPAR_SHAL, ONLY: CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY: CONVPAREXT
 USE MODD_CST, ONLY: CST_T
+USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 
 IMPLICIT NONE
 !
@@ -21,53 +22,50 @@ IMPLICIT NONE
 TYPE(CONVPAR_SHAL),              INTENT(IN)   :: CVP_SHAL
 TYPE(CONVPAREXT),                INTENT(IN)   :: CVPEXT
 TYPE(CST_T),                     INTENT(IN)   :: CST
-INTEGER,                         INTENT(IN)   :: KLON     ! horizontal dimension
+TYPE(DIMPHYEX_T),                INTENT(IN)   :: D
 INTEGER,                         INTENT(IN)   :: ICONV    ! number of convective columns 
-INTEGER,                         INTENT(IN)   :: KLEV     ! vertical dimension
-INTEGER,                         INTENT(IN)   :: KIDIA    ! value of the first point in x
-INTEGER,                         INTENT(IN)   :: KFDIA    ! value of the last point in x
 INTEGER,                         INTENT(IN)   :: KICE     ! flag for ice ( 1 = yes,
                                                           !                0 = no ice )
 LOGICAL,                         INTENT(IN)   :: OSETTADJ ! logical to set convective
                                                           ! adjustment time by user
 REAL,                            INTENT(IN)   :: PTADJS   ! user defined adjustment time
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PTT      ! grid scale temperature at t
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PRVT     ! grid scale water vapor "
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PRCT     ! grid scale r_c  "
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PRIT     ! grid scale r_i "
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)   :: PTT      ! grid scale temperature at t
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)   :: PRVT     ! grid scale water vapor "
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)   :: PRCT     ! grid scale r_c  "
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)   :: PRIT     ! grid scale r_i "
                                                           ! velocity (m/s)
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PPABST   ! grid scale pressure at t
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PZZ      ! height of model layer (m)
-REAL, DIMENSION(KLON,KLEV),      INTENT(INOUT):: PTTEN  ! convective temperature
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)   :: PPABST   ! grid scale pressure at t
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)   :: PZZ      ! height of model layer (m)
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(INOUT):: PTTEN  ! convective temperature
                                                         ! tendency (K/s)
-REAL, DIMENSION(KLON,KLEV),      INTENT(INOUT):: PRVTEN ! convective r_v tendency (1/s)
-REAL, DIMENSION(KLON,KLEV),      INTENT(INOUT):: PRCTEN ! convective r_c tendency (1/s)
-REAL, DIMENSION(KLON,KLEV),      INTENT(INOUT):: PRITEN ! convective r_i tendency (1/s)
-INTEGER, DIMENSION(KLON),        INTENT(INOUT):: KCLTOP ! cloud top level
-INTEGER, DIMENSION(KLON),        INTENT(INOUT):: KCLBAS ! cloud base level
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(INOUT):: PRVTEN ! convective r_v tendency (1/s)
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(INOUT):: PRCTEN ! convective r_c tendency (1/s)
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(INOUT):: PRITEN ! convective r_i tendency (1/s)
+INTEGER, DIMENSION(D%NIT),        INTENT(INOUT):: KCLTOP ! cloud top level
+INTEGER, DIMENSION(D%NIT),        INTENT(INOUT):: KCLBAS ! cloud base level
                                                         ! they are given a value of
                                                         ! 0 if no convection
-REAL, DIMENSION(KLON,KLEV),      INTENT(INOUT):: PUMF   ! updraft mass flux (kg/s m2)
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(INOUT):: PUMF   ! updraft mass flux (kg/s m2)
 !
 LOGICAL,                         INTENT(IN)   :: OCH1CONV ! include tracer transport
 INTEGER,                         INTENT(IN)   :: KCH1     ! number of species
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(IN)   :: PCH1! grid scale chemical species
-REAL, DIMENSION(KLON,KLEV,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tendency (1/s)
+REAL, DIMENSION(D%NIT,D%NKT,KCH1), INTENT(IN)   :: PCH1! grid scale chemical species
+REAL, DIMENSION(D%NIT,D%NKT,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tendency (1/s)
 
 INTEGER, INTENT(IN)                           :: IKB, IKE ! vertical loop bounds
 INTEGER, INTENT(INOUT)                        :: IFTSTEPS ! only used for chemical tracers
 REAL   , INTENT(IN)                           :: PRDOCP   ! R_d/C_p
-REAL, DIMENSION(KLON,KLEV),      INTENT(IN)   :: PTHT, PSTHV, PSTHES  ! grid scale theta, theta_v
-INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISDPL   ! index for parcel departure level
-INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISPBL   ! index for source layer top
-INTEGER, DIMENSION(KLON)  ,      INTENT(IN)   :: ISLCL   ! index for lifting condensation level
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTHLCL ! updraft theta at LCL/L
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTLCL  ! updraft temp. at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSRVLCL ! updraft rv at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSWLCL  ! updraft w at LCL
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSZLCL  ! LCL height
-REAL, DIMENSION(KLON)     ,      INTENT(IN)   :: PSTHVELCL! envir. theta_v at LCL
-LOGICAL, DIMENSION(KLON)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for convection
+REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)   :: PTHT, PSTHV, PSTHES  ! grid scale theta, theta_v
+INTEGER, DIMENSION(D%NIT)  ,      INTENT(IN)   :: ISDPL   ! index for parcel departure level
+INTEGER, DIMENSION(D%NIT)  ,      INTENT(IN)   :: ISPBL   ! index for source layer top
+INTEGER, DIMENSION(D%NIT)  ,      INTENT(IN)   :: ISLCL   ! index for lifting condensation level
+REAL, DIMENSION(D%NIT)     ,      INTENT(IN)   :: PSTHLCL ! updraft theta at LCL/L
+REAL, DIMENSION(D%NIT)     ,      INTENT(IN)   :: PSTLCL  ! updraft temp. at LCL
+REAL, DIMENSION(D%NIT)     ,      INTENT(IN)   :: PSRVLCL ! updraft rv at LCL
+REAL, DIMENSION(D%NIT)     ,      INTENT(IN)   :: PSWLCL  ! updraft w at LCL
+REAL, DIMENSION(D%NIT)     ,      INTENT(IN)   :: PSZLCL  ! LCL height
+REAL, DIMENSION(D%NIT)     ,      INTENT(IN)   :: PSTHVELCL! envir. theta_v at LCL
+LOGICAL, DIMENSION(D%NIT)  ,      INTENT(INOUT):: GTRIG1  ! logical mask for convection
 !
 !
 !*       0.2   Declarations of local fixed memory variables :
@@ -76,7 +74,7 @@ INTEGER  :: JI, JL                  ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM                 ! vertical loop index
 !
-LOGICAL, DIMENSION(KLON)           :: GTRIG  ! 2D logical mask for trigger test
+LOGICAL, DIMENSION(D%NIT)           :: GTRIG  ! 2D logical mask for trigger test
 INTEGER, DIMENSION(ICONV)          :: ISORT
 !
 !
@@ -86,22 +84,22 @@ INTEGER, DIMENSION(ICONV)    :: IDPL    ! index for parcel departure level
 INTEGER, DIMENSION(ICONV)    :: IPBL    ! index for source layer top
 INTEGER, DIMENSION(ICONV)    :: ILCL    ! index for lifting condensation level
 INTEGER, DIMENSION(ICONV)    :: ICTL    ! index for cloud top level
-INTEGER, DIMENSION(KLON)     :: IMINCTL ! min between index for cloud top level
+INTEGER, DIMENSION(D%NIT)     :: IMINCTL ! min between index for cloud top level
                                         ! and lifting condensation level
 !
 ! grid scale variables
-REAL, DIMENSION(ICONV,KLEV)  :: ZZ      ! height of model layer (m)
-REAL, DIMENSION(ICONV,KLEV)  :: ZPRES   ! grid scale pressure
-REAL, DIMENSION(ICONV,KLEV)  :: ZTT     ! temperature
-REAL, DIMENSION(ICONV,KLEV)  :: ZTH     ! grid scale theta
-REAL, DIMENSION(ICONV,KLEV)  :: ZTHV    ! grid scale theta_v
-REAL, DIMENSION(ICONV,KLEV)  :: ZTHES   ! grid scale saturated theta_e
-REAL, DIMENSION(ICONV,KLEV)  :: ZRV     ! grid scale water vapor (kg/kg)
-REAL, DIMENSION(ICONV,KLEV)  :: ZRC     ! grid scale cloud water (kg/kg)
-REAL, DIMENSION(ICONV,KLEV)  :: ZRI     ! grid scale cloud ice (kg/kg)
+REAL, DIMENSION(ICONV,D%NKT)  :: ZZ      ! height of model layer (m)
+REAL, DIMENSION(ICONV,D%NKT)  :: ZPRES   ! grid scale pressure
+REAL, DIMENSION(ICONV,D%NKT)  :: ZTT     ! temperature
+REAL, DIMENSION(ICONV,D%NKT)  :: ZTH     ! grid scale theta
+REAL, DIMENSION(ICONV,D%NKT)  :: ZTHV    ! grid scale theta_v
+REAL, DIMENSION(ICONV,D%NKT)  :: ZTHES   ! grid scale saturated theta_e
+REAL, DIMENSION(ICONV,D%NKT)  :: ZRV     ! grid scale water vapor (kg/kg)
+REAL, DIMENSION(ICONV,D%NKT)  :: ZRC     ! grid scale cloud water (kg/kg)
+REAL, DIMENSION(ICONV,D%NKT)  :: ZRI     ! grid scale cloud ice (kg/kg)
 !
 ! updraft variables
-REAL, DIMENSION(ICONV,KLEV)  :: ZUMF    ! updraft mass flux (kg/s)
+REAL, DIMENSION(ICONV,D%NKT)  :: ZUMF    ! updraft mass flux (kg/s)
 REAL, DIMENSION(ICONV)       :: ZTHLCL  ! updraft theta at LCL
 REAL, DIMENSION(ICONV)       :: ZTLCL   ! updraft temp. at LCL
 REAL, DIMENSION(ICONV)       :: ZRVLCL  ! updraft rv at LCL
@@ -109,13 +107,13 @@ REAL, DIMENSION(ICONV)       :: ZWLCL   ! updraft w at LCL
 REAL, DIMENSION(ICONV)       :: ZZLCL   ! LCL height
 REAL, DIMENSION(ICONV)       :: ZTHVELCL! envir. theta_v at LCL
 !
-REAL, DIMENSION(ICONV,KLEV)  :: ZTHC    ! conv. adj. grid scale theta
-REAL, DIMENSION(ICONV,KLEV)  :: ZRVC    ! conv. adj. grid scale r_w
-REAL, DIMENSION(ICONV,KLEV)  :: ZRCC    ! conv. adj. grid scale r_c
-REAL, DIMENSION(ICONV,KLEV)  :: ZRIC    ! conv. adj. grid scale r_i
+REAL, DIMENSION(ICONV,D%NKT)  :: ZTHC    ! conv. adj. grid scale theta
+REAL, DIMENSION(ICONV,D%NKT)  :: ZRVC    ! conv. adj. grid scale r_w
+REAL, DIMENSION(ICONV,D%NKT)  :: ZRCC    ! conv. adj. grid scale r_c
+REAL, DIMENSION(ICONV,D%NKT)  :: ZRIC    ! conv. adj. grid scale r_i
 !
 ! Chemical Tracers:
-REAL, DIMENSION(KLON,KLEV,KCH1)  :: ZPCH1TEN
+REAL, DIMENSION(D%NIT,D%NKT,KCH1)  :: ZPCH1TEN
 !
 !-------------------------------------------------------------------------------
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
@@ -123,7 +121,7 @@ IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
 
 ! Gather grid scale and updraft base variables in arrays using mask GTRIG
 JL=1
-DO JI=KIDIA,KFDIA
+DO JI=D%NIB,D%NIE
   IF(GTRIG1(JI))THEN
     ISORT(JL) = JI
     JL=JL+1
@@ -132,7 +130,7 @@ ENDDO
 GTRIG1 = .TRUE.
 
 DO JK = IKB, IKE
-DO JI = KIDIA, ICONV
+DO JI = D%NIB, ICONV
     ZZ(JI,JK)     = PZZ(ISORT(JI),JK)
     ZPRES(JI,JK)  = PPABST(ISORT(JI),JK)
     ZTT(JI,JK)    = PTT(ISORT(JI),JK)
@@ -145,7 +143,7 @@ DO JI = KIDIA, ICONV
 END DO
 END DO
 
-DO JI = KIDIA,ICONV
+DO JI = D%NIB,ICONV
     IDPL(JI)      = ISDPL(ISORT(JI))
     IPBL(JI)      = ISPBL(ISORT(JI))
     ILCL(JI)      = ISLCL(ISORT(JI))
@@ -157,7 +155,7 @@ DO JI = KIDIA,ICONV
     ZTHVELCL(JI)  = PSTHVELCL(ISORT(JI))
 END DO
 
-CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ICONV, KLEV, KIDIA, ICONV, KICE,       &
+CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ICONV, D%NKT, D%NIB, ICONV, KICE,       &
                                 OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
                                 ZRC, ZRI, OCH1CONV, KCH1, PCH1, IKB,   &
                                 IKE, IFTSTEPS, PRDOCP, ZTH, ZTHV,      &
@@ -166,7 +164,7 @@ CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ICONV, KLEV, KIDIA, ICONV
                                 ZUMF, ZTHC, ZRVC, &
                                 ZRCC, ZRIC, ICTL, IMINCTL, ZPCH1TEN)
 DO JK = IKB, IKE
-DO JI = KIDIA, ICONV
+DO JI = D%NIB, ICONV
     PTTEN(ISORT(JI),JK)   = ZTHC(JI,JK)
     PRVTEN(ISORT(JI),JK)  = ZRVC(JI,JK)
     PRCTEN(ISORT(JI),JK)  = ZRCC(JI,JK)
@@ -174,7 +172,7 @@ DO JI = KIDIA, ICONV
 END DO
 END DO
 
-DO JI = KIDIA, ICONV
+DO JI = D%NIB, ICONV
     KCLTOP(ISORT(JI)) = ICTL(JI)
     KCLBAS(ISORT(JI)) = IMINCTL(JI)
 END DO
@@ -183,7 +181,7 @@ IF ( OCH1CONV ) THEN
   JKM = IKE
   DO JN = 1, KCH1
     DO JK = IKB, IKE
-      DO JI = KIDIA, ICONV
+      DO JI = D%NIB, ICONV
           PCH1TEN(ISORT(JI),JK,JN) = ZPCH1TEN(JI,JK,JN)
       END DO
     END DO
@@ -191,7 +189,7 @@ IF ( OCH1CONV ) THEN
 END IF
 
 DO JK = IKB, IKE
-DO JI = KIDIA, ICONV
+DO JI = D%NIB, ICONV
     PUMF(ISORT(JI),JK) = ZUMF(JI,JK)
 END DO
 END DO
