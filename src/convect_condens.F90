@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CONDENS( CST, KLON, KIDIA, KFDIA,                &
+      SUBROUTINE CONVECT_CONDENS( CST, D,                &
                                   KICE, PPRES, PTHL, PRW, PRCO, PRIO, PZ, &
                                   PT, PEW, PRC, PRI, PLV, PLS, PCPH   )
       USE PARKIND1, ONLY : JPRB
@@ -65,6 +65,7 @@
 !
 USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAR, ONLY : XTFRZ1, XTFRZ2
+USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 !
 !
 IMPLICIT NONE
@@ -72,34 +73,32 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 TYPE(CST_T), INTENT(IN)            :: CST
-INTEGER, INTENT(IN)                :: KLON    ! horizontal loop index
-INTEGER, INTENT(IN)                :: KIDIA   ! value of the first point in x
-INTEGER, INTENT(IN)                :: KFDIA   ! value of the last point in x
+TYPE(DIMPHYEX_T), INTENT(IN)       :: D
 INTEGER, INTENT(IN)                :: KICE    ! flag for ice ( 1 = yes,
                                               !                0 = no ice )
-REAL, DIMENSION(KLON),   INTENT(IN) :: PPRES  ! pressure
-REAL, DIMENSION(KLON),   INTENT(IN) :: PTHL   ! enthalpy (J/kg)
-REAL, DIMENSION(KLON),   INTENT(IN) :: PRW    ! total water mixing ratio  
-REAL, DIMENSION(KLON),   INTENT(IN) :: PRCO   ! cloud water estimate (kg/kg)
-REAL, DIMENSION(KLON),   INTENT(IN) :: PRIO   ! cloud ice   estimate (kg/kg)
-REAL, DIMENSION(KLON),   INTENT(IN) :: PZ     ! level height (m)
+REAL, DIMENSION(D%NIT),   INTENT(IN) :: PPRES  ! pressure
+REAL, DIMENSION(D%NIT),   INTENT(IN) :: PTHL   ! enthalpy (J/kg)
+REAL, DIMENSION(D%NIT),   INTENT(IN) :: PRW    ! total water mixing ratio  
+REAL, DIMENSION(D%NIT),   INTENT(IN) :: PRCO   ! cloud water estimate (kg/kg)
+REAL, DIMENSION(D%NIT),   INTENT(IN) :: PRIO   ! cloud ice   estimate (kg/kg)
+REAL, DIMENSION(D%NIT),   INTENT(IN) :: PZ     ! level height (m)
 !
 !
-REAL, DIMENSION(KLON),   INTENT(OUT):: PT     ! temperature   
-REAL, DIMENSION(KLON),   INTENT(OUT):: PRC    ! cloud water mixing ratio(kg/kg)
-REAL, DIMENSION(KLON),   INTENT(OUT):: PRI    ! cloud ice mixing ratio  (kg/kg)
-REAL, DIMENSION(KLON),   INTENT(OUT):: PLV    ! latent heat L_v    
-REAL, DIMENSION(KLON),   INTENT(OUT):: PLS    ! latent heat L_s  
-REAL, DIMENSION(KLON),   INTENT(OUT):: PCPH   ! specific heat C_ph   
-REAL, DIMENSION(KLON),   INTENT(OUT):: PEW    ! water saturation mixing ratio  
+REAL, DIMENSION(D%NIT),   INTENT(OUT):: PT     ! temperature   
+REAL, DIMENSION(D%NIT),   INTENT(OUT):: PRC    ! cloud water mixing ratio(kg/kg)
+REAL, DIMENSION(D%NIT),   INTENT(OUT):: PRI    ! cloud ice mixing ratio  (kg/kg)
+REAL, DIMENSION(D%NIT),   INTENT(OUT):: PLV    ! latent heat L_v    
+REAL, DIMENSION(D%NIT),   INTENT(OUT):: PLS    ! latent heat L_s  
+REAL, DIMENSION(D%NIT),   INTENT(OUT):: PCPH   ! specific heat C_ph   
+REAL, DIMENSION(D%NIT),   INTENT(OUT):: PEW    ! water saturation mixing ratio  
 !
-!*       0.2   Declarations of local variables KLON
+!*       0.2   Declarations of local variables D%NIT
 !
 INTEGER :: JITER, JI      ! iteration index
 REAL    :: ZEPS           ! R_d / R_v
 !
-REAL, DIMENSION(KLON)    :: ZEI           ! ice saturation mixing ratio
-REAL, DIMENSION(KLON)    :: ZWORK1, ZWORK2, ZWORK3, ZT ! work arrays
+REAL, DIMENSION(D%NIT)    :: ZEI           ! ice saturation mixing ratio
+REAL, DIMENSION(D%NIT)    :: ZWORK1, ZWORK2, ZWORK3, ZT ! work arrays
 !
 !
 !-------------------------------------------------------------------------------
@@ -117,7 +116,7 @@ ZEPS        = CST%XRD / CST%XRV
 !
       !! Note that the definition of ZCPH is not the same as used in
       !! routine CONVECT_SATMIXRATIO
-  DO JI=KIDIA,KFDIA
+  DO JI=D%NIB,D%NIE
      PCPH(JI)   = CST%XCPD + CST%XCPV * PRW(JI)
      ZWORK1(JI) = ( 1. + PRW(JI) ) * CST%XG * PZ(JI)
      PT(JI)     = ( PTHL(JI) + PRCO(JI) * CST%XLVTT + PRIO(JI) * CST%XLSTT - ZWORK1(JI) )   &
@@ -131,7 +130,7 @@ ZEPS        = CST%XRD / CST%XRV
 !               ------------------------
 !    
 DO JITER = 1,6
-  DO JI=KIDIA,KFDIA
+  DO JI=D%NIB,D%NIE
      PEW(JI) = EXP( CST%XALPW - CST%XBETAW / PT(JI) - CST%XGAMW * ALOG( PT(JI) ) )
      ZEI(JI) = EXP( CST%XALPI - CST%XBETAI / PT(JI) - CST%XGAMI * ALOG( PT(JI) ) )
      PEW(JI) = ZEPS * PEW(JI) / ( PPRES(JI) - PEW(JI) )

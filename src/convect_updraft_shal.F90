@@ -252,7 +252,7 @@ DO JK = IKB + 1, IKE - 1
 !
     ZWORK1(D%NIB:D%NIE) = PURC(D%NIB:D%NIE,JK)
     ZWORK2(D%NIB:D%NIE) = PURI(D%NIB:D%NIE,JK)
-    CALL CONVECT_CONDENS( CST, D%NIT, D%NIB, D%NIE, KICE, PPRES(D%NIB:D%NIE,JKP), PUTHL(D%NIB:D%NIE,JK), PURW(D%NIB:D%NIE,JK),&
+    CALL CONVECT_CONDENS( CST, D, KICE, PPRES(D%NIB:D%NIE,JKP), PUTHL(D%NIB:D%NIE,JK), PURW(D%NIB:D%NIE,JK),&
                           ZWORK1, ZWORK2, PZ(D%NIB:D%NIE,JKP), ZUT, ZURV,             &
                           PURC(D%NIB:D%NIE,JKP), PURI(D%NIB:D%NIE,JKP), ZLV, ZLS, ZCPH )
 !
@@ -319,7 +319,7 @@ DO JK = IKB + 1, IKE - 1
     ZWORK2(D%NIB:D%NIE) = ZMIXF(D%NIB:D%NIE) * PRW(D%NIB:D%NIE,JKP)                                      &
                      + ( 1. - ZMIXF(D%NIB:D%NIE) ) * PURW(D%NIB:D%NIE,JKP)  ! mixed r_w
 !
-    CALL CONVECT_CONDENS( CST, D%NIT, D%NIB, D%NIE, KICE, PPRES(D%NIB:D%NIE,JKP), ZWORK1, ZWORK2,        &
+    CALL CONVECT_CONDENS( CST, D, KICE, PPRES(D%NIB:D%NIE,JKP), ZWORK1, ZWORK2,        &
                           PURC(D%NIB:D%NIE,JKP), PURI(D%NIB:D%NIE,JKP), PZ(D%NIB:D%NIE,JKP), ZUT,        &
                           ZWORK3, ZWORK4, ZWORK5, ZLV, ZLS, ZCPH )
 !        put in enthalpy and r_w and get T r_c, r_i (ZUT, ZWORK4-5)
@@ -339,7 +339,7 @@ DO JK = IKB + 1, IKE - 1
 !                -------------------------------------------------------
 !
 !
-    CALL CONVECT_MIXING_FUNCT ( D%NIT, D%NIB, D%NIE, ZMIXF, 1, ZE2, ZD2 )
+    CALL CONVECT_MIXING_FUNCT ( D, ZMIXF, 1, ZE2, ZD2 )
 !       NoteD%NIB:D%NIE routine MIXING_FUNCT returns fractional entrainm/detrainm. rates
 !
   ZE2=MIN(ZD2,MAX(.3,ZE2))
