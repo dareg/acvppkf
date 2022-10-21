@@ -253,11 +253,10 @@ ISLCL(:) = MAX( IKB, 2 )   ! initialize DPL PBL and LCL
 ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
-CALL CONVECT_TRIGGER_SHAL(  CVP_SHAL, CVPEXT, CST, D%NIT, D%NKT, D%NIB, D%NIE,  &
-                            PPABST, ZTHT, ZSTHV, ZSTHES,                 &
-                            PRVT, PWT, PZZ, PTKECLS,             &
-                            ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
-                            ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
+CALL CONVECT_TRIGGER_SHAL(CVP_SHAL, CVPEXT, CST, D, PPABST, ZTHT,   &
+                          ZSTHV, ZSTHES, PRVT, PWT, PZZ, PTKECLS,   &
+                          ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
+                          ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
 ICONV = COUNT(GTRIG1(D%NIB:D%NIE))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
