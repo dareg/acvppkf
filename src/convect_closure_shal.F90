@@ -215,11 +215,11 @@ JKMAX=IKE
 !*       2.     Save initial mass flux values to be used in adjustment procedure
 !               ---------------------------------------------------------------
 !
-ZUMF(D%NIB:D%NIE,1:D%NKT)  = PUMF(D%NIB:D%NIE,1:D%NKT)
-ZUER(D%NIB:D%NIE,1:D%NKT)  = PUER(D%NIB:D%NIE,1:D%NKT)
-ZUDR(D%NIB:D%NIE,1:D%NKT)  = PUDR(D%NIB:D%NIE,1:D%NKT)
-ZOMG(D%NIB:D%NIE,1:D%NKT)  = 0.
-PWSUB(D%NIB:D%NIE,1:D%NKT) = 0.
+ZUMF(:,:)  = PUMF(:,:)
+ZUER(:,:)  = PUER(:,:)
+ZUDR(:,:)  = PUDR(:,:)
+ZOMG(:,:)  = 0.
+PWSUB(:,:) = 0.
 !
 !
 !*       3.     Compute limits on the closure adjustment factor so that the
@@ -227,8 +227,8 @@ PWSUB(D%NIB:D%NIE,1:D%NKT) = 0.
 !               than the mass contained in this layer initially.
 !               ---------------------------------------------------------------
 !
-ZADJMAX(D%NIB:D%NIE) = 1000.
-IWORK1(D%NIB:D%NIE) = ILCL(D%NIB:D%NIE)
+ZADJMAX(:) = 1000.
+IWORK1(:) = ILCL(:)
 JKP=IKB
 DO JK = JKP, IKE
   DO JI = D%NIB, D%NIE
@@ -373,14 +373,14 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !               layer based on the sign of w
 !               ------------------------------------------------------------
 !
-             ZTHMFIN(D%NIB:D%NIE,1:D%NKT)   = 0.
-             ZRWMFIN(D%NIB:D%NIE,1:D%NKT)   = 0.
-             ZRCMFIN(D%NIB:D%NIE,1:D%NKT)   = 0.
-             ZRIMFIN(D%NIB:D%NIE,1:D%NKT)   = 0.
-             ZTHMFOUT(D%NIB:D%NIE,1:D%NKT)  = 0.
-             ZRWMFOUT(D%NIB:D%NIE,1:D%NKT)  = 0.
-             ZRCMFOUT(D%NIB:D%NIE,1:D%NKT)  = 0.
-             ZRIMFOUT(D%NIB:D%NIE,1:D%NKT)  = 0.
+             ZTHMFIN(:,:)   = 0.
+             ZRWMFIN(:,:)   = 0.
+             ZRCMFIN(:,:)   = 0.
+             ZRIMFIN(:,:)   = 0.
+             ZTHMFOUT(:,:)  = 0.
+             ZRWMFOUT(:,:)  = 0.
+             ZRCMFOUT(:,:)  = 0.
+             ZRIMFOUT(:,:)  = 0.
 !
          DO JK = IKB + 1, JKMAX
            DO JI = D%NIB, D%NIE
@@ -478,7 +478,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                           that in routine TRIGGER_FUNCT
 !                  ---------------------------------------------
 !
-      CALL CONVECT_CLOSURE_THRVLCL(  CVPEXT, CST, D%NIT, D%NKT, D%NIB, D%NIE,     &
+      CALL CONVECT_CLOSURE_THRVLCL(  CVPEXT, CST, D,     &
                                      PPRES, PTHC, PRWC, PZ, GWORK1,        &
                                      ZTHLCL, ZRVLCL, ZZLCL, ZTLCL, ZTELCL, &
                                      ILCL, KDPL, KPBL )

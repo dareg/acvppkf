@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CLOSURE_THRVLCL( CVPEXT, CST, KLON, KLEV, KIDIA, KFDIA,          &
+      SUBROUTINE CONVECT_CLOSURE_THRVLCL( CVPEXT, CST, D,          &
                                           PPRES, PTH, PRV, PZ, OWORK1,        &
                                          PTHLCL, PRVLCL, PZLCL, PTLCL, PTELCL,&
                                           KLCL, KDPL, KPBL )
@@ -70,6 +70,7 @@
 USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
 USE MODD_CST, ONLY: CST_T
+USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 !
 !
 IMPLICIT NONE
@@ -78,24 +79,21 @@ IMPLICIT NONE
 !
 TYPE(CONVPAREXT),           INTENT(IN) :: CVPEXT
 TYPE(CST_T),                INTENT(IN) :: CST
-INTEGER,                    INTENT(IN) :: KLON  ! horizontal dimension
-INTEGER,                    INTENT(IN) :: KLEV  ! vertical dimension
-INTEGER,                    INTENT(IN) :: KIDIA ! value of the first point in x
-INTEGER,                    INTENT(IN) :: KFDIA ! value of the last point in x
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PTH   ! theta
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PRV   ! vapor mixing ratio 
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PPRES ! pressure
-REAL, DIMENSION(KLON,KLEV), INTENT(IN) :: PZ    ! height of grid point (m)
-INTEGER, DIMENSION(KLON),   INTENT(IN) :: KDPL  ! contains vert. index of DPL
-INTEGER, DIMENSION(KLON),   INTENT(IN) :: KPBL  ! " vert. index of source layer top
-LOGICAL, DIMENSION(KLON),   INTENT(IN) :: OWORK1! logical mask 
+TYPE(DIMPHYEX_T),           INTENT(IN) :: D
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PTH   ! theta
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PRV   ! vapor mixing ratio 
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PPRES ! pressure
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PZ    ! height of grid point (m)
+INTEGER, DIMENSION(D%NIT),   INTENT(IN) :: KDPL  ! contains vert. index of DPL
+INTEGER, DIMENSION(D%NIT),   INTENT(IN) :: KPBL  ! " vert. index of source layer top
+LOGICAL, DIMENSION(D%NIT),   INTENT(IN) :: OWORK1! logical mask 
 !
-REAL, DIMENSION(KLON),     INTENT(OUT):: PTHLCL ! theta at LCL
-REAL, DIMENSION(KLON),     INTENT(OUT):: PRVLCL ! vapor mixing ratio at  LCL
-REAL, DIMENSION(KLON),     INTENT(OUT):: PZLCL  ! height at LCL (m)
-REAL, DIMENSION(KLON),     INTENT(OUT):: PTLCL  ! temperature at LCL (m)
-REAL, DIMENSION(KLON),     INTENT(OUT):: PTELCL ! environm. temp. at LCL (K)
-INTEGER, DIMENSION(KLON),  INTENT(OUT):: KLCL   ! contains vert. index of LCL
+REAL, DIMENSION(D%NIT),     INTENT(OUT):: PTHLCL ! theta at LCL
+REAL, DIMENSION(D%NIT),     INTENT(OUT):: PRVLCL ! vapor mixing ratio at  LCL
+REAL, DIMENSION(D%NIT),     INTENT(OUT):: PZLCL  ! height at LCL (m)
+REAL, DIMENSION(D%NIT),     INTENT(OUT):: PTLCL  ! temperature at LCL (m)
+REAL, DIMENSION(D%NIT),     INTENT(OUT):: PTELCL ! environm. temp. at LCL (K)
+INTEGER, DIMENSION(D%NIT),  INTENT(OUT):: KLCL   ! contains vert. index of LCL
 !
 !*       0.2   Declarations of local variables :
 !
@@ -105,13 +103,13 @@ INTEGER :: IKB, IKE              ! horizontal + vertical loop bounds
 REAL    :: ZEPS           ! R_d / R_v
 REAL    :: ZCPORD, ZRDOCP ! C_pd / R_d, R_d / C_pd
 !
-REAL, DIMENSION(KLON) :: ZPLCL    ! pressure at LCL
-REAL, DIMENSION(KLON) :: ZTMIX    ! mixed layer temperature
-REAL, DIMENSION(KLON) :: ZEVMIX   ! mixed layer water vapor pressure 
-REAL, DIMENSION(KLON) :: ZDPTHMIX, ZPRESMIX ! mixed layer depth and pressure
-REAL, DIMENSION(KLON) :: ZLV, ZCPH! specific heats of vaporisation, dry air
-REAL, DIMENSION(KLON) :: ZDP      ! pressure between LCL and model layer
-REAL, DIMENSION(KLON) :: ZWORK1, ZWORK2     ! work arrays
+REAL, DIMENSION(D%NIT) :: ZPLCL    ! pressure at LCL
+REAL, DIMENSION(D%NIT) :: ZTMIX    ! mixed layer temperature
+REAL, DIMENSION(D%NIT) :: ZEVMIX   ! mixed layer water vapor pressure 
+REAL, DIMENSION(D%NIT) :: ZDPTHMIX, ZPRESMIX ! mixed layer depth and pressure
+REAL, DIMENSION(D%NIT) :: ZLV, ZCPH! specific heats of vaporisation, dry air
+REAL, DIMENSION(D%NIT) :: ZDP      ! pressure between LCL and model layer
+REAL, DIMENSION(D%NIT) :: ZWORK1, ZWORK2     ! work arrays
 !
 !
 !-------------------------------------------------------------------------------
@@ -122,7 +120,7 @@ REAL, DIMENSION(KLON) :: ZWORK1, ZWORK2     ! work arrays
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_THRVLCL',0,ZHOOK_HANDLE)
 IKB = 1 + CVPEXT%JCVEXB 
-IKE = KLEV - CVPEXT%JCVEXT 
+IKE = D%NKT - CVPEXT%JCVEXT 
 !
 !
 !*       1.     Initialize local variables
@@ -132,16 +130,16 @@ ZEPS      = CST%XRD / CST%XRV
 ZCPORD    = CST%XCPD / CST%XRD
 ZRDOCP    = CST%XRD / CST%XCPD
 !
-ZDPTHMIX(KIDIA:KFDIA) = 0.
-ZPRESMIX(KIDIA:KFDIA) = 0.
-PTHLCL(KIDIA:KFDIA)   = 300.
-PTLCL(KIDIA:KFDIA)    = 300.
-PTELCL(KIDIA:KFDIA)   = 300.
-PRVLCL(KIDIA:KFDIA)   = 0.
-PZLCL(KIDIA:KFDIA)    = PZ(KIDIA:KFDIA,IKB)
-ZTMIX(KIDIA:KFDIA)    = 230.
-ZPLCL(KIDIA:KFDIA)    = 1.E4 
-KLCL(KIDIA:KFDIA)     = IKB + 1
+ZDPTHMIX(:) = 0.
+ZPRESMIX(:) = 0.
+PTHLCL(:)   = 300.
+PTLCL(:)    = 300.
+PTELCL(:)   = 300.
+PRVLCL(:)   = 0.
+PZLCL(:)    = PZ(:,IKB)
+ZTMIX(:)    = 230.
+ZPLCL(:)    = 1.E4 
+KLCL(:)     = IKB + 1
 !
 !
 !*       2.     Construct a mixed layer as in TRIGGER_FUNCT
@@ -151,7 +149,7 @@ KLCL(KIDIA:KFDIA)     = IKB + 1
      JKMIN=IKB
      DO JK = IKB + 1, JKMAX
         JKM = JK + 1
-        DO JI = KIDIA, KFDIA
+        DO JI = D%NIB, D%NIE
         IF ( JK >= KDPL(JI) .AND. JK <= KPBL(JI) ) THEN
 !           
             ZWORK1(JI)   = PPRES(JI,JK) - PPRES(JI,JKM)
@@ -165,7 +163,7 @@ KLCL(KIDIA:KFDIA)     = IKB + 1
      END DO
 !
 !
-DO JI=KIDIA,KFDIA
+DO JI=D%NIB,D%NIE
   IF ( OWORK1(JI) ) THEN
 !
         ZPRESMIX(JI) = ZPRESMIX(JI) / ZDPTHMIX(JI)
@@ -194,15 +192,15 @@ DO JI=KIDIA,KFDIA
   END IF
 ENDDO
 !
-     ZPLCL(KIDIA:KFDIA) = MIN( 2.E5, MAX( 10., ZPLCL(KIDIA:KFDIA) ) ) ! bound to avoid overflow
+     ZPLCL(D%NIB:D%NIE) = MIN( 2.E5, MAX( 10., ZPLCL(D%NIB:D%NIE) ) ) ! bound to avoid overflow
 !
 !
 !*       3.2    Correct PTLCL in order to be completely consistent
 !               with MNH saturation formula
 !               --------------------------------------------------
 !
-     CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, ZPLCL, PTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
-     DO JI=KIDIA,KFDIA
+     CALL CONVECT_SATMIXRATIO( CST, D%NIT, D%NIB, D%NIE, ZPLCL, PTLCL, ZWORK1, ZLV, ZWORK2, ZCPH )
+     DO JI=D%NIB,D%NIE
        IF( OWORK1(JI) ) THEN
         ZWORK2(JI) = ZWORK1(JI) / PTLCL(JI) * ( CST%XBETAW / PTLCL(JI) - CST%XGAMW ) ! dr_sat/dT
         ZWORK2(JI) = ( ZWORK1(JI) - PRVLCL(JI) ) /                              &
@@ -216,8 +214,8 @@ ENDDO
 !               to saturation values.
 !               -------------------------------------------------------
 !
-    CALL CONVECT_SATMIXRATIO( CST, KLON, KIDIA, KFDIA, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
-    DO JI=KIDIA,KFDIA
+    CALL CONVECT_SATMIXRATIO( CST, D%NIT, D%NIB, D%NIE, ZPRESMIX, ZTMIX, ZWORK1, ZLV, ZWORK2, ZCPH )
+    DO JI=D%NIB,D%NIE
     IF( OWORK1(JI) .AND. PRVLCL(JI) > ZWORK1(JI) ) THEN
         ZWORK2(JI) = ZWORK1(JI) / ZTMIX(JI) * ( CST%XBETAW / ZTMIX(JI) - CST%XGAMW ) ! dr_sat/dT
         ZWORK2(JI) = ( ZWORK1(JI) - PRVLCL(JI) ) /                              &
@@ -234,7 +232,7 @@ ENDDO
 !               -----------------------------------------
 !
      DO JK = JKMIN, IKE - 1
-        DO JI = KIDIA, KFDIA
+        DO JI = D%NIB, D%NIE
         IF ( ZPLCL(JI) <= PPRES(JI,JK) .AND. OWORK1(JI) ) THEN
             KLCL(JI)  = JK + 1
             PZLCL(JI) = PZ(JI,JK+1)
@@ -246,7 +244,7 @@ ENDDO
 !*        4.2   Estimate height and environmental temperature at LCL
 !               ----------------------------------------------------
 !
-    DO JI = KIDIA, KFDIA
+    DO JI = D%NIB, D%NIE
         JK   = KLCL(JI)
         JKM  = JK - 1
         ZDP(JI)     = ALOG( ZPLCL(JI) / PPRES(JI,JKM) ) /                     &
@@ -258,7 +256,7 @@ ENDDO
            ! The precise height is between the levels KLCL and KLCL-1.
         ZWORK2(JI) = PZ(JI,JKM) + ( PZ(JI,JK) - PZ(JI,JKM) ) * ZDP(JI)
     END DO
-    DO JI=KIDIA,KFDIA
+    DO JI=D%NIB,D%NIE
     IF( OWORK1(JI) ) THEN
        PTELCL(JI) = ZWORK1(JI)
        PZLCL(JI)  = ZWORK2(JI)
