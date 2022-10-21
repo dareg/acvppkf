@@ -154,7 +154,7 @@ END DO
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-CALL CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, CST, D%NIT, D%NKT, D%NIB, D%NIE,         &
+CALL CONVECT_UPDRAFT_SHAL( CVP_SHAL, CVPEXT, CST, D,         &
                            KICE, PPABST, ZDPRES, PZZ, ZTHL, PSTHV, PSTHES, ZRW, &
                            PSTHLCL, PSTLCL, PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,   &
                            CVP_SHAL%XA25 * 1.E-3, GTRIG2, ISLCL, ISDPL, ISPBL,      &
