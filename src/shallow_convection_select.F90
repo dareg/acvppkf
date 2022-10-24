@@ -74,7 +74,6 @@ INTEGER  :: JI, JL                  ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM                 ! vertical loop index
 !
-LOGICAL, DIMENSION(D%NIT)           :: GTRIG  ! 2D logical mask for trigger test
 INTEGER, DIMENSION(ICONV)          :: ISORT
 !
 !
@@ -129,10 +128,10 @@ DO JI=D%NIB,D%NIE
     JL=JL+1
   ENDIF
 ENDDO
-GTRIG1 = .TRUE.
 
 DO JK = IKB, IKE
 DO JI = D%NIB, ICONV
+    GTRIG1(JI)    = GTRIG1(ISORT(JI))
     ZZ(JI,JK)     = PZZ(ISORT(JI),JK)
     ZPRES(JI,JK)  = PPABST(ISORT(JI),JK)
     ZTT(JI,JK)    = PTT(ISORT(JI),JK)
