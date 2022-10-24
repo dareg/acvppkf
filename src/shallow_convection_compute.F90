@@ -1,7 +1,7 @@
 SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, KICE, OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
-                                   PCH1, IKB, IKE, IFTSTEPS,   &
+                                   PCH1, IFTSTEPS,   &
                                    PRDOCP, PTHT, PSTHV, PSTHES, ISDPL,  &
                                    ISPBL, ISLCL, PSTHLCL, PSTLCL,       &
                                    PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,  &
@@ -46,7 +46,6 @@ LOGICAL,                         INTENT(IN)  :: OCH1CONV ! include tracer transp
 INTEGER,                         INTENT(IN)  :: KCH1     ! number of species
 REAL, DIMENSION(D%NIT,D%NKT,KCH1), INTENT(IN)  :: PCH1     ! grid scale chemical species
 
-INTEGER, INTENT(IN)                          :: IKB, IKE ! vertical loop bounds
 INTEGER, INTENT(INOUT)                       :: IFTSTEPS ! only used for chemical tracers
 REAL   , INTENT(IN)                          :: PRDOCP   ! R_d/C_p
 REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)  :: PTHT, PSTHV, PSTHES  ! grid scale theta, theta_v
@@ -76,6 +75,7 @@ REAL                               :: ZW1     ! work variable
 INTEGER  :: JI                      ! horizontal loop index
 INTEGER  :: JN                      ! number of tracers
 INTEGER  :: JK, JKM, JKP            ! vertical loop index
+INTEGER  :: IKB, IKE                ! vertical loop bounds
 !
 !
 !*       0.2   Declarations of local allocatable  variables :
@@ -125,6 +125,8 @@ IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',0,ZHOOK_HANDLE)
 ZDPRES = 0.0
 ZTHL  = 0.0
 ZRW   = 0.0
+IKB = 1 + CVPEXT%JCVEXB
+IKE = D%NKT - CVPEXT%JCVEXT
 !
 !*           3.2    Compute pressure difference
 !                   ---------------------------------------------------

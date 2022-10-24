@@ -162,8 +162,8 @@ ZD%NIT=ICONV
 ZD%NIE=ICONV
 CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ZD, KICE,       &
                                 OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
-                                ZRC, ZRI, OCH1CONV, KCH1, PCH1, IKB,   &
-                                IKE, IFTSTEPS, PRDOCP, ZTH, ZTHV,      &
+                                ZRC, ZRI, OCH1CONV, KCH1, PCH1, &
+                                IFTSTEPS, PRDOCP, ZTH, ZTHV,      &
                                 ZTHES, IDPL, IPBL, ILCL, ZTHLCL, ZTLCL,&
                                 ZRVLCL, ZWLCL, ZZLCL, ZTHVELCL, GTRIG1,&
                                 ZUMF, ZTHC, ZRVC, &

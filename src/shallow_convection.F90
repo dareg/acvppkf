@@ -274,7 +274,7 @@ ELSE
   CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, KICE,        &
                                   OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
                                   PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
-                                  IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT,      &
+                                  IFTSTEPS, ZRDOCP, ZTHT,      &
                                   ZSTHV, ZSTHES, ISDPL, ISPBL, ISLCL,    &
                                   ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL,      &
                                   ZSZLCL, ZSTHVELCL, GTRIG1, PUMF, PTTEN,&
