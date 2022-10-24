@@ -575,7 +575,7 @@ DO JITER = 1, 4  ! Enter adjustment loop to assure that all CAPE is
 !                  specified degree of stabilization
 !                 ----------------------------------------------------
 !
-       CALL CONVECT_CLOSURE_ADJUST_SHAL( CVPEXT, D%NIT, D%NKT, D%NIB, D%NIE, ZADJ,&
+       CALL CONVECT_CLOSURE_ADJUST_SHAL( CVPEXT, D, ZADJ,&
                                          PUMF, ZUMF, PUER, ZUER, PUDR, ZUDR    )
 !
 !

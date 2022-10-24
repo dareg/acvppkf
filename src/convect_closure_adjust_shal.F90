@@ -1,5 +1,5 @@
 !     ######spl
-     SUBROUTINE CONVECT_CLOSURE_ADJUST_SHAL( CVPEXT, KLON, KLEV, KIDIA, KFDIA, PADJ,        &
+     SUBROUTINE CONVECT_CLOSURE_ADJUST_SHAL( CVPEXT, D, PADJ,        &
                                              PUMF, PZUMF, PUER, PZUER, PUDR, PZUDR  )
      USE PARKIND1, ONLY : JPRB
      USE YOMHOOK , ONLY : LHOOK, DR_HOOK
@@ -53,6 +53,7 @@
 !              ------------
 !
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
+USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 !
 IMPLICIT NONE
 !
@@ -60,19 +61,16 @@ IMPLICIT NONE
 !
 !
 TYPE(CONVPAREXT),           INTENT(IN) :: CVPEXT
-INTEGER,                    INTENT(IN) :: KLON     ! horizontal dimension
-INTEGER,                    INTENT(IN) :: KLEV     ! vertical dimension
-INTEGER,                    INTENT(IN) :: KIDIA    ! value of the first point in x
-INTEGER,                    INTENT(IN) :: KFDIA    ! value of the last point in x
-REAL, DIMENSION(KLON),      INTENT(IN) :: PADJ     ! mass adjustment factor
+TYPE(DIMPHYEX_T),           INTENT(IN) :: D
+REAL, DIMENSION(D%NIT),      INTENT(IN) :: PADJ     ! mass adjustment factor
 !
 !
-REAL, DIMENSION(KLON,KLEV), INTENT(INOUT) :: PUMF  ! updraft mass flux (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(INOUT) :: PZUMF ! initial value of  "
-REAL, DIMENSION(KLON,KLEV), INTENT(INOUT) :: PUER  ! updraft entrainment (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(INOUT) :: PZUER ! initial value of  "
-REAL, DIMENSION(KLON,KLEV), INTENT(INOUT) :: PUDR  ! updraft detrainment (kg/s)
-REAL, DIMENSION(KLON,KLEV), INTENT(INOUT) :: PZUDR ! initial value of  "
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT) :: PUMF  ! updraft mass flux (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT) :: PZUMF ! initial value of  "
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT) :: PUER  ! updraft entrainment (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT) :: PZUER ! initial value of  "
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT) :: PUDR  ! updraft detrainment (kg/s)
+REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT) :: PZUDR ! initial value of  "
 !
 !
 !*       0.2   Declarations of local variables :
@@ -89,7 +87,7 @@ INTEGER :: JK, JI                   ! vertical loop index
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_ADJUST_SHAL',0,ZHOOK_HANDLE)
 IKB  = 1 + CVPEXT%JCVEXB
-IKE  = KLEV - CVPEXT%JCVEXT
+IKE  = D%NKT - CVPEXT%JCVEXT
 !
 !
 !*       1.     Adjust mass flux by the factor PADJ to converge to
@@ -97,7 +95,7 @@ IKE  = KLEV - CVPEXT%JCVEXT
 !               ----------------------------------------------------
 !
      DO JK = IKB + 1, IKE
-       DO JI = KIDIA, KFDIA
+       DO JI = D%NIB, D%NIE
           PUMF(JI,JK)  = PZUMF(JI,JK)   * PADJ(JI)
           PUER(JI,JK)  = PZUER(JI,JK)   * PADJ(JI)
           PUDR(JI,JK)  = PZUDR(JI,JK)   * PADJ(JI)
