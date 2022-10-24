@@ -231,7 +231,7 @@ DO NSTEP=1,NSTEPMAX
     CALL ACVPPKF(YDCST,YDML_PHY_MF, CST, D, KTDIA, &
     & PAPRSF(:,:,K,NSTEP), PAPHIF(:,:,K,NSTEP), PDELP(:,:,K,NSTEP),  &
     & PR(:,:,K,NSTEP), PT(:,:,K,NSTEP), PQ(:,:,K,NSTEP), PQL(:,:,K,NSTEP), PQI(:,:,K,NSTEP), PU(:,:,K,NSTEP),&
-    & PV(:,:,K,NSTEP), PVERVEL(:,:,K,NSTEP), PCP(:,:,K,NSTEP), PTKE(:,:,K,NSTEP), &
+    & PV(:,:,K,NSTEP), PCP(:,:,K,NSTEP), PTKE(:,:,K,NSTEP), &
     & PDIFCQ(:,:,K,NSTEP), PDIFCS(:,:,K,NSTEP), PFCCQL(:,:,K,NSTEP), PFCCQN(:,:,K,NSTEP), PPRODTH(:,:,K,NSTEP), &
     & KNLAB(:,:,K,NSTEP), PQCPP(:,:,K,NSTEP), PNEBPP(:,:,K,NSTEP),&
     & KNND(:,K,NSTEP))
