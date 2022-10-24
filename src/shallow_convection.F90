@@ -106,21 +106,21 @@ IMPLICIT NONE
 !*       0.1   Declarations of dummy arguments :
 !
 !
-TYPE(CONVPAR_SHAL),         INTENT(IN) :: CVP_SHAL
-TYPE(CST_T),                INTENT(IN) :: CST
-TYPE(DIMPHYEX_T),           INTENT(IN) :: D
-TYPE(NSV_T),                INTENT(IN) :: NSV
-INTEGER,                    INTENT(IN) :: KBDIA    ! vertical  computations start at
-!                                                  ! KBDIA that is at least 1
-INTEGER,                    INTENT(IN) :: KTDIA    ! vertical computations can be
-                                                   ! limited to D%NKT + 1 - KTDIA
-                                                   ! default=1
-                                                   ! scheme
-INTEGER,                    INTENT(IN) :: KICE     ! flag for ice ( 1 = yes,
-                                                   !                0 = no ice )
-LOGICAL,                    INTENT(IN) :: OSETTADJ ! logical to set convective
-                                                   ! adjustment time by user
-REAL,                       INTENT(IN) :: PTADJS   ! user defined adjustment time
+TYPE(CONVPAR_SHAL),           INTENT(IN) :: CVP_SHAL
+TYPE(CST_T),                  INTENT(IN) :: CST
+TYPE(DIMPHYEX_T),             INTENT(IN) :: D
+TYPE(NSV_T),                  INTENT(IN) :: NSV
+INTEGER,                      INTENT(IN) :: KBDIA    ! vertical  computations start at
+!                                                    ! KBDIA that is at least 1
+INTEGER,                      INTENT(IN) :: KTDIA    ! vertical computations can be
+                                                     ! limited to D%NKT + 1 - KTDIA
+                                                     ! default=1
+                                                     ! scheme
+INTEGER,                      INTENT(IN) :: KICE     ! flag for ice ( 1 = yes,
+                                                     !                0 = no ice )
+LOGICAL,                      INTENT(IN) :: OSETTADJ ! logical to set convective
+                                                     ! adjustment time by user
+REAL,                         INTENT(IN) :: PTADJS   ! user defined adjustment time
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PTT      ! grid scale temperature at t
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PRVT     ! grid scale water vapor "
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PRCT     ! grid scale r_c  "
@@ -129,15 +129,15 @@ REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PWT      ! grid scale vertical
                                                    ! velocity (m/s)
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PPABST   ! grid scale pressure at t
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PZZ      ! height of model layer (m)
-REAL, DIMENSION(D%NIT),      INTENT(IN) :: PTKECLS  ! TKE in the CLS  (m2/s2)
+REAL, DIMENSION(D%NIT),       INTENT(IN) :: PTKECLS  ! TKE in the CLS  (m2/s2)
 !
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT):: PTTEN  ! convective temperature
                                                    ! tendency (K/s)
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT):: PRVTEN ! convective r_v tendency (1/s)
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT):: PRCTEN ! convective r_c tendency (1/s)
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT):: PRITEN ! convective r_i tendency (1/s)
-INTEGER, DIMENSION(D%NIT),   INTENT(INOUT):: KCLTOP ! cloud top level
-INTEGER, DIMENSION(D%NIT),   INTENT(INOUT):: KCLBAS ! cloud base level
+INTEGER, DIMENSION(D%NIT),    INTENT(INOUT):: KCLTOP ! cloud top level
+INTEGER, DIMENSION(D%NIT),    INTENT(INOUT):: KCLBAS ! cloud base level
                                                    ! they are given a value of
                                                    ! 0 if no convection
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT):: PUMF   ! updraft mass flux (kg/s m2)
@@ -268,24 +268,23 @@ ICONV = COUNT(GTRIG1(D%NIB:D%NIE))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < D%NIT/2) THEN
-  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D, NSV,    &
-                                  ICONV, KICE, OSETTADJ,            &
-                                  PTADJS, PPABST, PZZ, PTT, PRVT,   &
-                                  PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
-                                  PRITEN, KCLTOP, KCLBAS, PUMF,     &
-                                  OCH1CONV, KCH1, PCH1, PCH1TEN,    &
-                                  IKB, IKE, IFTSTEPS, ZRDOCP, ZTHT, &
-                                  ZSTHV, ZSTHES, ISDPL, ISPBL,      &
-                                  ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,  &
-                                  ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
+  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D, NSV,       &
+                                  ICONV, KICE, OSETTADJ, PTADJS,       &
+                                  PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
+                                  PTTEN, PRVTEN, PRCTEN, PRITEN,       &
+                                  KCLTOP, KCLBAS, PUMF, OCH1CONV, KCH1,&
+                                  PCH1, PCH1TEN, IKB, IKE, IFTSTEPS,   &
+                                  ZRDOCP, ZTHT, ZSTHV, ZSTHES, ISDPL,  &
+                                  ISPBL, ISLCL, ZSTHLCL, ZSTLCL,       &
+                                  ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
+                                  GTRIG1)
 ELSE
   CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV, KICE,   &
                                   OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
                                   PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
-                                  IFTSTEPS, ZRDOCP, ZTHT,      &
-                                  ZSTHV, ZSTHES, ISDPL, ISPBL, ISLCL,    &
-                                  ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL,      &
-                                  ZSZLCL, ZSTHVELCL, GTRIG1, PUMF, PTTEN,&
+                                  IFTSTEPS, ZRDOCP, ZTHT, ZSTHV, ZSTHES, &
+                                  ISDPL, ISPBL, ISLCL, ZSTHLCL, ZSTLCL,  &
+                                  ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1, PUMF, PTTEN,&
                                   PRVTEN, PRCTEN, PRITEN, KCLTOP, KCLBAS,&
                                   PCH1TEN)
 ENDIF
