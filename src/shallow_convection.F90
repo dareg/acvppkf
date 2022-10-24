@@ -185,6 +185,11 @@ TYPE(CONVPAREXT) :: CVPEXT
 !               -------------------
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
+
+#include "shallow_convection_select.intfb.h"
+#include "shallow_convection_compute.intfb.h"
+#include "convect_trigger_shal.intfb.h"
+
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',0,ZHOOK_HANDLE)
 CVPEXT%JCVEXB = MAX( 0, KBDIA - 1 )
 IKB = 1 + CVPEXT%JCVEXB

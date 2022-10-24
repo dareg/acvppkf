@@ -121,6 +121,9 @@ TYPE(DIMPHYEX_T) :: ZD
 !
 !-------------------------------------------------------------------------------
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
+
+#include "shallow_convection_compute.intfb.h"
+
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_SELECT',0,ZHOOK_HANDLE)
 
 ! Gather grid scale and updraft base variables in arrays using mask GTRIG

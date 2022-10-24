@@ -178,6 +178,7 @@ TYPE(CONVPAR_SHAL) :: CVP_SHAL
 
 #include "fcttrm.func.h"
 #include "wrscmr.intfb.h"
+#include "shallow_convection.intfb.h"
 
 !-----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('ACVPPKF',0,ZHOOK_HANDLE)

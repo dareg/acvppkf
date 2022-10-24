@@ -147,6 +147,9 @@ LOGICAL, DIMENSION(D%NIT) :: GWORK1                 ! work array
 !               --------------------
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
+
+#include "convect_satmixratio.intfb.h"
+
 IF (LHOOK) CALL DR_HOOK('CONVECT_TRIGGER_SHAL',0,ZHOOK_HANDLE)
 IKB = 1 + CVPEXT%JCVEXB
 IKE = D%NKT - CVPEXT%JCVEXT

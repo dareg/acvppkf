@@ -162,6 +162,10 @@ LOGICAL, DIMENSION(D%NIT) :: GWORK1, GWORK2, GWORK4
 !              ---------------
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
+
+#include "convect_condens.intfb.h"
+#include "convect_mixing_funct.intfb.h"
+
 IF (LHOOK) CALL DR_HOOK('CONVECT_UPDRAFT_SHAL',0,ZHOOK_HANDLE)
 IKB = 1 + CVPEXT%JCVEXB
 IKE = D%NKT - CVPEXT%JCVEXT

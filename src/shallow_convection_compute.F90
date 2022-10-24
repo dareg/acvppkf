@@ -123,6 +123,11 @@ REAL, DIMENSION(D%NIT,D%NKT,KCH1):: ZCH1C   ! conv. adjust. chemical specy 1
 
 
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
+
+#include "convect_updraft_shal.intfb.h"
+#include "convect_chem_transport.intfb.h"
+#include "convect_closure_shal.intfb.h"
+
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',0,ZHOOK_HANDLE)
 ZDPRES = 0.0
 ZTHL  = 0.0
