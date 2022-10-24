@@ -1,4 +1,5 @@
-SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, KICE, OSETTADJ, PTADJS,  &
+SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV, KICE,&
+                                   OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
                                    PCH1, IFTSTEPS,   &
@@ -11,11 +12,11 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, KICE, OSETTADJ, 
 
 USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
-USE MODD_NSV, ONLY : NSV_LGBEG,NSV_LGEND
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY: CONVPAREXT
 USE MODD_CST, ONLY: CST_T
 USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
+USE MODD_NSV, ONLY: NSV_T
 
 IMPLICIT NONE
 !
@@ -26,6 +27,7 @@ TYPE(CONVPAR_SHAL),              INTENT(IN)  :: CVP_SHAL
 TYPE(CONVPAREXT),                INTENT(IN)  :: CVPEXT
 TYPE(CST_T),                     INTENT(IN)  :: CST
 TYPE(DIMPHYEX_T),                INTENT(IN)  :: D
+TYPE(NSV_T),                     INTENT(IN)  :: NSV
 INTEGER,                         INTENT(IN)  :: KICE     ! flag for ice ( 1 = yes,
                                                          !                0 = no ice )
 LOGICAL,                         INTENT(IN)  :: OSETTADJ ! logical to set convective
@@ -302,7 +304,7 @@ IF ( OCH1CONV ) THEN
     ENDIF
   END DO
   END DO
-  CALL CONVECT_CHEM_TRANSPORT( CVPEXT, D, KCH1, ZCH1, ZCH1C,&
+  CALL CONVECT_CHEM_TRANSPORT( CVPEXT, D, NSV, KCH1, ZCH1, ZCH1C,&
                                ISDPL, ISPBL, ISLCL, ICTL, ILFS, ILFS,      &
                                PUMF, ZUER, ZUDR, ZDMF, ZDER, ZDDR,      &
                                ZTIMEC, CVP_SHAL%XA25, ZDMF(:,1), ZLMASS, ZWSUB, &
@@ -316,7 +318,7 @@ IF ( OCH1CONV ) THEN
 !
   JKM = IKE
   DO JN = 1, KCH1
-    IF(JN < NSV_LGBEG .OR. JN>NSV_LGEND-1) THEN ! no correction for xy lagrangian variables
+    IF(JN < NSV%NSV_LGBEG .OR. JN>NSV%NSV_LGEND-1) THEN ! no correction for xy lagrangian variables
       ZWORK3(:,JN) = 0.
       ZWORK2(:)    = 0.
       DO JK = IKB+1, JKM

@@ -31,8 +31,8 @@ USE MODD_PARAMETERS, ONLY : JPMODELMAX,& ! Maximum allowed number of nested mode
                             JPSVMAX      ! Maximum number of scalar variables
 !
 IMPLICIT NONE
-SAVE
 !
+TYPE NSV_T
 REAL,DIMENSION(JPSVMAX) :: XSVMIN ! minimum value for SV variables
 !
 LOGICAL :: LINI_NSV = .FALSE. ! becomes True when routine INI_NSV is called
@@ -223,6 +223,7 @@ INTEGER :: NSV_LIMA_HOM_HAZE !
 ! Specific declaration for AROME / CO2 runs.....
 ! to be keep, and next to be introduced in MesoNH
 INTEGER :: NSV_CO2     = 0 ! index for CO2
+END TYPE NSV_T
 
 
 END MODULE MODD_NSV

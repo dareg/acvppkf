@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CHEM_TRANSPORT( CVPEXT, D, KCH, PCH1, PCH1C, &
+      SUBROUTINE CONVECT_CHEM_TRANSPORT( CVPEXT, D, NSV, KCH, PCH1, PCH1C, &
                                          KDPL, KPBL, KLCL, KCTL, KLFS, KDBL, &
                                          PUMF, PUER, PUDR, PDMF, PDER, PDDR, &
                                          PTIMEC, PDXDY, PMIXF, PLMASS, PWSUB,&
@@ -51,7 +51,7 @@
 !
 USE MODD_CST, ONLY : XG
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
-USE MODD_NSV,  ONLY : NSV_LGBEG,NSV_LGEND
+USE MODD_NSV,  ONLY : NSV_T
 USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 !
 IMPLICIT NONE
@@ -60,6 +60,7 @@ IMPLICIT NONE
 !
 TYPE(CONVPAREXT),       INTENT(IN) :: CVPEXT
 TYPE(DIMPHYEX_T),       INTENT(IN) :: D
+TYPE(NSV_T),            INTENT(IN) :: NSV
 INTEGER,                INTENT(IN) :: KCH      ! number of passive tracers
 !
 REAL,DIMENSION(D%NIT,D%NKT,KCH),INTENT(IN) :: PCH1 ! grid scale tracer concentr.
@@ -261,7 +262,7 @@ DO JSTEP = 1, KFTSTEPS ! Enter the fractional time step loop
                         ZCH1MFIN(JI,JK,JN) + PUDR(JI,JK) * ZUCH1(JI,JK,JN) +       &
                         PDDR(JI,JK) * ZDCH1(JI,JK,JN) - ZCH1MFOUT(JI,JK,JN) -      &
                         ( PUER(JI,JK) + PDER(JI,JK) ) * PCH1(JI,JK,JN)    )
-           IF(JN < NSV_LGBEG .OR. JN>NSV_LGEND-1) THEN
+           IF(JN < NSV%NSV_LGBEG .OR. JN>NSV%NSV_LGEND-1) THEN
              PCH1C(JI,JK,JN) = MAX( 0., PCH1C(JI,JK,JN) )
            ELSE
              ! no tendency for horizontal Lagrangian variables

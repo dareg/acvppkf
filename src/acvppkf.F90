@@ -1,6 +1,6 @@
 !OPTIONS XOPT(NOEVAL)
 !-----------------------------------------------------------------
-SUBROUTINE ACVPPKF( YDCST,YDML_PHY_MF,CST,D,KTDIA, &
+SUBROUTINE ACVPPKF( YDCST,YDML_PHY_MF,CST,D,NSV,KTDIA, &
  !-----------------------------------------------------------------
  ! - INPUT  2D .
  & PAPRSF, PAPHIF, PDELP, PR, PT, PQ, &
@@ -70,6 +70,7 @@ USE YOMLSFORC, ONLY : LMUSCLFA,NMUSCLFA
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CST, ONLY: CST_T
 USE MODD_DIMPHYEX, ONLY: DIMPHYEX_t
+USE MODD_NSV, ONLY: NSV_T
 !-----------------------------------------------------------------
 
 IMPLICIT NONE
@@ -78,6 +79,7 @@ TYPE (TCST)        ,INTENT (IN)   :: YDCST
 TYPE(MODEL_PHYSICS_MF_TYPE),INTENT(IN):: YDML_PHY_MF
 TYPE(CST_T)        ,INTENT(IN)    :: CST
 TYPE(DIMPHYEX_t)   ,INTENT(IN)    :: D
+TYPE(NSV_T)        ,INTENT(IN)    :: NSV
 INTEGER(KIND=JPIM) ,INTENT(IN)    :: KTDIA 
 REAL(KIND=JPRB)    ,INTENT(IN)    :: PAPRSF (D%NIT,D%NKT) 
 REAL(KIND=JPRB)    ,INTENT(IN)    :: PAPHIF (D%NIT,D%NKT) 
@@ -317,7 +319,7 @@ ENDIF
   CVP_SHAL%XBW=YDML_PHY_MF%YRCVMNH%XBW
   CVP_SHAL%LLSMOOTH=LSMOOTH
 
-  CALL SHALLOW_CONVECTION(CVP_SHAL, CST, D, I_KBDIA, KTDIA,        &
+  CALL SHALLOW_CONVECTION(CVP_SHAL, CST, D, NSV ,I_KBDIA, KTDIA,&
    & IKICE, LSETTADJ, OTADJS,         &
    & ZPABS, ZZZ,ZTKECLS,                         &
    & ZT, ZRV, ZRC, ZRI, SHAL_ZW,                      &

@@ -1,4 +1,5 @@
-SUBROUTINE SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D, ICONV, KICE, OSETTADJ,&
+SUBROUTINE SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D, NSV,    &
+                                      ICONV, KICE, OSETTADJ,            &
                                       PTADJS, PPABST, PZZ, PTT, PRVT,   &
                                       PRCT, PRIT, PTTEN, PRVTEN, PRCTEN,&
                                       PRITEN, KCLTOP, KCLBAS, PUMF,     &
@@ -13,6 +14,7 @@ USE MODD_CONVPAR_SHAL, ONLY: CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY: CONVPAREXT
 USE MODD_CST, ONLY: CST_T
 USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
+USE MODD_NSV, ONLY: NSV_T
 
 IMPLICIT NONE
 !
@@ -23,6 +25,7 @@ TYPE(CONVPAR_SHAL),              INTENT(IN)   :: CVP_SHAL
 TYPE(CONVPAREXT),                INTENT(IN)   :: CVPEXT
 TYPE(CST_T),                     INTENT(IN)   :: CST
 TYPE(DIMPHYEX_T),                INTENT(IN)   :: D
+TYPE(NSV_T),                     INTENT(IN)   :: NSV
 INTEGER,                         INTENT(IN)   :: ICONV    ! number of convective columns 
 INTEGER,                         INTENT(IN)   :: KICE     ! flag for ice ( 1 = yes,
                                                           !                0 = no ice )
@@ -159,7 +162,7 @@ END DO
 ZD=D
 ZD%NIT=ICONV
 ZD%NIE=ICONV
-CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ZD, KICE,       &
+CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, ZD, NSV, KICE,  &
                                 OSETTADJ, PTADJS, ZPRES, ZZ, ZTT, ZRV, &
                                 ZRC, ZRI, OCH1CONV, KCH1, PCH1, &
                                 IFTSTEPS, PRDOCP, ZTH, ZTHV,      &
