@@ -1,11 +1,10 @@
 !     ######spl
-    SUBROUTINE SHALLOW_CONVECTION( CVP_SHAL, CST, D, NSV, KBDIA, KTDIA,        &
-                                   KICE, OSETTADJ, PTADJS,               &
-                                   PPABST, PZZ, PTKECLS,                          &
-                                   PTT, PRVT, PRCT, PRIT, PWT,                    &
-                                   PTTEN, PRVTEN, PRCTEN, PRITEN,                 &
-                                   KCLTOP, KCLBAS, PUMF,                          &
-                                   OCH1CONV, KCH1, PCH1, PCH1TEN                  )
+    SUBROUTINE SHALLOW_CONVECTION(CVP_SHAL, CST, D, NSV, KBDIA, KTDIA, &
+                                  KICE, OSETTADJ, PTADJS, PPABST, PZZ, &
+                                  PTKECLS, PTT, PRVT, PRCT, PRIT, PWT, &
+                                  PTTEN, PRVTEN, PRCTEN, PRITEN,       &
+                                  KCLTOP, KCLBAS, PUMF, OCH1CONV, KCH1,&
+                                  PCH1, PCH1TEN)
     USE PARKIND1, ONLY : JPRB
     USE YOMHOOK , ONLY : LHOOK, DR_HOOK
 !   ###############################################################################
@@ -153,7 +152,6 @@ REAL, DIMENSION(D%NIT,D%NKT,KCH1), INTENT(INOUT):: PCH1TEN! species conv. tenden
 INTEGER  :: IKB, IKE                ! vertical loop bounds
 INTEGER  :: JI                      ! horizontal loop index
 INTEGER  :: JK                      ! vertical loop index
-INTEGER  :: IFTSTEPS                ! only used for chemical tracers
 INTEGER  :: ICONV
 REAL     :: ZEPS, ZEPSA             ! R_d / R_v, R_v / R_d
 REAL     :: ZRDOCP                  ! R_d/C_p
@@ -260,33 +258,31 @@ ISLCL(:) = MAX( IKB, 2 )   ! initialize DPL PBL and LCL
 ISDPL(:) = IKB
 ISPBL(:) = IKB
 !
-CALL CONVECT_TRIGGER_SHAL(CVP_SHAL, CVPEXT, CST, D, PPABST, ZTHT,   &
-                          ZSTHV, ZSTHES, PRVT, PWT, PZZ, PTKECLS,   &
-                          ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL, &
+CALL CONVECT_TRIGGER_SHAL(CVP_SHAL, CVPEXT, CST, D, PPABST, ZTHT,      &
+                          ZSTHV, ZSTHES, PRVT, PWT, PZZ, PTKECLS,      &
+                          ZSTHLCL, ZSTLCL, ZSRVLCL, ZSWLCL, ZSZLCL,    &
                           ZSTHVELCL, ISLCL, ISDPL, ISPBL, GTRIG1)
 ICONV = COUNT(GTRIG1(D%NIB:D%NIE))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < D%NIT/2) THEN
-  CALL SHALLOW_CONVECTION_SELECT( CVP_SHAL, CVPEXT, CST, D, NSV,       &
-                                  ICONV, KICE, OSETTADJ, PTADJS,       &
-                                  PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
-                                  PTTEN, PRVTEN, PRCTEN, PRITEN,       &
-                                  KCLTOP, KCLBAS, PUMF, OCH1CONV, KCH1,&
-                                  PCH1, PCH1TEN, IKB, IKE, IFTSTEPS,   &
-                                  ZRDOCP, ZTHT, ZSTHV, ZSTHES, ISDPL,  &
-                                  ISPBL, ISLCL, ZSTHLCL, ZSTLCL,       &
-                                  ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
-                                  GTRIG1)
+  CALL SHALLOW_CONVECTION_SELECT(CVP_SHAL, CVPEXT, CST, D, NSV, ICONV, &
+                                 KICE, OSETTADJ, PTADJS, PPABST, PZZ,  &
+                                 PTT, PRVT, PRCT, PRIT, PTTEN, PRVTEN, &
+                                 PRCTEN, PRITEN, KCLTOP, KCLBAS, PUMF, &
+                                 OCH1CONV, KCH1, PCH1, PCH1TEN, ZRDOCP,&
+                                 ZTHT, ZSTHV, ZSTHES, ISDPL, ISPBL,    &
+                                 ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,      &
+                                 ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
 ELSE
-  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV, KICE,   &
-                                  OSETTADJ, PTADJS, PPABST, PZZ, PTT,    &
-                                  PRVT, PRCT, PRIT, OCH1CONV, KCH1, PCH1,&
-                                  IFTSTEPS, ZRDOCP, ZTHT, ZSTHV, ZSTHES, &
-                                  ISDPL, ISPBL, ISLCL, ZSTHLCL, ZSTLCL,  &
-                                  ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1, PUMF, PTTEN,&
-                                  PRVTEN, PRCTEN, PRITEN, KCLTOP, KCLBAS,&
-                                  PCH1TEN)
+  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV, KICE, &
+                                  OSETTADJ, PTADJS, PPABST, PZZ, PTT,  &
+                                  PRVT, PRCT, PRIT, OCH1CONV, KCH1,    &
+                                  PCH1, ZRDOCP, ZTHT, ZSTHV, ZSTHES,   &
+                                  ISDPL, ISPBL, ISLCL, ZSTHLCL, ZSTLCL,&
+                                  ZSRVLCL, ZSWLCL, ZSZLCL, ZSTHVELCL,  &
+                                  GTRIG1, PUMF, PTTEN, PRVTEN, PRCTEN, &
+                                  PRITEN, KCLTOP, KCLBAS, PCH1TEN)
 ENDIF
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION',1,ZHOOK_HANDLE)
 END SUBROUTINE SHALLOW_CONVECTION

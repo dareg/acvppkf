@@ -2,7 +2,7 @@ SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV, KICE,&
                                    OSETTADJ, PTADJS,  &
                                    PPABST, PZZ, PTT, PRVT, PRCT, PRIT,  &
                                    OCH1CONV, KCH1,&
-                                   PCH1, IFTSTEPS,   &
+                                   PCH1, &
                                    PRDOCP, PTHT, PSTHV, PSTHES, ISDPL,  &
                                    ISPBL, ISLCL, PSTHLCL, PSTLCL,       &
                                    PSRVLCL, PSWLCL, PSZLCL, PSTHVELCL,  &
@@ -48,7 +48,6 @@ LOGICAL,                         INTENT(IN)  :: OCH1CONV ! include tracer transp
 INTEGER,                         INTENT(IN)  :: KCH1     ! number of species
 REAL, DIMENSION(D%NIT,D%NKT,KCH1), INTENT(IN)  :: PCH1     ! grid scale chemical species
 
-INTEGER, INTENT(INOUT)                       :: IFTSTEPS ! only used for chemical tracers
 REAL   , INTENT(IN)                          :: PRDOCP   ! R_d/C_p
 REAL, DIMENSION(D%NIT,D%NKT),      INTENT(IN)  :: PTHT, PSTHV, PSTHES  ! grid scale theta, theta_v
 INTEGER, DIMENSION(D%NIT)  ,      INTENT(IN)  :: ISDPL   ! index for parcel departure level
@@ -120,6 +119,7 @@ REAL, DIMENSION(D%NIT)       :: ZLV, ZLS! latent heat of vaporis., sublim.
 REAL, DIMENSION(D%NIT,KCH1)     :: ZWORK3  ! conv. adjust. chemical specy 1
 REAL, DIMENSION(D%NIT,D%NKT,KCH1):: ZCH1    ! grid scale chemical specy (kg/kg)
 REAL, DIMENSION(D%NIT,D%NKT,KCH1):: ZCH1C   ! conv. adjust. chemical specy 1
+INTEGER                          :: IFTSTEPS ! only used for chemical tracers
 
 
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
