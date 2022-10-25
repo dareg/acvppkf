@@ -1,5 +1,5 @@
 !     ######spl
-    SUBROUTINE SHALLOW_CONVECTION(CVP_SHAL, CST, D, NSV, KBDIA, KTDIA, &
+    SUBROUTINE SHALLOW_CONVECTION(CVP_SHAL, CST, D, NSV, CONVPAR, KBDIA, KTDIA, &
                                   KICE, OSETTADJ, PTADJS, PPABST, PZZ, &
                                   PTKECLS, PTT, PRVT, PRCT, PRIT, PWT, &
                                   PTTEN, PRVTEN, PRCTEN, PRITEN,       &
@@ -95,6 +95,7 @@
 !
 USE MODD_CST, ONLY : CST_T
 USE MODD_CONVPAREXT, ONLY : CONVPAREXT
+USE MODD_CONVPAR, ONLY: CONVPAR_T
 USE MODD_CONVPAR_SHAL, ONLY: CONVPAR_SHAL
 USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 USE MODD_NSV, ONLY: NSV_T
@@ -109,6 +110,7 @@ TYPE(CONVPAR_SHAL),           INTENT(IN) :: CVP_SHAL
 TYPE(CST_T),                  INTENT(IN) :: CST
 TYPE(DIMPHYEX_T),             INTENT(IN) :: D
 TYPE(NSV_T),                  INTENT(IN) :: NSV
+TYPE(CONVPAR_T),              INTENT(IN) :: CONVPAR
 INTEGER,                      INTENT(IN) :: KBDIA    ! vertical  computations start at
 !                                                    ! KBDIA that is at least 1
 INTEGER,                      INTENT(IN) :: KTDIA    ! vertical computations can be
@@ -266,7 +268,7 @@ ICONV = COUNT(GTRIG1(D%NIB:D%NIE))
 IF(ICONV==0)THEN
   ! Do nothing if there are no selected columns
 ELSE IF (ICONV < D%NIT/2) THEN
-  CALL SHALLOW_CONVECTION_SELECT(CVP_SHAL, CVPEXT, CST, D, NSV, ICONV, &
+  CALL SHALLOW_CONVECTION_SELECT(CVP_SHAL, CVPEXT, CST, D, NSV, CONVPAR, ICONV, &
                                  KICE, OSETTADJ, PTADJS, PPABST, PZZ,  &
                                  PTT, PRVT, PRCT, PRIT, PTTEN, PRVTEN, &
                                  PRCTEN, PRITEN, KCLTOP, KCLBAS, PUMF, &
@@ -275,7 +277,7 @@ ELSE IF (ICONV < D%NIT/2) THEN
                                  ISLCL, ZSTHLCL, ZSTLCL, ZSRVLCL,      &
                                  ZSWLCL, ZSZLCL, ZSTHVELCL, GTRIG1)
 ELSE
-  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV, KICE, &
+  CALL SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV, CONVPAR, KICE, &
                                   OSETTADJ, PTADJS, PPABST, PZZ, PTT,  &
                                   PRVT, PRCT, PRIT, OCH1CONV, KCH1,    &
                                   PCH1, ZRDOCP, ZTHT, ZSTHV, ZSTHES,   &

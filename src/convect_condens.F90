@@ -1,5 +1,5 @@
 !     ######spl
-      SUBROUTINE CONVECT_CONDENS( CST, D,                &
+      SUBROUTINE CONVECT_CONDENS( CST, D, CONVPAR,                        &
                                   KICE, PPRES, PTHL, PRW, PRCO, PRIO, PZ, &
                                   PT, PEW, PRC, PRI, PLV, PLS, PCPH   )
       USE PARKIND1, ONLY : JPRB
@@ -64,7 +64,7 @@
 !              ------------
 !
 USE MODD_CST, ONLY : CST_T
-USE MODD_CONVPAR, ONLY : XTFRZ1, XTFRZ2
+USE MODD_CONVPAR, ONLY : CONVPAR_T
 USE MODD_DIMPHYEX, ONLY: DIMPHYEX_T
 !
 !
@@ -72,9 +72,10 @@ IMPLICIT NONE
 !
 !*       0.1   Declarations of dummy arguments :
 !
-TYPE(CST_T), INTENT(IN)            :: CST
-TYPE(DIMPHYEX_T), INTENT(IN)       :: D
-INTEGER, INTENT(IN)                :: KICE    ! flag for ice ( 1 = yes,
+TYPE(CST_T),              INTENT(IN) :: CST
+TYPE(DIMPHYEX_T),         INTENT(IN) :: D
+TYPE(CONVPAR_T),          INTENT(IN) :: CONVPAR
+INTEGER,                  INTENT(IN) :: KICE    ! flag for ice ( 1 = yes,
                                               !                0 = no ice )
 REAL, DIMENSION(D%NIT),   INTENT(IN) :: PPRES  ! pressure
 REAL, DIMENSION(D%NIT),   INTENT(IN) :: PTHL   ! enthalpy (J/kg)
@@ -139,7 +140,7 @@ DO JITER = 1,6
      PLV(JI)    = CST%XLVTT + ( CST%XCPV - CST%XCL ) * ( PT(JI) - CST%XTT ) ! compute L_v
      PLS(JI)    = CST%XLSTT + ( CST%XCPV - CST%XCI ) * ( PT(JI) - CST%XTT ) ! compute L_i
 !    
-     ZWORK2(JI) = ( XTFRZ1 - PT(JI) ) / ( XTFRZ1 - XTFRZ2 ) ! freezing interval
+     ZWORK2(JI) = ( CONVPAR%XTFRZ1 - PT(JI) ) / ( CONVPAR%XTFRZ1 - CONVPAR%XTFRZ2 ) ! freezing interval
      ZWORK2(JI) = MAX( 0., MIN(1., ZWORK2(JI) ) ) * REAL( KICE )
      ZWORK3(JI) = ( 1. - ZWORK2(JI) ) * PEW(JI) + ZWORK2(JI) * ZEI(JI)
      PRC(JI)    = MAX( 0., ( 1. - ZWORK2(JI) ) * ( PRW(JI) - ZWORK3(JI) ) )

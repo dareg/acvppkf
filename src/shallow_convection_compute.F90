@@ -1,16 +1,17 @@
 SUBROUTINE SHALLOW_CONVECTION_COMPUTE(CVP_SHAL, CVPEXT, CST, D, NSV,   &
-                                      KICE, OSETTADJ, PTADJS, PPABST,  &
-                                      PZZ, PTT, PRVT, PRCT, PRIT,      &
-                                      OCH1CONV, KCH1,  PCH1, PRDOCP,   &
-                                      PTHT, PSTHV, PSTHES, ISDPL,      &
-                                      ISPBL, ISLCL, PSTHLCL, PSTLCL,   &
-                                      PSRVLCL, PSWLCL, PSZLCL,         &
+                                      CONVPAR, KICE, OSETTADJ, PTADJS, &
+                                      PPABST, PZZ, PTT, PRVT, PRCT,    &
+                                      PRIT, OCH1CONV, KCH1,  PCH1,     &
+                                      PRDOCP, PTHT, PSTHV, PSTHES,     &
+                                      ISDPL, ISPBL, ISLCL, PSTHLCL,    &
+                                      PSTLCL, PSRVLCL, PSWLCL, PSZLCL, &
                                       PSTHVELCL, GTRIG1, PUMF, PTHC,   &
                                       PRVC, PRCC, PRIC, ICTL, IMINCTL, &
                                       PPCH1TEN)
 
 USE PARKIND1, ONLY : JPRB
 USE YOMHOOK , ONLY : LHOOK, DR_HOOK
+USE MODD_CONVPAR, ONLY : CONVPAR_T
 USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CONVPAREXT, ONLY: CONVPAREXT
 USE MODD_CST, ONLY: CST_T
@@ -27,6 +28,7 @@ TYPE(CONVPAREXT),                INTENT(IN)  :: CVPEXT
 TYPE(CST_T),                     INTENT(IN)  :: CST
 TYPE(DIMPHYEX_T),                INTENT(IN)  :: D
 TYPE(NSV_T),                     INTENT(IN)  :: NSV
+TYPE(CONVPAR_T),                 INTENT(IN)  :: CONVPAR
 INTEGER,                         INTENT(IN)  :: KICE     ! flag for ice ( 1 = yes,
                                                          !                0 = no ice )
 LOGICAL,                         INTENT(IN)  :: OSETTADJ ! logical to set convective
@@ -162,7 +164,7 @@ END DO
 !*           4.1    Set mass flux at LCL ( here a unit mass flux with w = 1 m/s )
 !                   -------------------------------------------------------------
 !
-CALL CONVECT_UPDRAFT_SHAL(CVP_SHAL, CVPEXT, CST, D, KICE, PPABST,      &
+CALL CONVECT_UPDRAFT_SHAL(CVP_SHAL, CVPEXT, CST, D, CONVPAR, KICE, PPABST,      &
                           ZDPRES, PZZ, ZTHL, PSTHV, PSTHES, ZRW,       &
                           PSTHLCL, PSTLCL, PSRVLCL, PSWLCL, PSZLCL,    &
                           PSTHVELCL, CVP_SHAL%XA25 * 1.E-3, GTRIG2,    &

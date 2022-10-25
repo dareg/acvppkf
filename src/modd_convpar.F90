@@ -33,35 +33,37 @@
 !
 IMPLICIT NONE
 !
-REAL, SAVE :: XA25        ! 25 km x 25 km reference grid area
+TYPE CONVPAR_T
+REAL :: XA25        ! 25 km x 25 km reference grid area
 !
-REAL, SAVE :: XCRAD       ! cloud radius
-REAL, SAVE :: XCDEPTH     ! minimum necessary cloud depth
-REAL, SAVE :: XENTR       ! entrainment constant (m/Pa) = 0.2 (m)
+REAL :: XCRAD       ! cloud radius
+REAL :: XCDEPTH     ! minimum necessary cloud depth
+REAL :: XENTR       ! entrainment constant (m/Pa) = 0.2 (m)
 !
-REAL, SAVE :: XZLCL       ! maximum allowed allowed height
-                          ! difference between departure level and surface
-REAL, SAVE :: XZPBL       ! minimum mixed layer depth to sustain convection
-REAL, SAVE :: XWTRIG      ! constant in vertical velocity trigger
+REAL :: XZLCL       ! maximum allowed allowed height
+                    ! difference between departure level and surface
+REAL :: XZPBL       ! minimum mixed layer depth to sustain convection
+REAL :: XWTRIG      ! constant in vertical velocity trigger
 !
 !
-REAL, SAVE :: XNHGAM      ! accounts for non-hydrost. pressure
-                          ! in buoyancy term of w equation
-                          ! = 2 / (1+gamma)
-REAL, SAVE :: XTFRZ1      ! begin of freezing interval
-REAL, SAVE :: XTFRZ2      ! end of freezing interval
+REAL :: XNHGAM      ! accounts for non-hydrost. pressure
+                    ! in buoyancy term of w equation
+                    ! = 2 / (1+gamma)
+REAL :: XTFRZ1      ! begin of freezing interval
+REAL :: XTFRZ2      ! end of freezing interval
 !
-REAL, SAVE :: XRHDBC      ! relative humidity below cloud in downdraft
+REAL :: XRHDBC      ! relative humidity below cloud in downdraft
 !
-REAL, SAVE :: XRCONV      ! constant in precipitation conversion
-REAL, SAVE :: XSTABT      ! factor to assure stability in  fractional time
-                          ! integration, routine CONVECT_CLOSURE
-REAL, SAVE :: XSTABC      ! factor to assure stability in CAPE adjustment,
-                          !  routine CONVECT_CLOSURE
-REAL, SAVE :: XUSRDPTH    ! pressure thickness used to compute updraft
-                          ! moisture supply rate for downdraft
-REAL, SAVE :: XMELDPTH    ! layer (Pa) through which precipitation melt is
-                          ! allowed below  melting level
-REAL, SAVE :: XUVDP       ! constant for pressure perturb in momentum transport
+REAL :: XRCONV      ! constant in precipitation conversion
+REAL :: XSTABT      ! factor to assure stability in  fractional time
+                    ! integration, routine CONVECT_CLOSURE
+REAL :: XSTABC      ! factor to assure stability in CAPE adjustment,
+                    !  routine CONVECT_CLOSURE
+REAL :: XUSRDPTH    ! pressure thickness used to compute updraft
+                    ! moisture supply rate for downdraft
+REAL :: XMELDPTH    ! layer (Pa) through which precipitation melt is
+                    ! allowed below  melting level
+REAL :: XUVDP       ! constant for pressure perturb in momentum transport
+END TYPE CONVPAR_T
 !
 END MODULE MODD_CONVPAR
