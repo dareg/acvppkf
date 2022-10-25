@@ -125,9 +125,9 @@ INTEGER                          :: IFTSTEPS ! only used for chemical tracers
 
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
-#include "convect_updraft_shal.intfb.h"
-#include "convect_chem_transport.intfb.h"
-#include "convect_closure_shal.intfb.h"
+#include "convect_updraft_shal.h"
+#include "convect_chem_transport.h"
+#include "convect_closure_shal.h"
 
 IF (LHOOK) CALL DR_HOOK('SHALLOW_CONVECTION_COMPUTE',0,ZHOOK_HANDLE)
 ZDPRES = 0.0

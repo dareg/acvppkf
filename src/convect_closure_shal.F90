@@ -182,7 +182,7 @@ LOGICAL, DIMENSION(D%NIT,D%NKT) :: GWORK4    ! work array
 !
 REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
-#include "convect_closure_adjust_shal.intfb.h"
+#include "convect_closure_adjust_shal.h"
 
 IF (LHOOK) CALL DR_HOOK('CONVECT_CLOSURE_SHAL',0,ZHOOK_HANDLE)
 ZTIMC(:,:) = 0.
