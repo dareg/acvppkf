@@ -154,7 +154,7 @@ REAL , DIMENSION(D%NIT,D%NKT) :: ZRC    ! grid scale r_c mixing ratio (kg/kg)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZRI    ! grid scale r_i mixing ratio (kg/kg)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZU     ! grid scale horiz. wind u (m/s)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZV     ! grid scale horiz. wind v (m/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: SHAL_ZW     ! grid scale vertical velocity (m/s)
+REAL , DIMENSION(D%NIT,D%NKT) :: ZZW    ! grid scale vertical velocity (m/s)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZPABS  ! grid scale pressure (Pa)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZZZ    ! height of model layer (m)
 
@@ -164,7 +164,7 @@ REAL , DIMENSION(D%NIT,D%NKT) :: ZRCTEN ! convective r_c tendency (1/s)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZRITEN ! convective r_i tendency (1/s)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZUTEN  ! convective u tendency (m/s^2)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZVTEN  ! convective m tendency (m/s^2)
-REAL , DIMENSION(D%NIT,D%NKT) :: SHAL_ZUMF   ! updraft mass flux   (kg/s m2)
+REAL , DIMENSION(D%NIT,D%NKT) :: ZZUMF  ! updraft mass flux   (kg/s m2)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZURV   ! water vapor in updrafts (kg/kg)
 REAL , DIMENSION(D%NIT,D%NKT) :: ZURCI  ! total condensate in updrafts (kg/kg)
 INTEGER,  DIMENSION(D%NIT)   :: ICLTOP ! cloud top level (number of model level)
@@ -271,7 +271,7 @@ DO JK = 1, D%NKT
     ZRI(JI,JKP)   = PQI(JI,JK) / ( 1.0 - PQI(JI,JK) )
     ZU(JI,JKP)    = PU(JI,JK)
     ZV(JI,JKP)    = PV(JI,JK)
-    SHAL_ZW(JI,JKP)    = ZW(JI,JK)
+    ZZW(JI,JKP)   = ZW(JI,JK)
   ENDDO
 ENDDO
 IF ( LLOCHTRANS ) THEN
@@ -285,14 +285,14 @@ IF ( LLOCHTRANS ) THEN
   ENDDO
 ENDIF
 
-  I_KCOUNT(:)     =0
+  I_KCOUNT(:)   =0
   ZTTEN(:,:)    =0.0
   ZRVTEN(:,:)   =0.0
   ZRCTEN(:,:)   =0.0
   ZRITEN(:,:)   =0.0
   ZUTEN(:,:)    =0.0
   ZVTEN(:,:)    =0.0
-  SHAL_ZUMF(:,:)     =0.0
+  ZZUMF(:,:)    =0.0
   ZURV(:,:)     =0.0
   ZURCI(:,:)    =0.0
   SHAL_ZCH1TEN(:,:,:)=0.0
@@ -323,9 +323,9 @@ ENDIF
 
   CALL SHALLOW_CONVECTION(CVP_SHAL, CST, D, NSV, CONVPAR, I_KBDIA,     &
                           KTDIA, IKICE, LSETTADJ, OTADJS, ZPABS, ZZZ,  &
-                          ZTKECLS, ZT, ZRV, ZRC, ZRI, SHAL_ZW, ZTTEN,  &
+                          ZTKECLS, ZT, ZRV, ZRC, ZRI, ZZW, ZTTEN,      &
                           ZRVTEN, ZRCTEN, ZRITEN, ICLTOPS, ICLBASS,    &
-                          SHAL_ZUMF, LLOCHTRANS, I_KCH1, SHAL_ZCH1,    &
+                          ZZUMF, LLOCHTRANS, I_KCH1, SHAL_ZCH1,        &
                           SHAL_ZCH1TENS)
 
 DO JI = D%NIB, D%NIE
@@ -346,7 +346,7 @@ DO JK = 1, D%NKT
     ZDQIDT(JI,JK) = ZRITEN(JI,JKP) ! / ( 1.0 + ZRI(JI,JKP) ) ** 2
     ZDUDT(JI,JK)  = ZUTEN(JI,JKP)
     ZDVDT(JI,JK)  = ZVTEN(JI,JKP)
-    ZUMF(JI,JK)   = SHAL_ZUMF(JI,JKP)
+    ZUMF(JI,JK)   = ZZUMF(JI,JKP)
     ZUQV(JI,JK)   = ZURV(JI,JKP) / ( 1.0 + ZURV(JI,JKP) )
     ZUQL(JI,JK)  = ZURCI(JI,JKP)/ ( 1.0 + ZURCI(JI,JKP) )
   ENDDO
