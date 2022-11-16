@@ -38,3 +38,5 @@ cp $SRC/apl_arpege_shallow_convection_and_turbulence.F90      src/local/arpifs/p
 cp $SRC/aplpar.F90                                            src/local/arpifs/phys_dmn/aplpar.F90
 cp $SRC/ini_cst.F90                                           src/local/mpa/micro/internals/ini_cst.F90
 
+#For debug only
+cp $SRC/yomdbg.F90                                            src/local/mpa/conv/internals/yomdbg.F90
