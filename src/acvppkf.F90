@@ -113,7 +113,7 @@ REAL(KIND=JPRB) :: ZHOOK_HANDLE
 REAL(KIND=JPRB) :: ZDTCONV, ZVMD, ZWMD, ZSMD, ZTDCP, ZEPS, ZDQCDT, ZDTLDT
 
 INTEGER(KIND=JPIM) :: JLON, JLEV, I_KBDIA, IKICE
-INTEGER, PARAMETER :: I_KCH1 = 0
+INTEGER(KIND=JPIM), PARAMETER :: I_KCH1 = 0
 
 INTEGER(KIND=JPIM) :: I_KCOUNT(D%NIT)
 INTEGER(KIND=JPIM) :: I_KCLTOP(D%NIT)
@@ -148,32 +148,32 @@ REAL(KIND=JPRB) :: ZUMFMAX(D%NIT)
 
 INTEGER  :: JI, JK, JKP, JN  ! loop index
 ! Local arrays (upside/down) necessary for change of ECMWF arrays to convection arrays
-REAL , DIMENSION(D%NIT,D%NKT) :: ZT     ! grid scale T at time t  (K)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZRV    ! grid scale water vapor  (kg/kg)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZRC    ! grid scale r_c mixing ratio (kg/kg)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZRI    ! grid scale r_i mixing ratio (kg/kg)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZU     ! grid scale horiz. wind u (m/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZV     ! grid scale horiz. wind v (m/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZZW    ! grid scale vertical velocity (m/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZPABS  ! grid scale pressure (Pa)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZZZ    ! height of model layer (m)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZT     ! grid scale T at time t  (K)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZRV    ! grid scale water vapor  (kg/kg)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZRC    ! grid scale r_c mixing ratio (kg/kg)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZRI    ! grid scale r_i mixing ratio (kg/kg)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZU     ! grid scale horiz. wind u (m/s)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZV     ! grid scale horiz. wind v (m/s)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZZW    ! grid scale vertical velocity (m/s)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZPABS  ! grid scale pressure (Pa)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZZZ    ! height of model layer (m)
 
-REAL , DIMENSION(D%NIT,D%NKT) :: ZTTEN  ! convective temperat. tendency (K/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZRVTEN ! convective r_v tendency (1/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZRCTEN ! convective r_c tendency (1/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZRITEN ! convective r_i tendency (1/s)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZUTEN  ! convective u tendency (m/s^2)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZVTEN  ! convective m tendency (m/s^2)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZZUMF  ! updraft mass flux   (kg/s m2)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZURV   ! water vapor in updrafts (kg/kg)
-REAL , DIMENSION(D%NIT,D%NKT) :: ZURCI  ! total condensate in updrafts (kg/kg)
-INTEGER,  DIMENSION(D%NIT)   :: ICLTOP ! cloud top level (number of model level)
-INTEGER,  DIMENSION(D%NIT)   :: ICLBAS ! cloud base level(number of model level)
-REAL , DIMENSION(D%NIT,D%NKT,I_KCH1):: SHAL_ZCH1     ! grid scale chemical species
-REAL , DIMENSION(D%NIT,D%NKT,I_KCH1):: SHAL_ZCH1TEN  ! chemical convective tendency
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZTTEN  ! convective temperat. tendency (K/s)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZRVTEN ! convective r_v tendency (1/s)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZRCTEN ! convective r_c tendency (1/s)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZRITEN ! convective r_i tendency (1/s)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZUTEN  ! convective u tendency (m/s^2)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZVTEN  ! convective m tendency (m/s^2)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZZUMF  ! updraft mass flux   (kg/s m2)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZURV   ! water vapor in updrafts (kg/kg)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT) :: ZURCI  ! total condensate in updrafts (kg/kg)
+INTEGER(KIND=JPIM),  DIMENSION(D%NIT)    :: ICLTOP ! cloud top level (number of model level)
+INTEGER(KIND=JPIM),  DIMENSION(D%NIT)    :: ICLBAS ! cloud base level(number of model level)
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT,I_KCH1):: SHAL_ZCH1     ! grid scale chemical species
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT,I_KCH1):: SHAL_ZCH1TEN  ! chemical convective tendency
 ! special for shallow convection
-REAL , DIMENSION(D%NIT,D%NKT,I_KCH1) :: SHAL_ZCH1TENS
-INTEGER,  DIMENSION(D%NIT)   :: ICLBASS, ICLTOPS
+REAL(KIND=JPRB) , DIMENSION(D%NIT,D%NKT,I_KCH1) :: SHAL_ZCH1TENS
+INTEGER(KIND=JPIM),  DIMENSION(D%NIT)   :: ICLBASS, ICLTOPS
 !
 TYPE(CONVPAR_SHAL) :: CVP_SHAL
 !-----------------------------------------------------------------
