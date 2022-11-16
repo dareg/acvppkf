@@ -121,7 +121,7 @@ INTEGER,                      INTENT(IN) :: KICE     ! flag for ice ( 1 = yes,
                                                      !                0 = no ice )
 LOGICAL,                      INTENT(IN) :: OSETTADJ ! logical to set convective
                                                      ! adjustment time by user
-REAL(KIND=JPRB),              INTENT(IN) :: PTADJS   ! user defined adjustment time
+REAL,                         INTENT(IN) :: PTADJS   ! user defined adjustment time
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PTT      ! grid scale temperature at t
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PRVT     ! grid scale water vapor "
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PRCT     ! grid scale r_c  "
@@ -130,7 +130,7 @@ REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PWT      ! grid scale vertical
                                                    ! velocity (m/s)
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PPABST   ! grid scale pressure at t
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(IN) :: PZZ      ! height of model layer (m)
-REAL(KIND=JPRB),DIMENSION(D%NIT),INTENT(IN) :: PTKECLS  ! TKE in the CLS  (m2/s2)
+REAL, DIMENSION(D%NIT),       INTENT(IN) :: PTKECLS  ! TKE in the CLS  (m2/s2)
 !
 REAL, DIMENSION(D%NIT,D%NKT), INTENT(INOUT):: PTTEN  ! convective temperature
                                                    ! tendency (K/s)

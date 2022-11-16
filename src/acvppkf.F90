@@ -72,6 +72,7 @@ USE MODD_CONVPAR_SHAL, ONLY : CONVPAR_SHAL
 USE MODD_CST, ONLY: CST_T
 USE MODD_DIMPHYEX, ONLY: DIMPHYEX_t
 USE MODD_NSV, ONLY: NSV_T
+USE MODD_SHALLOW_CONVECTION
 !-----------------------------------------------------------------
 
 IMPLICIT NONE
@@ -180,7 +181,6 @@ TYPE(CONVPAR_SHAL) :: CVP_SHAL
 
 #include "fcttrm.func.h"
 #include "wrscmr.intfb.h"
-#include "shallow_convection.h"
 
 !-----------------------------------------------------------------
 IF (LHOOK) CALL DR_HOOK('ACVPPKF',0,ZHOOK_HANDLE)

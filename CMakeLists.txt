@@ -34,6 +34,7 @@ set(SRC
 	src/modd_dimphyexn.F90
 	src/modd_nsv.F90
 	src/modd_parameters.F90
+	src/modd_shallow_convection.F90
 	src/model_physics_mf_mod.F90
 	src/parkind1.F90
 	src/posnam.F90

@@ -33,6 +33,7 @@ copy_if_different $SRC/modd_dimphyexn.F90                                    src
 copy_if_different $SRC/modd_nsv.F90                                          src/local/mpa/micro/module/modd_nsv.F90
 copy_if_different $SRC/shallow_convection.F90                                src/local/mpa/conv/internals/shallow_convection.F90
 copy_if_different $SRC/shallow_convection.h                                  src/local/mpa/conv/internals/shallow_convection.h
+copy_if_different $SRC/modd_shallow_convection.F90                           src/local/mpa/conv/internals/modd_shallow_convection.F90
 copy_if_different $SRC/shallow_convection_compute.F90                        src/local/mpa/conv/internals/shallow_convection_compute.F90
 copy_if_different $SRC/shallow_convection_compute.h                          src/local/mpa/conv/internals/shallow_convection_compute.h
 copy_if_different $SRC/shallow_convection_select.F90                         src/local/mpa/conv/internals/shallow_convection_select.F90
